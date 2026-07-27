@@ -45,8 +45,7 @@ var SAMPLE_ONION_RECORD = ncasn.OnionV3{
 func TestOnionRecordFromDomain(t *testing.T) {
 	record, err := ncasn.OnionRecordFromDomain(SAMPLE_ONION)
 	if err != nil {
-		t.Logf("err != nil: %s", err.Error())
-		t.FailNow()
+		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	if !slices.Equal(record.Bytes, SAMPLE_ONION_RECORD.Bytes) {

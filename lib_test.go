@@ -120,8 +120,7 @@ func TestNameOmission(t *testing.T) {
 
 	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil})
 	if err != nil {
-		t.Logf("err != nil: %s", err.Error())
-		t.FailNow()
+		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	reader := asn1.NewBitReader(encoded, false)
@@ -130,16 +129,14 @@ func TestNameOmission(t *testing.T) {
 	var zone ncasn.ParsingPlaceholder
 	err = uper.UnmarshalValue(reader, reflect.ValueOf(&zone).Elem(), asn1.FieldOptions{})
 	if err != nil {
-		t.Logf("err != nil: %s", err.Error())
-		t.FailNow()
+		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	for i := range records {
 		var record ncasn.Record
 		err = uper.UnmarshalValue(reader, reflect.ValueOf(&record).Elem(), asn1.FieldOptions{})
 		if err != nil {
-			t.Logf("err != nil: %s", err.Error())
-			t.FailNow()
+			t.Fatalf("err != nil: %s", err.Error())
 		}
 
 		lhsNil := record.Name == nil
@@ -166,20 +163,17 @@ func TestNameAddition(t *testing.T) {
 
 	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil})
 	if err != nil {
-		t.Logf("err != nil: %s", err.Error())
-		t.FailNow()
+		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	decoded, err := ncasn.UnmarshalRecords(encoded)
 	if err != nil {
-		t.Logf("err != nil: %s", err.Error())
-		t.FailNow()
+		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	for i, decodedRecord := range decoded.Records {
 		if decodedRecord.Name == nil {
-			t.Logf("Nil name at %d", i)
-			t.FailNow()
+			t.Fatalf("Nil name at %d", i)
 		}
 
 		if *decodedRecord.Name != *records[i].Name {
@@ -200,14 +194,12 @@ func TestRecordCount(t *testing.T) {
 
 	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil})
 	if err != nil {
-		t.Logf("err != nil: %s", err.Error())
-		t.FailNow()
+		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	decoded, err := ncasn.UnmarshalRecords(encoded)
 	if err != nil {
-		t.Logf("err != nil: %s", err.Error())
-		t.FailNow()
+		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	sampleLen := len(records)

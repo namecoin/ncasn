@@ -55,8 +55,7 @@ var SAMPLE_HYPHA = ncasn.HyphanetUSK{
 func TestUSKRecordFromKey(t *testing.T) {
 	data, err := ncasn.USKRecordFromKey(SAMPLE_USK)
 	if err != nil {
-		t.Logf("err != nil: %s", err.Error())
-		t.FailNow()
+		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	if !slices.Equal(data.KeyHash, SAMPLE_HYPHA.KeyHash) {

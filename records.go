@@ -101,6 +101,15 @@ type I2PB32 struct {
 	Bytes []byte `asn1:"size:32"`
 }
 
+// https://i2p.net/en/docs/overview/naming/#extended-base32-names
+type I2PEB32 struct {
+	PublicSigType  uint8 `asn1:"size:0..31"` // "Don't expect 2-byte sigtypes to ever happen, we're only up to 13. No need to implement now."
+	BlindedSigType uint8 `asn1:"size:0..31"`
+	Secret         bool
+	ClientAuth     bool
+	Key            []byte `asn1:"size:32"` // More may be required for some SigTypes?
+}
+
 type HyphanetUSK struct {
 	KeyHash []byte `asn1:"size:32"`
 	Key     []byte `asn1:"size:32"`

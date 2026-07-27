@@ -40,10 +40,13 @@ var SAMPLE_I2P_RECORD = ncasn.I2PB32{
 }
 
 func TestI2pRecordFromDomain(t *testing.T) {
-	record, err := ncasn.I2pRecordFromDomain(SAMPLE_I2P)
+	record, extended, err := ncasn.I2pRecordFromDomain(SAMPLE_I2P)
+	if extended != nil {
+		t.Fatal("Domain recognized as EB32.")
+	}
+
 	if err != nil {
-		t.Logf("err != nil: %s", err.Error())
-		t.FailNow()
+		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	if !slices.Equal(record.Bytes, SAMPLE_I2P_RECORD.Bytes) {
@@ -55,5 +58,62 @@ func TestI2pDomainFromRecord(t *testing.T) {
 	domain := SAMPLE_I2P_RECORD.ToDomain()
 	if domain != SAMPLE_I2P {
 		t.Errorf("domain != sample: %s != %s", domain, SAMPLE_I2P)
+	}
+}
+
+const SAMPLE_EB32 = "t34mzpdaws3ljqsodjj737iysfxagsr45m2ao43vlzi3h6nqj2ehd2ri.b32.i2p"
+
+var SAMPLE_EB32_RECORD = ncasn.I2PEB32{
+	PublicSigType:  7,
+	BlindedSigType: 11,
+	Secret:         false,
+	ClientAuth:     false,
+	Key: []byte{
+		0xbc, 0x60, 0xb4, 0xb6,
+		0xb4, 0xc2, 0x4e, 0x1a,
+		0x53, 0xfd, 0xfd, 0x18,
+		0x91, 0x6e, 0x03, 0x4a,
+		0x3c, 0xeb, 0x34, 0x07,
+		0x73, 0x75, 0x5e, 0x51,
+		0xb3, 0xf9, 0xb0, 0x4e,
+		0x88, 0x71, 0xea, 0x28,
+	},
+}
+
+func TestI2pEB32RecordFromDomain(t *testing.T) {
+	old, extended, err := ncasn.I2pRecordFromDomain(SAMPLE_EB32)
+	if old != nil {
+		t.Fatal("Domain recognized as B32.")
+	}
+
+	if err != nil {
+		t.Fatalf("err != nil: %s", err.Error())
+	}
+
+	if extended.Secret != SAMPLE_EB32_RECORD.Secret {
+		t.Error("Secret != sample")
+	}
+
+	if extended.ClientAuth != SAMPLE_EB32_RECORD.ClientAuth {
+		t.Error("ClientAuth != sample")
+	}
+
+	if extended.PublicSigType != SAMPLE_EB32_RECORD.PublicSigType {
+		t.Error("PublicSigType != sample")
+	}
+
+	if extended.BlindedSigType != SAMPLE_EB32_RECORD.BlindedSigType {
+		t.Error("BlindedSigType != sample")
+	}
+
+	if !slices.Equal(extended.Key, SAMPLE_EB32_RECORD.Key) {
+		t.Error("Key != sample")
+	}
+}
+
+func TestI2pEB32RecordToDomain(t *testing.T) {
+	addr := SAMPLE_EB32_RECORD.ToDomain()
+	if addr != SAMPLE_EB32 {
+		t.Errorf("Domain != sample: %s != %s", addr, SAMPLE_EB32)
 	}
 }
