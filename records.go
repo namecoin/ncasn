@@ -52,11 +52,6 @@ type TLSA struct {
 	AssociationData TlsaUnion
 }
 
-type CoordinateSecond struct {
-	Numerator   uint8  `asn1:"size:0..63"`
-	Denominator *uint8 `asn1:"optional,size:0..127"`
-}
-
 type LOC struct {
 	DegreesLat  int8  `asn1:"size:-90..90"`
 	DegreesLong int16 `asn1:"size:-180..180"`
@@ -64,8 +59,9 @@ type LOC struct {
 	MinutesLat  *uint8 `asn1:"optional,size:0..60"`
 	MinutesLong *uint8 `asn1:"optional,size:0..60"`
 
-	SecondsLat  *CoordinateSecond `asn1:"optional"`
-	SecondsLong *CoordinateSecond `asn1:"optional"`
+	// Both should be divided by 1000 before use.
+	SecondsLat  *uint16 `asn1:"optional,size:0..59999"`
+	SecondsLong *uint16 `asn1:"optional,size:0..59999"`
 
 	// Roughly from the bottom of the Kola Superdeep Borehole SG-3 to geosynchronous orbit, with the maximum increased so that the width of the interval is the next smallest power of 2.
 	// If someone needs a wider interval than that, they surely have the budget to figure something out.
