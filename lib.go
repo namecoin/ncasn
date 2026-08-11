@@ -28,22 +28,23 @@ import (
 )
 
 type RecordUnion struct {
-	A       *A       `asn1:"choice:0"`
-	AAAA    *AAAA    `asn1:"choice:1"`
-	Srv     *SRV     `asn1:"choice:2"`
-	Ds      *DS      `asn1:"choice:3"`
-	Txt     *TXT     `asn1:"choice:4"`
-	Tlsa    *TLSA    `asn1:"choice:5"`
-	Loc     *LOC     `asn1:"choice:6"`
-	Mx      *MX      `asn1:"choice:7"`
-	Sshfp   *SSHFP   `asn1:"choice:8"`
+	A     *A     `asn1:"choice:0"`
+	AAAA  *AAAA  `asn1:"choice:1"`
+	Srv   *SRV   `asn1:"choice:2"`
+	Ds    *DS    `asn1:"choice:3"`
+	Txt   *TXT   `asn1:"choice:4"`
+	Tlsa  *TLSA  `asn1:"choice:5"`
+	Loc   *LOC   `asn1:"choice:6"`
+	Mx    *MX    `asn1:"choice:7"`
+	Sshfp *SSHFP `asn1:"choice:8"`
 	// This is analogous to a DNS ALIAS record, Namecoin's aliases are analogous to DNS CNAME records, which can be specified in Generic instead.
 	Alias   *string  `asn1:"choice:9,ia5string,size:0..255"`
 	Onion   *OnionV3 `asn1:"choice:10"`
 	I2p     *I2PB32  `asn1:"choice:11"`
-	Generic *Generic `asn1:"choice:12"`
-	Import  *string  `asn1:"choice:13,ia5string,size:3..63"`
-	Ipns    *IPNS    `asn1:"choice:14"`
+	I2pLs2  *I2PEB32 `asn1:"choice:12"`
+	Generic *Generic `asn1:"choice:13"`
+	Import  *string  `asn1:"choice:14,ia5string,size:3..63"`
+	Ipns    *IPNS    `asn1:"choice:15"`
 }
 
 // This is used in order to avoid manually handling data before Zone.Records, Zone cannot be (un)marshalled directly due to relying on consuming all data to determine the length of Zone.Records, which go-asn cannot do.
