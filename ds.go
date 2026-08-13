@@ -43,3 +43,13 @@ var DS_KEY_ALGOS = []uint8{
 func (record *DS) GetKeyAlgorithm() uint8 {
 	return DS_KEY_ALGOS[record.AlgorithmIndex]
 }
+
+func GetKeyAlgorithmIndex(id uint8) int8 {
+	for idx, algo := range DS_KEY_ALGOS {
+		if algo == id {
+			return int8(idx)
+		}
+	}
+
+	return -1
+}
