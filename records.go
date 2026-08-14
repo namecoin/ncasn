@@ -123,3 +123,8 @@ type Generic struct {
 	Type   uint16 `asn1:"size:0..65535"`
 	Target string `asn1:"ia5string,size:0..255"`
 }
+
+type Import struct {
+	Name      string  `asn1:"ia5string,size:3..63"`
+	Subdomain *string `asn1:"optional,ia5string,size:0..249"`
+}

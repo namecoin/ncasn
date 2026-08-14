@@ -43,7 +43,7 @@ type RecordUnion struct {
 	I2p      *I2PB32      `asn1:"choice:11"`
 	I2pLs2   *I2PEB32     `asn1:"choice:12"`
 	Generic  *Generic     `asn1:"choice:13"`
-	Import   *string      `asn1:"choice:14,ia5string,size:3..63"`
+	Import   *Import      `asn1:"choice:14"`
 	Ipns     *IPNS        `asn1:"choice:15"`
 	Hyphanet *HyphanetUSK `asn1:"choice:16"`
 }
