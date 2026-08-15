@@ -24,7 +24,7 @@ import (
 	"github.com/sofia-nep/ncasn"
 )
 
-const SAMPLE_USK = "USK@5hH~39FtjA7A9~VXWtBKI~prUDTuJZURudDG0xFn3KA,GDgRGt5f6xqbmo-WraQtU54x4H~871Sho9Hz6hC-0RA,AQACAAE/Search/17"
+const SAMPLE_USK = "USK@5hH~39FtjA7A9~VXWtBKI~prUDTuJZURudDG0xFn3KA,GDgRGt5f6xqbmo-WraQtU54x4H~871Sho9Hz6hC-0RA,AQACAAE/Search/17/"
 
 var SAMPLE_HYPHA = ncasn.HyphanetUSK{
 	KeyHash: []byte{

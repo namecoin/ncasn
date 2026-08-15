@@ -29,7 +29,7 @@ var HYPHA_ENCODING = base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm
 
 func (record *HyphanetUSK) ToKey() string {
 	return fmt.Sprintf(
-		"USK@%s,%s,%s/%s/%d",
+		"USK@%s,%s,%s/%s/%d/",
 		HYPHA_ENCODING.EncodeToString(record.KeyHash),
 		HYPHA_ENCODING.EncodeToString(record.Key),
 		HYPHA_ENCODING.EncodeToString(record.Extra),
@@ -46,7 +46,8 @@ func USKRecordFromKey(key string) (*HyphanetUSK, error) {
 
 	slashSeparated := strings.Split(key, "/")
 
-	if len(slashSeparated) != 3 {
+	// Trailing slash
+	if len(slashSeparated) != 4 {
 		return nil, errors.New("Hyphanet key must have 3 slash-separated sections.")
 	}
 
