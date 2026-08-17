@@ -52,25 +52,24 @@ type TLSA struct {
 	AssociationData TlsaUnion
 }
 
+type LocExponent struct {
+	Base       uint8 `asn1:"size:0..9"`
+	PowerOfTen uint8 `asn1:"size:0..9"`
+}
+
+// Lat and Long are expressed as arc milliseconds, this matches the DNS wire format and should be more efficient than
+// encoding degrees/minutes/seconds individually when seconds are included.
 type LOC struct {
-	DegreesLat  int8  `asn1:"size:-90..90"`
-	DegreesLong int16 `asn1:"size:-180..180"`
-
-	MinutesLat  *uint8 `asn1:"optional,size:0..60"`
-	MinutesLong *uint8 `asn1:"optional,size:0..60"`
-
-	// Both should be divided by 1000 before use.
-	SecondsLat  *uint16 `asn1:"optional,size:0..59999"`
-	SecondsLong *uint16 `asn1:"optional,size:0..59999"`
+	Lat  uint32 `asn1:"size:0..4294967185"`
+	Long uint32 `asn1:"size:0..4294967185"`
 
 	// Roughly from the bottom of the Kola Superdeep Borehole SG-3 to geosynchronous orbit, with the maximum increased so that the width of the interval is the next smallest power of 2.
 	// If someone needs a wider interval than that, they surely have the budget to figure something out.
 	Altitude int32 `asn1:"size:-12000..53535"`
 
-	// From the spec, then rounded up to the next smallest power of 2.
-	Size                *uint32 `asn1:"optional,size:0..134217727"`
-	HorizontalPrecision *uint32 `asn1:"optional,size:0..134217727"`
-	VerticalPrecision   *uint32 `asn1:"optional,size:0..134217727"`
+	Size                *LocExponent `asn1:"optional"`
+	HorizontalPrecision *LocExponent `asn1:"optional"`
+	VerticalPrecision   *LocExponent `asn1:"optional"`
 }
 
 type MX struct {
