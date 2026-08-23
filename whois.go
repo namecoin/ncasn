@@ -26,5 +26,5 @@ type WhoisFields struct {
 
 type Whois struct {
 	Fields *WhoisFields `asn1:"choice:0"`
-	Entity *string      `asn1:"choice:1"`
+	Entity *string      `asn1:"choice:1,ia5string,size:0..255"`
 }
