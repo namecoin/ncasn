@@ -21,7 +21,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sofia-nep/ncasn"
+	"github.com/namecoin/ncasn"
 )
 
 const SAMPLE_IPNS = "k51qzi5uqu5dl965cvc69wz19638leinzz9yj931iuang4w7cax0nmnf3e9osc"

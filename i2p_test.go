@@ -21,7 +21,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sofia-nep/ncasn"
+	"github.com/namecoin/ncasn"
 )
 
 const SAMPLE_I2P = "ukeu3k5oycgaauneqgtnvselmt4yemvoilkln7jpvamvfx7dnkdq.b32.i2p"

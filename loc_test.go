@@ -20,7 +20,7 @@ package ncasn_test
 import (
 	"testing"
 
-	"github.com/sofia-nep/ncasn"
+	"github.com/namecoin/ncasn"
 )
 
 const LOC_DEFAULTS = "42 21 54 N 71 06 18 W -24m"

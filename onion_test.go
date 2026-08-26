@@ -21,7 +21,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sofia-nep/ncasn"
+	"github.com/namecoin/ncasn"
 )
 
 const SAMPLE_ONION = "rw6nbpjrmcpdxszn3air4bt7t75rpz4cp3c2kbdu72ptua57tzvin4id.onion"

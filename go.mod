@@ -1,4 +1,4 @@
-module github.com/sofia-nep/ncasn
+module github.com/namecoin/ncasn
 
 go 1.26.3
 

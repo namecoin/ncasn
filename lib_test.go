@@ -24,7 +24,7 @@ import (
 
 	"github.com/namecoin/go-asn/asn1"
 	"github.com/namecoin/go-asn/uper"
-	"github.com/sofia-nep/ncasn"
+	"github.com/namecoin/ncasn"
 )
 
 var SAMPLE_AAAA = ncasn.AAAA{
