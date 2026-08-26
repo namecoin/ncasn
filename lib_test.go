@@ -22,8 +22,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sofia-nep/go-asn/asn1"
-	"github.com/sofia-nep/go-asn/uper"
+	"github.com/namecoin/go-asn/asn1"
+	"github.com/namecoin/go-asn/uper"
 	"github.com/sofia-nep/ncasn"
 )
 
