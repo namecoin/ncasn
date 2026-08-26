@@ -27,8 +27,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/sofia-nep/ncasn"
-	"github.com/sofia-nep/ncasn/benchmark/util"
+	"github.com/namecoin/ncasn"
+	"github.com/namecoin/ncasn/benchmark/util"
 )
 
 func parseSrv(name *string, value any) ([]ncasn.Record, error) {

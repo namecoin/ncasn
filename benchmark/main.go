@@ -23,10 +23,10 @@ import (
 	"os"
 	"slices"
 
-	"github.com/sofia-nep/ncasn"
-	"github.com/sofia-nep/ncasn/benchmark/blockchain"
-	"github.com/sofia-nep/ncasn/benchmark/util"
-	"github.com/sofia-nep/ncasn/benchmark/zone"
+	"github.com/namecoin/ncasn"
+	"github.com/namecoin/ncasn/benchmark/blockchain"
+	"github.com/namecoin/ncasn/benchmark/util"
+	"github.com/namecoin/ncasn/benchmark/zone"
 )
 
 func main() {

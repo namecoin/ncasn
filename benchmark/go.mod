@@ -1,4 +1,4 @@
-module github.com/sofia-nep/ncasn/benchmark
+module github.com/namecoin/ncasn/benchmark
 
 go 1.26.3
 
@@ -6,7 +6,7 @@ require (
 	github.com/fxamacker/cbor v1.5.1
 	github.com/google/uuid v1.6.0
 	github.com/miekg/dns v1.1.72
-	github.com/sofia-nep/ncasn v0.0.0-20260823014103-e07eea663974
+	github.com/namecoin/ncasn v0.0.0-20260826025700-f89b3ad40ce9
 )
 
 require (
@@ -19,7 +19,7 @@ require (
 	github.com/multiformats/go-multibase v0.3.0 // indirect
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-varint v0.1.0 // indirect
-	github.com/sofia-nep/go-asn v0.0.0-20260617050148-0fd2966b03be // indirect
+	github.com/namecoin/go-asn v0.0.0-20260826022823-767b1c9eb12a // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.53.0 // indirect

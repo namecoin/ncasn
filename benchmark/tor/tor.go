@@ -22,9 +22,9 @@ import (
 	"strings"
 
 	"github.com/miekg/dns"
-	"github.com/sofia-nep/ncasn"
-	"github.com/sofia-nep/ncasn/benchmark/util"
-	"github.com/sofia-nep/ncasn/benchmark/wire"
+	"github.com/namecoin/ncasn"
+	"github.com/namecoin/ncasn/benchmark/util"
+	"github.com/namecoin/ncasn/benchmark/wire"
 )
 
 func RecordsToTor(records []ncasn.Record) (*util.TorRecords, error) {

@@ -25,10 +25,10 @@ github.com/multiformats/go-multihash v0.2.3 h1:7Lyc8XfX/IY2jWb/gI7JP+o7JEq9hOa7B
 github.com/multiformats/go-multihash v0.2.3/go.mod h1:dXgKXCXjBzdscBLk9JkjINiEsCKRVch90MdaGiKsvSM=
 github.com/multiformats/go-varint v0.1.0 h1:i2wqFp4sdl3IcIxfAonHQV9qU5OsZ4Ts9IOoETFs5dI=
 github.com/multiformats/go-varint v0.1.0/go.mod h1:5KVAVXegtfmNQQm/lCY+ATvDzvJJhSkUlGQV9wgObdI=
-github.com/sofia-nep/go-asn v0.0.0-20260617050148-0fd2966b03be h1:j8JwKQOp7TVY+L/k6uPQoCkr/D23+xqRdoBaXDYrm4E=
-github.com/sofia-nep/go-asn v0.0.0-20260617050148-0fd2966b03be/go.mod h1:5dYL+2hoTne8F/p78Fw8yVNu+TZ0rcBvH3p0swYiwuI=
-github.com/sofia-nep/ncasn v0.0.0-20260823014103-e07eea663974 h1:vGi2KINph7jQ6jWwJ/naNbOHgC/M5kxdChDUrbES8Tw=
-github.com/sofia-nep/ncasn v0.0.0-20260823014103-e07eea663974/go.mod h1:Cu53634GmF6OFRzxuJx4K5s502sMdq8veWUnvZZYxiI=
+github.com/namecoin/go-asn v0.0.0-20260826022823-767b1c9eb12a h1:u2LGH+SV/+7vPRsWdKZ1Eo5u8KCzdpJ7U1+jqhKvFrg=
+github.com/namecoin/go-asn v0.0.0-20260826022823-767b1c9eb12a/go.mod h1:cDU2gmroCLdYUU77YAyM2SvTj+V19uCxybwt/8U8GHw=
+github.com/namecoin/ncasn v0.0.0-20260826025700-f89b3ad40ce9 h1:HEznY7qxC/rZVN608PCBrPqGD3SsY1aprPZVurAzy90=
+github.com/namecoin/ncasn v0.0.0-20260826025700-f89b3ad40ce9/go.mod h1:2YmXAi9p8YKTnw1Cy59KfaUKvOB4vncrRKv0HQvLVNM=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=

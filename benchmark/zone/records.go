@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sofia-nep/ncasn"
+	"github.com/namecoin/ncasn"
 )
 
 func parseSrv(fields []string) (*ncasn.RecordUnion, error) {

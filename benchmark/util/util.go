@@ -22,7 +22,7 @@ import (
 	"unicode"
 
 	"github.com/miekg/dns"
-	"github.com/sofia-nep/ncasn"
+	"github.com/namecoin/ncasn"
 )
 
 func IsAscii(str string) bool {

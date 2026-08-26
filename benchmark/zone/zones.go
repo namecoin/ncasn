@@ -30,11 +30,11 @@ import (
 	"strings"
 
 	"github.com/miekg/dns"
-	"github.com/sofia-nep/ncasn"
-	"github.com/sofia-nep/ncasn/benchmark/cbor"
-	"github.com/sofia-nep/ncasn/benchmark/tor"
-	"github.com/sofia-nep/ncasn/benchmark/util"
-	"github.com/sofia-nep/ncasn/benchmark/wire"
+	"github.com/namecoin/ncasn"
+	"github.com/namecoin/ncasn/benchmark/cbor"
+	"github.com/namecoin/ncasn/benchmark/tor"
+	"github.com/namecoin/ncasn/benchmark/util"
+	"github.com/namecoin/ncasn/benchmark/wire"
 )
 
 // Both may be nil if the record is ignored

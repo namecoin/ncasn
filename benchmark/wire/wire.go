@@ -25,8 +25,8 @@ import (
 	"unsafe"
 
 	"github.com/miekg/dns"
-	"github.com/sofia-nep/ncasn"
-	"github.com/sofia-nep/ncasn/benchmark/util"
+	"github.com/namecoin/ncasn"
+	"github.com/namecoin/ncasn/benchmark/util"
 )
 
 func domainToWire(domain string) []byte {

@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/miekg/dns"
-	"github.com/sofia-nep/ncasn"
+	"github.com/namecoin/ncasn"
 )
 
 func notDns(union *ncasn.RecordUnion) bool {
