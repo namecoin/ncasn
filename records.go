@@ -55,11 +55,11 @@ type TLSA struct {
 // Lat and Long are expressed as milliarcseconds, this matches the DNS wire format and should be more efficient than
 // encoding degrees/minutes/seconds individually when seconds are included.
 type LOC struct {
-	Lat  uint32 `asn1:"size:0..4294967185"`
-	Long uint32 `asn1:"size:0..4294967185"`
+	Lat  uint32 `asn1:"size:0..4294967295"`
+	Long uint32 `asn1:"size:0..4294967295"`
 
 	// Centimeters, 0 refers to -100000m.
-	Altitude uint32 `asn1:"size:0..4294967185"`
+	Altitude uint32 `asn1:"size:0..4294967295"`
 
 	Size *LOCExponent `asn1:"optional"`
 	// Must be nil if Size is nil
@@ -106,7 +106,8 @@ type HyphanetUSK struct {
 	Key     []byte `asn1:"size:32"`
 	Extra   []byte `asn1:"size:5"`
 	Name    string `asn1:"utf8string,size:1..512"`
-	Edition int64  `asn1:"size:-9223372036854775808..9223372036854775807"`
+	// Not quite the entire int64 range, to prevent the mixed radix base from overflowing uint64
+	Edition int64 `asn1:"size:-9223372036854775807..9223372036854775807"`
 }
 
 type IPNS struct {
