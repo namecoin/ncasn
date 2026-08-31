@@ -18,10 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package ncasn
 
 type WhoisFields struct {
-	Registrant  *string `asn1:"ia5string,size:0..255"`
-	Registrar   *string `asn1:"ia5string,size:0..255"`
-	AdmContact  *string `asn1:"ia5string,size:0..255"`
-	TechContact *string `asn1:"ia5string,size:0..255"`
+	Registrant  *string `asn1:"optional,ia5string,size:1..255"`
+	Registrar   *string `asn1:"optional,ia5string,size:1..255"`
+	AdmContact  *string `asn1:"optional,ia5string,size:1..255"`
+	TechContact *string `asn1:"optional,ia5string,size:1..255"`
 }
 
 type Whois struct {
