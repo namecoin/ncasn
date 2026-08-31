@@ -18,7 +18,7 @@ These numbers are subject to change (hopefully improve!) as the format is update
 
 ```
 Format: Size ratio | Record coverage | Record count
-JSON: 4.28 | 1.00 | 233598
+JSON: 4.23 | 1.00 | 233598
 Tor: 1.77 | 0.89 | 207121
 CBOR: 1.20 | 0.98 | 228794
 ```
