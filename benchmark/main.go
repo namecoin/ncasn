@@ -139,7 +139,8 @@ func runComparison(zone *util.Zone) (*Results, error) {
 	}
 
 	jsonResult := Result{
-		Ratio: float64(len(zone.Json)) / float64(len(jsonUper)),
+		// + 1 to account for an extra byte used for schema versioning, see #4
+		Ratio: float64(len(zone.Json)) / float64(len(jsonUper)+1),
 		Count: total,
 	}
 
@@ -157,7 +158,8 @@ func runComparison(zone *util.Zone) (*Results, error) {
 		}
 
 		cborResult = Result{
-			Ratio: float64(len(zone.Cbor.Data)) / float64(len(cborUper)),
+			// + 1 to account for an extra byte used for schema versioning, see #4
+			Ratio: float64(len(zone.Cbor.Data)) / float64(len(cborUper)+1),
 			Count: len(cborCopy),
 		}
 	}
