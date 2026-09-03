@@ -283,7 +283,7 @@ func benchmark() {
 
 	fmt.Println("Benchmark results:")
 	fmt.Println("Format: Size ratio | Record coverage | Record count")
-	fmt.Printf("JSON: %.2f | %.2f | %d\n", final.Json.Ratio, final.Json.Coverage, final.Json.Count)
-	fmt.Printf("Tor: %.2f | %.2f | %d\n", final.Tor.Ratio, final.Tor.Coverage, final.Tor.Count)
-	fmt.Printf("CBOR: %.2f | %.2f | %d\n", final.Cbor.Ratio, final.Cbor.Coverage, final.Cbor.Count)
+	fmt.Printf("JSON: %.5f | %.2f | %d\n", final.Json.Ratio, final.Json.Coverage, final.Json.Count)
+	fmt.Printf("Tor: %.5f | %.2f | %d\n", final.Tor.Ratio, final.Tor.Coverage, final.Tor.Count)
+	fmt.Printf("CBOR: %.5f | %.2f | %d\n", final.Cbor.Ratio, final.Cbor.Coverage, final.Cbor.Count)
 }

@@ -19,7 +19,7 @@ These numbers are subject to change (hopefully improve!) as the format is update
 Blockchain data were obtained with a minimum block height of 0 and maximum of 840795.
 ```
 Format: Size ratio | Record coverage | Record count
-JSON: 3.87 | 1.00 | 233598
-Tor: 1.77 | 0.89 | 207121
-CBOR: 1.09 | 0.98 | 228794
+JSON: 3.86681 | 1.00 | 233598
+Tor: 1.77079 | 0.89 | 207121
+CBOR: 1.09209 | 0.98 | 228794
 ```
