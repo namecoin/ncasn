@@ -16,6 +16,7 @@ Some (hopefully reasonable) assumptions had to be made in order to achieve good 
 
 These numbers are subject to change (hopefully improve!) as the format is updated and the benchmark may have to be tweaked, but the following comparisons to different formats can currently be made (as a ratio with our storage usage as the denominator):
 
+Blockchain data were obtained with a minimum block height of 0 and maximum of 840795.
 ```
 Format: Size ratio | Record coverage | Record count
 JSON: 3.87 | 1.00 | 233598

@@ -33,8 +33,9 @@ import (
 )
 
 type Name struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name   string  `json:"name"`
+	Value  string  `json:"value"`
+	Height float64 `json:"height,omitempty"`
 }
 
 type Response struct {
@@ -90,8 +91,8 @@ func ScanNames(prev *string, cookie string) ([]byte, error) {
 	return runHttp("name_scan", params, cookie, "1.0")
 }
 
-func expandNames(names []Name, cookie string) ([]Name, error) {
-	copy := make([]Name, 0, len(names))
+func expandNames(names []Name, cookie string, minHeight *uint64, maxHeight *uint64) ([]Name, error) {
+	copy := []Name{}
 	for _, name := range names {
 		body, err := runHttp("name_history", []any{name.Name}, cookie, "2.0")
 		if err != nil {
@@ -104,6 +105,22 @@ func expandNames(names []Name, cookie string) ([]Name, error) {
 			return nil, err
 		}
 
+		resp.Result = slices.DeleteFunc(resp.Result, func(name Name) bool {
+			if minHeight != nil && uint64(name.Height) < *minHeight {
+				return true
+			}
+
+			if maxHeight != nil && uint64(name.Height) > *maxHeight {
+				return true
+			}
+
+			return false
+		})
+
+		for i := range resp.Result {
+			resp.Result[i].Height = 0
+		}
+
 		// Deduplicate values
 		slices.SortFunc(resp.Result, func(a Name, b Name) int { return cmp.Compare(a.Value, b.Value) })
 		dedup := slices.Compact(resp.Result)
@@ -114,7 +131,7 @@ func expandNames(names []Name, cookie string) ([]Name, error) {
 	return copy, nil
 }
 
-func ProcessBody(body []byte, out *os.File, cookie string, first bool) (*string, error) {
+func ProcessBody(body []byte, out *os.File, cookie string, first bool, minHeight *uint64, maxHeight *uint64) (*string, error) {
 	var response Response
 	err := json.Unmarshal(body, &response)
 	if err != nil {
@@ -136,7 +153,7 @@ func ProcessBody(body []byte, out *os.File, cookie string, first bool) (*string,
 
 	last := &response.Result[len(response.Result)-1].Name
 
-	expanded, err := expandNames(response.Result, cookie)
+	expanded, err := expandNames(response.Result, cookie, minHeight, maxHeight)
 	if err != nil {
 		return nil, err
 	}

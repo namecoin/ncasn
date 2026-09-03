@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strconv"
 
 	"github.com/namecoin/ncasn"
 	"github.com/namecoin/ncasn/benchmark/blockchain"
@@ -51,7 +52,8 @@ func main() {
 }
 
 func collectNmc() error {
-	if len(os.Args) < 4 {
+	argLen := len(os.Args)
+	if argLen < 4 {
 		return errors.New("Not enough arguments")
 	}
 
@@ -72,12 +74,30 @@ func collectNmc() error {
 
 	var next *string
 	for {
+		var minHeight *uint64
+		var maxHeight *uint64
+		if argLen > 4 {
+			tmpMin, err := strconv.ParseUint(os.Args[4], 10, 64)
+			if err != nil {
+				return fmt.Errorf("Invalid min height: %s", err.Error())
+			}
+			minHeight = &tmpMin
+
+			if argLen > 5 {
+				tmpMax, err := strconv.ParseUint(os.Args[5], 10, 64)
+				if err != nil {
+					return fmt.Errorf("Invalid max height: %s", err.Error())
+				}
+				maxHeight = &tmpMax
+			}
+		}
+
 		body, err := blockchain.ScanNames(next, *cookie)
 		if err != nil {
 			return err
 		}
 
-		next, err = blockchain.ProcessBody(body, output, *cookie, next == nil)
+		next, err = blockchain.ProcessBody(body, output, *cookie, next == nil, minHeight, maxHeight)
 		if err != nil {
 			return err
 		}
@@ -88,9 +108,15 @@ func collectNmc() error {
 	}
 
 	// Remove last comma
-	_, err = output.Seek(-1, 1)
+	curr, err := output.Seek(0, 1)
 	if err != nil {
 		return err
+	}
+	if curr != 1 {
+		_, err = output.Seek(-1, 1)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = output.WriteString("]")
