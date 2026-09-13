@@ -71,7 +71,7 @@ func parseTypeOrSlice[E any](value any) ([]E, error) {
 	}
 }
 
-func handleField(key string, value any, name string) ([]ncasn.Record, error) {
+func handleField(key string, value any, name string, skipped *int) ([]ncasn.Record, error) {
 	var ret []ncasn.Record
 	switch key {
 	case "map":
@@ -117,7 +117,7 @@ func handleField(key string, value any, name string) ([]ncasn.Record, error) {
 					} else {
 						relName = kMap + "." + name
 					}
-					nested, err := handleField(kNested, vNested, relName)
+					nested, err := handleField(kNested, vNested, relName, skipped)
 					if err == nil {
 						ret = append(ret, nested...)
 					} else {
@@ -265,7 +265,7 @@ func handleField(key string, value any, name string) ([]ncasn.Record, error) {
 
 		ret = append(ret, parsed...)
 	case "ds":
-		parsed, err := parseDs(&name, value)
+		parsed, err := parseDs(&name, value, skipped)
 		if err != nil {
 			return nil, err
 		}
@@ -313,15 +313,13 @@ func handleField(key string, value any, name string) ([]ncasn.Record, error) {
 		}
 
 		for _, elem := range arr {
-			parsed, err := parseTlsaRecord(&name, elem)
+			parsed, err := parseTlsaRecord(&name, elem, skipped)
 			if err != nil {
 				fmt.Println("Failed to parse TLSA record:", err.Error())
 				continue
 			}
 
-			if parsed != nil {
-				ret = append(ret, *parsed)
-			}
+			ret = append(ret, *parsed)
 		}
 	case "loc":
 		records, err := parseTypeOrSlice[string](value)
@@ -358,6 +356,7 @@ func handleField(key string, value any, name string) ([]ncasn.Record, error) {
 			}
 
 			if *algo < 4 {
+				*skipped++
 				fmt.Println("Unsupported SSHFP algorithm:", *algo)
 				continue
 			}
@@ -371,6 +370,7 @@ func handleField(key string, value any, name string) ([]ncasn.Record, error) {
 			}
 
 			if *digestType != 2 {
+				*skipped++
 				fmt.Println("Non-SHA-256 SSHFP digest algorithm:", *digestType)
 				continue
 			}
@@ -389,6 +389,7 @@ func handleField(key string, value any, name string) ([]ncasn.Record, error) {
 
 			length = len(bytes)
 			if length != 32 {
+				*skipped++
 				fmt.Println("Invalid SSHFP SHA-256 length:", length)
 				continue
 			}
@@ -643,7 +644,13 @@ func parseWhois(value any) *ncasn.Whois {
 	return whois
 }
 
-func jsonToUper(data *Name) (*ncasn.Zone, error) {
+type zoneWithCoverage struct {
+	Zone    *ncasn.Zone
+	Total   int
+	Skipped int
+}
+
+func jsonToUper(data *Name) (*zoneWithCoverage, error) {
 	parser := json.NewDecoder(bytes.NewReader([]byte(data.Value)))
 	parser.UseNumber()
 
@@ -655,18 +662,20 @@ func jsonToUper(data *Name) (*ncasn.Zone, error) {
 
 	var ret []ncasn.Record
 	var zone ncasn.Zone
+	var coverage zoneWithCoverage
 	for key, value := range parsed {
 		if key == "info" {
 			zone.Info = parseWhois(value)
 			continue
 		}
 
-		record, err := handleField(key, value, "")
+		record, err := handleField(key, value, "", &coverage.Skipped)
 		if err != nil {
 			fmt.Printf("Error while parsing %s for %s: %s\n", key, data.Name, err.Error())
 			continue
 		}
 
+		coverage.Total += len(record)
 		ret = append(ret, record...)
 	}
 
@@ -677,7 +686,8 @@ func jsonToUper(data *Name) (*ncasn.Zone, error) {
 	ret = applySuppression(ret)
 
 	zone.Records = ret
-	return &zone, nil
+	coverage.Zone = &zone
+	return &coverage, nil
 }
 
 func combine(zone *ncasn.Zone, json *Name) (*util.Zone, error) {
@@ -727,9 +737,12 @@ func JsonFileToUper(file string) ([]util.Zone, error) {
 		}
 
 		if zone != nil {
-			merged, err := combine(zone, &name)
+			merged, err := combine(zone.Zone, &name)
 			if err != nil {
 				return nil, err
+			}
+			if zone.Total != 0 {
+				merged.Coverage = float64(zone.Total-zone.Skipped) / float64(zone.Total)
 			}
 
 			ret = append(ret, *merged)

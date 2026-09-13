@@ -248,6 +248,21 @@ func weightedAverage(results []Results) Results {
 	return Results{Json: &jsonResult, Tor: &torResult, Cbor: &cborResult}
 }
 
+func printZoneCoverage(fromFiles []util.Zone, fromChain []util.Zone) {
+	fileAcc := float64(0)
+	for _, zone := range fromFiles {
+		fileAcc += zone.Coverage
+	}
+
+	fmt.Printf("Zone file coverage: %.2f\n", fileAcc/float64(len(fromFiles)))
+
+	chainAcc := float64(0)
+	for _, zone := range fromChain {
+		chainAcc += zone.Coverage
+	}
+	fmt.Printf("Blockchain coverage: %.2f\n", chainAcc/float64(len(fromChain)))
+}
+
 func benchmark() {
 	if len(os.Args) < 4 {
 		fmt.Fprintln(os.Stderr, "Insufficient arguments")
@@ -280,6 +295,8 @@ func benchmark() {
 	}
 
 	final := weightedAverage(results)
+
+	printZoneCoverage(zones, fromChain)
 
 	fmt.Println("Benchmark results:")
 	fmt.Println("Format: Size ratio | Record coverage | Record count")

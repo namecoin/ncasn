@@ -109,7 +109,7 @@ func parseSrv(name *string, value any) ([]ncasn.Record, error) {
 	return ret, nil
 }
 
-func parseDs(name *string, value any) ([]ncasn.Record, error) {
+func parseDs(name *string, value any, skipped *int) ([]ncasn.Record, error) {
 	typeOf := reflect.TypeOf(value)
 	if typeOf == nil {
 		return nil, errors.New("Nil value")
@@ -143,6 +143,7 @@ func parseDs(name *string, value any) ([]ncasn.Record, error) {
 		}
 
 		if !slices.Contains(ncasn.DS_KEY_ALGOS, *algo) {
+			*skipped++
 			fmt.Println("Unsupported ds key algorithm:", *algo)
 			continue
 		}
@@ -153,6 +154,7 @@ func parseDs(name *string, value any) ([]ncasn.Record, error) {
 		}
 
 		if !slices.Contains(ncasn.DS_DIGEST_TYPES, *digestType) {
+			*skipped++
 			fmt.Println("Unsupported ds digest type:", *digestType)
 			continue
 		}
@@ -359,7 +361,7 @@ func parseUint16(value any) (*uint16, error) {
 	return &cast, nil
 }
 
-func parseTlsaRecord(name *string, value []any) (*ncasn.Record, error) {
+func parseTlsaRecord(name *string, value []any, skipped *int) (*ncasn.Record, error) {
 	length := len(value)
 	if length < 4 {
 		return nil, errors.New("Too few values for a TLSA record")
@@ -371,6 +373,7 @@ func parseTlsaRecord(name *string, value []any) (*ncasn.Record, error) {
 	}
 
 	if *usage != 2 {
+		*skipped++
 		return nil, fmt.Errorf("Unsupported TLSA certificate usage: %d", *usage)
 	}
 
@@ -380,6 +383,7 @@ func parseTlsaRecord(name *string, value []any) (*ncasn.Record, error) {
 	}
 
 	if *selector > 1 {
+		*skipped++
 		return nil, fmt.Errorf("Unsupported TLSA selector: %d", *selector)
 	}
 
@@ -433,6 +437,7 @@ func parseTlsaRecord(name *string, value []any) (*ncasn.Record, error) {
 			Unassigned1: &data,
 		}
 	default:
+		*skipped++
 		return nil, fmt.Errorf("Unsupported TLSA matching type: %d", *matchingType)
 	}
 

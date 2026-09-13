@@ -411,6 +411,8 @@ func readZone(filePath string) (*util.Zone, error) {
 	// Primarily used to handle RFC 3597
 	parser := dns.NewZoneParser(fd, "", filePath)
 	record, ok := parser.Next()
+	n := 0
+	nParsed := 0
 	for ok {
 		raw := record.String()
 		parsed, err := ParseRecord(raw, true)
@@ -419,9 +421,11 @@ func readZone(filePath string) (*util.Zone, error) {
 		}
 
 		if parsed != nil {
+			nParsed++
 			records = append(records, *parsed)
 		}
 
+		n++
 		record, ok = parser.Next()
 	}
 
@@ -430,7 +434,13 @@ func readZone(filePath string) (*util.Zone, error) {
 		return nil, err
 	}
 
-	return zoneFromRecords(records)
+	ret, err := zoneFromRecords(records)
+	if err != nil {
+		return nil, err
+	}
+
+	ret.Coverage = float64(nParsed) / float64(n)
+	return ret, nil
 }
 
 func ReadZones(dir string) ([]util.Zone, error) {
