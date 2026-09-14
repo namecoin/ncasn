@@ -22,14 +22,13 @@ import (
 )
 
 var DS_DIGEST_TYPES = []uint8{
-	2, 4, 7, 8,
+	2, 4, 7,
 }
 
 type DsDigestUnion struct {
 	Sha256      *[]byte `asn1:"choice:0,size:32"`
 	Sha384      *[]byte `asn1:"choice:1,size:48"`
 	Unassigned7 *[]byte `asn1:"choice:2,size:32..64"`
-	Unassigned8 *[]byte `asn1:"choice:3,size:32..64"`
 }
 
 func (digest *DsDigestUnion) GetType() uint8 {

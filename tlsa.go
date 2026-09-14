@@ -23,7 +23,6 @@ type TlsaUnion struct {
 	Sha256      *[]byte `asn1:"choice:0,size:32"`
 	Sha512      *[]byte `asn1:"choice:1,size:64"`
 	Unassigned0 *[]byte `asn1:"choice:2,size:32..64"`
-	Unassigned1 *[]byte `asn1:"choice:3,size:32..64"`
 }
 
 func (union *TlsaUnion) GetMatchingType() uint8 {
