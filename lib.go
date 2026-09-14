@@ -206,7 +206,8 @@ func MarshalRecords(zone Zone) ([]byte, error) {
 	}
 
 	var lastName *string
-	for _, elem := range zone.Records {
+	for i := range zone.Records {
+		elem := &zone.Records[i]
 		if lastName != nil && *elem.Name == *lastName {
 			elem.Name = nil
 		} else {
