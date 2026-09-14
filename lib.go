@@ -20,6 +20,7 @@ package ncasn
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"reflect"
 	"slices"
 
@@ -78,36 +79,21 @@ func PostProcessIpv6(records []Record) {
 }
 
 func UnmarshalRecords(data []byte) (*Zone, error) {
-	reader := asn1.NewBitReader(data, false)
+	num := new(big.Int).SetBytes(data)
 
 	extraData := ParsingPlaceholder{}
-	err := uper.UnmarshalValue(reader, reflect.ValueOf(&extraData).Elem(), asn1.FieldOptions{})
+	err := uper.UnmarshalValue(num, reflect.ValueOf(&extraData).Elem(), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	ret := []Record{}
+	zero := big.NewInt(0)
 	var lastName *string
-	for reader.RemainingBits() > 0 {
+	for num.Cmp(zero) == 1 {
 		tmp := Record{}
-		readerCopy := *reader
-		err = uper.UnmarshalValue(reader, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
+		err = uper.UnmarshalValue(num, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
 		if err != nil {
-			// Check if the error is caused by unused trailing bits, ignore it and jump out of the loop if so.
-			if readerCopy.RemainingBits() < 8 {
-				remaining, err := readerCopy.ReadBits(readerCopy.RemainingBits())
-				if err != nil {
-					return nil, err
-				}
-
-				if remaining != 0 {
-					return nil, fmt.Errorf("Unaccounted for bits: %x", remaining)
-				}
-
-				// Cannot be a meaningful record, so it must just be the zero padding of the last byte.
-				break
-			}
-
 			return nil, err
 		}
 		if tmp.Name == nil {
@@ -209,9 +195,12 @@ func MarshalRecords(zone Zone) ([]byte, error) {
 	}
 
 	PreProcessIpv6(zone.Records)
-	writer := asn1.NewBitWriter(false)
+	num := &asn1.MixedRadixNumber{
+		Value: new(big.Int),
+		Base:  big.NewInt(1),
+	}
 
-	err = uper.MarshalValue(writer, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
+	err = uper.MarshalValue(num, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -223,13 +212,13 @@ func MarshalRecords(zone Zone) ([]byte, error) {
 		} else {
 			lastName = elem.Name
 		}
-		err = uper.MarshalValue(writer, reflect.ValueOf(elem), asn1.FieldOptions{})
+		err = uper.MarshalValue(num, reflect.ValueOf(elem), asn1.FieldOptions{})
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return writer.Bytes(), nil
+	return num.Value.Bytes(), nil
 }
 
 func GetChoice(ref reflect.Value) uint8 {

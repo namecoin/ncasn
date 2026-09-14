@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package ncasn_test
 
 import (
+	"math/big"
 	"reflect"
 	"slices"
 	"testing"
@@ -123,18 +124,18 @@ func TestNameOmission(t *testing.T) {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
 
-	reader := asn1.NewBitReader(encoded, false)
+	num := new(big.Int).SetBytes(encoded)
 
 	// Skip data
 	var zone ncasn.ParsingPlaceholder
-	err = uper.UnmarshalValue(reader, reflect.ValueOf(&zone).Elem(), asn1.FieldOptions{})
+	err = uper.UnmarshalValue(num, reflect.ValueOf(&zone).Elem(), asn1.FieldOptions{})
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	for i := range records {
 		var record ncasn.Record
-		err = uper.UnmarshalValue(reader, reflect.ValueOf(&record).Elem(), asn1.FieldOptions{})
+		err = uper.UnmarshalValue(num, reflect.ValueOf(&record).Elem(), asn1.FieldOptions{})
 		if err != nil {
 			t.Fatalf("err != nil: %s", err.Error())
 		}
