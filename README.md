@@ -16,10 +16,13 @@ Some (hopefully reasonable) assumptions had to be made in order to achieve good 
 
 These numbers are subject to change (hopefully improve!) as the format is updated and the benchmark may have to be tweaked, but the following comparisons to different formats can currently be made (as a ratio with our storage usage as the denominator):
 
-Blockchain data were obtained with a minimum block height of 0 and maximum of 840795.
+Blockchain data were obtained with a minimum block height of 0 and maximum of 840795. Zone/blockchain coverage ratios refer to the exclusion of records based on the aforementioned assumptions.
 ```
+Zone file coverage: 0.29
+Blockchain coverage: 1.00
+Benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.86681 | 1.00 | 233598
-Tor: 1.77079 | 0.89 | 207121
-CBOR: 1.09209 | 0.98 | 228794
+JSON: 4.13304 | 1.00 | 233598
+Tor: 1.87311 | 0.89 | 207121
+CBOR: 1.16038 | 0.98 | 228794
 ```
