@@ -6,7 +6,7 @@ require (
 	github.com/ipfs/go-cid v0.6.2
 	github.com/multiformats/go-multibase v0.3.0
 	github.com/multiformats/go-multihash v0.2.3
-	github.com/namecoin/go-asn v0.0.0-20260914183307-89718437f608
+	github.com/namecoin/go-asn v0.0.0-20260915005502-daee22862765
 )
 
 require (

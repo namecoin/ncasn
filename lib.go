@@ -25,7 +25,7 @@ import (
 	"slices"
 
 	"github.com/namecoin/go-asn/asn1"
-	"github.com/namecoin/go-asn/uper"
+	"github.com/namecoin/go-asn/mixedradix"
 )
 
 type RecordUnion struct {
@@ -82,7 +82,7 @@ func UnmarshalRecords(data []byte) (*Zone, error) {
 	num := new(big.Int).SetBytes(data)
 
 	extraData := ParsingPlaceholder{}
-	err := uper.UnmarshalValue(num, reflect.ValueOf(&extraData).Elem(), asn1.FieldOptions{})
+	err := mixedradix.UnmarshalValue(num, reflect.ValueOf(&extraData).Elem(), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func UnmarshalRecords(data []byte) (*Zone, error) {
 	var lastName *string
 	for num.Cmp(zero) == 1 {
 		tmp := Record{}
-		err = uper.UnmarshalValue(num, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
+		err = mixedradix.UnmarshalValue(num, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -200,7 +200,7 @@ func MarshalRecords(zone Zone) ([]byte, error) {
 		Base:  big.NewInt(1),
 	}
 
-	err = uper.MarshalValue(num, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
+	err = mixedradix.MarshalValue(num, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func MarshalRecords(zone Zone) ([]byte, error) {
 		} else {
 			lastName = elem.Name
 		}
-		err = uper.MarshalValue(num, reflect.ValueOf(elem), asn1.FieldOptions{})
+		err = mixedradix.MarshalValue(num, reflect.ValueOf(elem), asn1.FieldOptions{})
 		if err != nil {
 			return nil, err
 		}

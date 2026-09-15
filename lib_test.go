@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/namecoin/go-asn/asn1"
-	"github.com/namecoin/go-asn/uper"
+	"github.com/namecoin/go-asn/mixedradix"
 	"github.com/namecoin/ncasn"
 )
 
@@ -128,14 +128,14 @@ func TestNameOmission(t *testing.T) {
 
 	// Skip data
 	var zone ncasn.ParsingPlaceholder
-	err = uper.UnmarshalValue(num, reflect.ValueOf(&zone).Elem(), asn1.FieldOptions{})
+	err = mixedradix.UnmarshalValue(num, reflect.ValueOf(&zone).Elem(), asn1.FieldOptions{})
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
 
 	for i := range records {
 		var record ncasn.Record
-		err = uper.UnmarshalValue(num, reflect.ValueOf(&record).Elem(), asn1.FieldOptions{})
+		err = mixedradix.UnmarshalValue(num, reflect.ValueOf(&record).Elem(), asn1.FieldOptions{})
 		if err != nil {
 			t.Fatalf("err != nil: %s", err.Error())
 		}
