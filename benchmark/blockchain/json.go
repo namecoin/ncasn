@@ -281,7 +281,8 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 
 		ret = append(ret, parsed...)
 	case "txt":
-		if name == "_dnslink" {
+		switch name {
+		case "_dnslink":
 			str, ok := value.(string)
 			if !ok {
 				return nil, errors.New("dnslink TXT record is not a string")
@@ -307,7 +308,24 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 					Ipns: ipns,
 				},
 			})
-		} else {
+		case "_tor":
+			str, ok := value.(string)
+			if !ok {
+				return nil, errors.New("Tor TXT record is not a string")
+			}
+
+			record, err := ncasn.OnionRecordFromDomain(str)
+			if err != nil {
+				return nil, err
+			}
+
+			ret = append(ret, ncasn.Record{
+				Name: &name,
+				RecordData: ncasn.RecordUnion{
+					Onion: record,
+				},
+			})
+		default:
 			parsed, err := parseTxt(&name, value)
 			if err != nil {
 				return nil, fmt.Errorf("Failed to parse TXT record: %s", err.Error())
