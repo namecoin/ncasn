@@ -124,15 +124,6 @@ func parseDs(fields []string) (*ncasn.RecordUnion, error) {
 			AlgorithmIndex: uint8(ncasn.GetKeyAlgorithmIndex(uint8(algorithm))),
 			Digest:         ncasn.DsDigestUnion{Unassigned7: &bytes},
 		}}, nil
-	case 8:
-		if length < 32 || length > 64 {
-			return nil, fmt.Errorf("Invalid digest length %d for type 8", length)
-		}
-		return &ncasn.RecordUnion{Ds: &ncasn.DS{
-			KeyTag:         uint16(keyTag),
-			AlgorithmIndex: uint8(ncasn.GetKeyAlgorithmIndex(uint8(algorithm))),
-			Digest:         ncasn.DsDigestUnion{Unassigned8: &bytes},
-		}}, nil
 	}
 
 	return nil, fmt.Errorf("Unsupported digest type %d", digestType)

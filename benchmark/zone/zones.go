@@ -216,8 +216,6 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 			digest = *digestUnion.Sha384
 		case digestUnion.Unassigned7 != nil:
 			digest = *digestUnion.Unassigned7
-		case digestUnion.Unassigned8 != nil:
-			digest = *digestUnion.Unassigned8
 		}
 
 		obj["ds"] = append(dsCast,
@@ -253,8 +251,6 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 			bytes = *data.Sha512
 		case data.Unassigned0 != nil:
 			bytes = *data.Unassigned0
-		case data.Unassigned1 != nil:
-			bytes = *data.Unassigned1
 		}
 
 		// 2 = DANE-TA

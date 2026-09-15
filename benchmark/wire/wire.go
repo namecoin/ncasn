@@ -67,8 +67,6 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 			digest = *record.Ds.Digest.Sha384
 		case record.Ds.Digest.Unassigned7 != nil:
 			digest = *record.Ds.Digest.Unassigned7
-		case record.Ds.Digest.Unassigned8 != nil:
-			digest = *record.Ds.Digest.Unassigned8
 		}
 
 		bytes = append(bytes, digest...)
@@ -95,8 +93,6 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 			data = *dataUnion.Sha512
 		case dataUnion.Unassigned0 != nil:
 			data = *dataUnion.Unassigned0
-		case dataUnion.Unassigned1 != nil:
-			data = *dataUnion.Unassigned1
 		}
 
 		return append(bytes, data...)

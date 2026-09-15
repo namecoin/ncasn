@@ -192,13 +192,6 @@ func parseDs(name *string, value any, skipped *int) ([]ncasn.Record, error) {
 			union = ncasn.DsDigestUnion{
 				Unassigned7: &bytes,
 			}
-		case 8:
-			if length < 32 || length > 64 {
-				return nil, fmt.Errorf("Unsupported digest length: %d", length)
-			}
-			union = ncasn.DsDigestUnion{
-				Unassigned8: &bytes,
-			}
 		}
 
 		ret = append(ret, ncasn.Record{
@@ -427,14 +420,6 @@ func parseTlsaRecord(name *string, value []any, skipped *int) (*ncasn.Record, er
 
 		union = ncasn.TlsaUnion{
 			Unassigned0: &data,
-		}
-	case 4:
-		if length < 32 || length > 64 {
-			return nil, fmt.Errorf("Unsupported TLSA data length: %d", length)
-		}
-
-		union = ncasn.TlsaUnion{
-			Unassigned1: &data,
 		}
 	default:
 		*skipped++

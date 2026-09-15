@@ -110,7 +110,16 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 					RecordData: union,
 				})
 			case reflect.Map:
-				for kNested, vNested := range vMap.(map[string]any) {
+				cast := vMap.(map[string]any)
+				// Account for nondeterministic map iteration
+				keys := make([]string, 0, len(cast))
+				for key := range cast {
+					keys = append(keys, key)
+				}
+				slices.Sort(keys)
+
+				for _, kNested := range keys {
+					vNested := cast[kNested]
 					var relName string
 					if len(name) == 0 {
 						relName = kMap
@@ -663,7 +672,16 @@ func jsonToUper(data *Name) (*zoneWithCoverage, error) {
 	var ret []ncasn.Record
 	var zone ncasn.Zone
 	var coverage zoneWithCoverage
-	for key, value := range parsed {
+
+	// Account for nondeterministic map iteration
+	keys := make([]string, 0, len(parsed))
+	for key := range parsed {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+
+	for _, key := range keys {
+		value := parsed[key]
 		if key == "info" {
 			zone.Info = parseWhois(value)
 			continue
