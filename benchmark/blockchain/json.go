@@ -659,7 +659,7 @@ type zoneWithCoverage struct {
 	Skipped int
 }
 
-func jsonToUper(data *Name) (*zoneWithCoverage, error) {
+func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 	parser := json.NewDecoder(bytes.NewReader([]byte(data.Value)))
 	parser.UseNumber()
 
@@ -723,7 +723,7 @@ func combine(zone *ncasn.Zone, json *Name) (*util.Zone, error) {
 	return &util.Zone{Zone: zone, Json: json.Value, Cbor: cborEncoded, Tor: torEncoded}, nil
 }
 
-func JsonFileToUper(file string) ([]util.Zone, error) {
+func JsonFileToZones(file string) ([]util.Zone, error) {
 	fd, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -748,7 +748,7 @@ func JsonFileToUper(file string) ([]util.Zone, error) {
 			continue
 		}
 
-		zone, err := jsonToUper(&name)
+		zone, err := jsonToZone(&name)
 		if err != nil {
 			fmt.Printf("Failed to parse %s = %s: %s\n", name.Name, name.Value, err.Error())
 			continue

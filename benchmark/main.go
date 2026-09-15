@@ -136,7 +136,7 @@ type Results struct {
 	Tor  *Result
 }
 
-func runComparison(zone *util.Zone) (*Results, error) {
+func runComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results, error) {
 	cborCopy := []ncasn.Record{}
 	torCopy := []ncasn.Record{}
 	for i := range zone.Zone.Records {
@@ -159,14 +159,14 @@ func runComparison(zone *util.Zone) (*Results, error) {
 
 	total := len(zone.Zone.Records)
 
-	jsonUper, err := ncasn.MarshalRecords(*zone.Zone)
+	jsonEncoded, err := ncasn.MarshalRecords(*zone.Zone, encoding)
 	if err != nil {
 		return nil, err
 	}
 
 	jsonResult := Result{
 		// + 1 to account for an extra byte used for schema versioning, see #4
-		Ratio: float64(len(zone.Json)) / float64(len(jsonUper)+1),
+		Ratio: float64(len(zone.Json)) / float64(len(jsonEncoded)+1),
 		Count: total,
 	}
 
@@ -178,20 +178,20 @@ func runComparison(zone *util.Zone) (*Results, error) {
 	torResult := cborResult
 
 	if len(cborCopy) != 0 {
-		cborUper, err := ncasn.MarshalRecords(cborZone)
+		cborEncoded, err := ncasn.MarshalRecords(cborZone, encoding)
 		if err != nil {
 			return nil, err
 		}
 
 		cborResult = Result{
 			// + 1 to account for an extra byte used for schema versioning, see #4
-			Ratio: float64(len(zone.Cbor.Data)) / float64(len(cborUper)+1),
+			Ratio: float64(len(zone.Cbor.Data)) / float64(len(cborEncoded)+1),
 			Count: len(cborCopy),
 		}
 	}
 
 	if len(torCopy) != 0 {
-		torUper, err := ncasn.MarshalRecords(torZone)
+		torEncoded, err := ncasn.MarshalRecords(torZone, encoding)
 		if err != nil {
 			return nil, err
 		}
@@ -202,7 +202,7 @@ func runComparison(zone *util.Zone) (*Results, error) {
 		}
 
 		torResult = Result{
-			Ratio: float64(torSum) / float64(len(torUper)),
+			Ratio: float64(torSum) / float64(len(torEncoded)),
 			Count: len(torCopy),
 		}
 	}
@@ -263,6 +263,27 @@ func printZoneCoverage(fromFiles []util.Zone, fromChain []util.Zone) {
 	fmt.Printf("Blockchain coverage: %.2f\n", chainAcc/float64(len(fromChain)))
 }
 
+func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType) {
+	var results []Results
+	for _, zone := range zones {
+		result, err := runComparison(&zone, encoding)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+		results = append(results, *result)
+	}
+
+	final := weightedAverage(results)
+
+	fmt.Println(encoding.String(), "benchmark results:")
+	fmt.Println("Format: Size ratio | Record coverage | Record count")
+	fmt.Printf("JSON: %.5f | %.2f | %d\n", final.Json.Ratio, final.Json.Coverage, final.Json.Count)
+	fmt.Printf("Tor: %.5f | %.2f | %d\n", final.Tor.Ratio, final.Tor.Coverage, final.Tor.Count)
+	fmt.Printf("CBOR: %.5f | %.2f | %d\n", final.Cbor.Ratio, final.Cbor.Coverage, final.Cbor.Count)
+}
+
 func benchmark() {
 	if len(os.Args) < 4 {
 		fmt.Fprintln(os.Stderr, "Insufficient arguments")
@@ -275,7 +296,7 @@ func benchmark() {
 		os.Exit(1)
 	}
 
-	fromChain, err := blockchain.JsonFileToUper(os.Args[3])
+	fromChain, err := blockchain.JsonFileToZones(os.Args[3])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
@@ -283,24 +304,11 @@ func benchmark() {
 
 	aggregated := append(zones, fromChain...)
 
-	var results []Results
-	for _, zone := range aggregated {
-		result, err := runComparison(&zone)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			os.Exit(1)
-		}
-
-		results = append(results, *result)
-	}
-
-	final := weightedAverage(results)
-
 	printZoneCoverage(zones, fromChain)
 
-	fmt.Println("Benchmark results:")
-	fmt.Println("Format: Size ratio | Record coverage | Record count")
-	fmt.Printf("JSON: %.5f | %.2f | %d\n", final.Json.Ratio, final.Json.Coverage, final.Json.Count)
-	fmt.Printf("Tor: %.5f | %.2f | %d\n", final.Tor.Ratio, final.Tor.Coverage, final.Tor.Count)
-	fmt.Printf("CBOR: %.5f | %.2f | %d\n", final.Cbor.Ratio, final.Cbor.Coverage, final.Cbor.Count)
+	compareEncoding(aggregated, ncasn.APER)
+	fmt.Println()
+	compareEncoding(aggregated, ncasn.UPER)
+	fmt.Println()
+	compareEncoding(aggregated, ncasn.MixedRadix)
 }

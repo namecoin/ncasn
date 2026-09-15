@@ -1,8 +1,8 @@
-# An ASN.1 Unaligned Packed Encoding Rules encoding for Namecoin data
+# An ASN.1-based encoding library for Namecoin data
 
 ## Usage
 
-An `ncasn.Zone` object represents a single name in the d/ namespace, containing a slice of `ncasn.Record`s as well as WHOIS data. Zones can then be serialized into ASN.1 UPER through `ncasn.MarshalRecords()`. For encoding efficiency, some records make some reasonable assumptions (mainly involving restricting certain insecure record data), which are documented through comments.
+An `ncasn.Zone` object represents a single name in the d/ namespace, containing a slice of `ncasn.Record`s as well as WHOIS data. Zones can then be serialized into ASN.1 UPER, APER, or a custom mixed radix encoding through `ncasn.MarshalRecords()`. For encoding efficiency, some records make some reasonable assumptions (mainly involving restricting certain insecure record data), which are documented through comments.
 
 ## Efficiency
 
@@ -10,7 +10,7 @@ Storage usage was benchmarked against proposed [Tor CAA](https://spec.torproject
 
 ### Caveats
 
-Some (hopefully reasonable) assumptions had to be made in order to achieve good coverage of the data, specifically, some record types had to be encoded in unspecified ways in some formats. For example, IPNS records are encoded as the raw key bytes in CBOR, and textual representations were used in the Tor format. Some record types were still excluded entirely (e.g., Namecoin `import`s), but did not meaningfully affect the results (see below). Additionally, [1 byte is added to the length calculation of UPER data when comparing it to JSON/CBOR](https://github.com/namecoin/ncasn/issues/4), but not when comparing it to the Tor format.
+Some (hopefully reasonable) assumptions had to be made in order to achieve good coverage of the data, specifically, some record types had to be encoded in unspecified ways in some formats. For example, IPNS records are encoded as the raw key bytes in CBOR, and textual representations were used in the Tor format. Some record types were still excluded entirely (e.g., Namecoin `import`s), but did not meaningfully affect the results (see below). Additionally, [1 byte is added to the length calculation of our data when comparing it to JSON/CBOR](https://github.com/namecoin/ncasn/issues/4), but not when comparing it to the Tor format.
 
 ### Results
 
@@ -20,9 +20,21 @@ Blockchain data were obtained with a minimum block height of 0 and maximum of 84
 ```
 Zone file coverage: 0.29
 Blockchain coverage: 1.00
-Benchmark results:
+APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.13304 | 1.00 | 233598
+JSON: 3.74851 | 1.00 | 233598
+Tor: 1.70107 | 0.89 | 207121
+CBOR: 1.05465 | 0.98 | 228794
+
+UPER benchmark results:
+Format: Size ratio | Record coverage | Record count
+JSON: 3.86687 | 1.00 | 233598
+Tor: 1.77079 | 0.89 | 207121
+CBOR: 1.09209 | 0.98 | 228794
+
+Mixed radix benchmark results:
+Format: Size ratio | Record coverage | Record count
+JSON: 4.13310 | 1.00 | 233598
 Tor: 1.87311 | 0.89 | 207121
 CBOR: 1.16038 | 0.98 | 228794
 ```
