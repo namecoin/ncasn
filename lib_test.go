@@ -119,7 +119,7 @@ func TestNameOmission(t *testing.T) {
 		&SAMPLE_NAME0,
 	}
 
-	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil})
+	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil}, ncasn.MixedRadix)
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
@@ -162,12 +162,12 @@ func TestNameAddition(t *testing.T) {
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 	}
 
-	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil})
+	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil}, ncasn.MixedRadix)
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
 
-	decoded, err := ncasn.UnmarshalRecords(encoded)
+	decoded, err := ncasn.UnmarshalRecords(encoded, ncasn.MixedRadix)
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
@@ -193,12 +193,12 @@ func TestRecordCount(t *testing.T) {
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 	}
 
-	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil})
+	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil}, ncasn.MixedRadix)
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
 
-	decoded, err := ncasn.UnmarshalRecords(encoded)
+	decoded, err := ncasn.UnmarshalRecords(encoded, ncasn.MixedRadix)
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}

@@ -24,8 +24,10 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/namecoin/go-asn/aper"
 	"github.com/namecoin/go-asn/asn1"
 	"github.com/namecoin/go-asn/mixedradix"
+	"github.com/namecoin/go-asn/uper"
 )
 
 type RecordUnion struct {
@@ -78,7 +80,104 @@ func PostProcessIpv6(records []Record) {
 	}
 }
 
-func UnmarshalRecords(data []byte) (*Zone, error) {
+type EncodingType uint8
+
+const (
+	MixedRadix EncodingType = iota
+	UPER
+	APER
+)
+
+func (encoding EncodingType) String() string {
+	switch encoding {
+	case MixedRadix:
+		return "Mixed radix"
+	case UPER:
+		return "UPER"
+	case APER:
+		return "APER"
+	}
+
+	return "Invalid"
+}
+
+func (encoding EncodingType) NewReader(data []byte) *asn1.BitReader {
+	return asn1.NewBitReader(data, encoding == APER)
+}
+
+func (encoding EncodingType) NewWriter() *asn1.BitWriter {
+	return asn1.NewBitWriter(encoding == APER)
+}
+
+func (encoding EncodingType) UnmarshalValue(reader *asn1.BitReader, v reflect.Value, opts asn1.FieldOptions) error {
+	if encoding == UPER {
+		return uper.UnmarshalValue(reader, v, opts)
+	}
+
+	return aper.UnmarshalValue(reader, v, opts)
+}
+
+func (encoding EncodingType) MarshalValue(writer *asn1.BitWriter, v reflect.Value, opts asn1.FieldOptions) error {
+	if encoding == UPER {
+		return uper.MarshalValue(writer, v, opts)
+	}
+
+	return aper.MarshalValue(writer, v, opts)
+}
+
+func UnmarshalRecords(data []byte, encoding EncodingType) (*Zone, error) {
+	if encoding == MixedRadix {
+		return unmarshalMixedRadix(data)
+	}
+
+	return unmarshalPacked(data, encoding)
+}
+
+func unmarshalPacked(data []byte, encoding EncodingType) (*Zone, error) {
+	reader := encoding.NewReader(data)
+
+	extraData := ParsingPlaceholder{}
+	err := encoding.UnmarshalValue(reader, reflect.ValueOf(&extraData).Elem(), asn1.FieldOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	ret := []Record{}
+	var lastName *string
+	for reader.RemainingBits() > 0 {
+		tmp := Record{}
+		readerCopy := *reader
+		err = encoding.UnmarshalValue(reader, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
+		if err != nil {
+			// Check if the error is caused by unused trailing bits, ignore it and jump out of the loop if so.
+			if readerCopy.RemainingBits() < 8 {
+				remaining, err := readerCopy.ReadBits(readerCopy.RemainingBits())
+				if err != nil {
+					return nil, err
+				}
+
+				if remaining != 0 {
+					return nil, fmt.Errorf("Unaccounted for bits: %x", remaining)
+				}
+
+				// Cannot be a meaningful record, so it must just be the zero padding of the last byte.
+				break
+			}
+
+			return nil, err
+		}
+		if tmp.Name == nil {
+			tmp.Name = lastName
+		}
+		ret = append(ret, tmp)
+		lastName = tmp.Name
+	}
+
+	PostProcessIpv6(ret)
+	return &Zone{Info: extraData.Info, Records: ret}, nil
+}
+
+func unmarshalMixedRadix(data []byte) (*Zone, error) {
 	num := new(big.Int).SetBytes(data)
 
 	extraData := ParsingPlaceholder{}
@@ -187,7 +286,46 @@ func preValidate(records []Record) error {
 	return nil
 }
 
-func MarshalRecords(zone Zone) ([]byte, error) {
+func MarshalRecords(zone Zone, encoding EncodingType) ([]byte, error) {
+	if encoding == MixedRadix {
+		return marshalMixedRadix(zone)
+	}
+
+	return marshalPacked(zone, encoding)
+}
+
+func marshalPacked(zone Zone, encoding EncodingType) ([]byte, error) {
+	err := preValidate(zone.Records)
+
+	if err != nil {
+		return nil, err
+	}
+
+	PreProcessIpv6(zone.Records)
+	writer := encoding.NewWriter()
+
+	err = encoding.MarshalValue(writer, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var lastName *string
+	for _, elem := range zone.Records {
+		if lastName != nil && *elem.Name == *lastName {
+			elem.Name = nil
+		} else {
+			lastName = elem.Name
+		}
+		err = encoding.MarshalValue(writer, reflect.ValueOf(elem), asn1.FieldOptions{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return writer.Bytes(), nil
+}
+
+func marshalMixedRadix(zone Zone) ([]byte, error) {
 	err := preValidate(zone.Records)
 
 	if err != nil {

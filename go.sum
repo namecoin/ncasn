@@ -19,6 +19,8 @@ github.com/multiformats/go-varint v0.1.0 h1:i2wqFp4sdl3IcIxfAonHQV9qU5OsZ4Ts9IOo
 github.com/multiformats/go-varint v0.1.0/go.mod h1:5KVAVXegtfmNQQm/lCY+ATvDzvJJhSkUlGQV9wgObdI=
 github.com/namecoin/go-asn v0.0.0-20260915005502-daee22862765 h1:TZ45OmgY3BAtIC+nxR/Pphc0R7QXzjecuLzcdTE3H34=
 github.com/namecoin/go-asn v0.0.0-20260915005502-daee22862765/go.mod h1:cDU2gmroCLdYUU77YAyM2SvTj+V19uCxybwt/8U8GHw=
+github.com/namecoin/go-asn v0.0.0-20260915100628-d9061068f58f h1:NVyH5ILCli6nhUklMylnx2R2qFuiED/dI/K03nCaGuA=
+github.com/namecoin/go-asn v0.0.0-20260915100628-d9061068f58f/go.mod h1:cDU2gmroCLdYUU77YAyM2SvTj+V19uCxybwt/8U8GHw=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 golang.org/x/crypto v0.53.0 h1:QZ4Muo8THX6CizN2vPPd5fBGHyogrdK9fG4wLPFUsto=
