@@ -31,7 +31,7 @@ type SRV struct {
 	Priority uint16  `asn1:"size:0..65535"`
 	Weight   *uint16 `asn1:"optional,size:0..65535"`
 	Port     uint16  `asn1:"size:0..65535"`
-	Target   string  `asn1:"ia5string,size:0..255"`
+	Target   string  `asn1:"dnsname,size:0..255"`
 }
 
 type DS struct {
@@ -70,7 +70,7 @@ type LOC struct {
 
 type MX struct {
 	Priority uint16 `asn1:"size:0..65535"`
-	Target   string `asn1:"ia5string,size:0..255"`
+	Target   string `asn1:"dnsname,size:0..255"`
 }
 
 type SSHFP struct {
@@ -121,6 +121,6 @@ type Generic struct {
 }
 
 type Import struct {
-	Name      string  `asn1:"ia5string,size:3..63"`
-	Subdomain *string `asn1:"optional,ia5string,size:0..249"`
+	Name      string  `asn1:"chainname,size:3..63"`
+	Subdomain *string `asn1:"optional,dnsmatcher,size:0..249"`
 }

@@ -41,7 +41,7 @@ type RecordUnion struct {
 	Mx    *MX    `asn1:"choice:7"`
 	Sshfp *SSHFP `asn1:"choice:8"`
 	// This is analogous to a DNS ALIAS record, Namecoin's aliases are analogous to DNS CNAME records, which can be specified in Generic instead.
-	Alias    *string      `asn1:"choice:9,ia5string,size:0..255"`
+	Alias    *string      `asn1:"choice:9,dnsname,size:0..255"`
 	Onion    *OnionV3     `asn1:"choice:10"`
 	I2p      *I2PB32      `asn1:"choice:11"`
 	I2pLs2   *I2PEB32     `asn1:"choice:12"`
@@ -64,7 +64,7 @@ type Zone struct {
 type Record struct {
 	// Relative to the base domain, 249 = 255 - 6 (.x.bit).
 	// Always non-nil after being unmarshalled, the base domain is represented as an empty string. During (un)marshalling, nils are used to refer to the previous entry.
-	Name       *string `asn1:"optional,ia5string,size:0..249"`
+	Name       *string `asn1:"optional,dnsmatcher,size:0..249"`
 	RecordData RecordUnion
 }
 
