@@ -6,8 +6,8 @@ require (
 	github.com/fxamacker/cbor v1.5.1
 	github.com/google/uuid v1.6.0
 	github.com/miekg/dns v1.1.72
-	github.com/namecoin/go-asn v0.0.0-20260916214503-c851cf455a10
-	github.com/namecoin/ncasn v0.0.0-20260916214809-ba07d1dc0772
+	github.com/namecoin/go-asn v0.0.0-20260916224240-e0605e6620b1
+	github.com/namecoin/ncasn v0.0.0-20260916224546-69928c07bd4f
 )
 
 require (
