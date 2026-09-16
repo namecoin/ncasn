@@ -80,7 +80,15 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 			return nil, errors.New("Non-object map value")
 		}
 
-		for kMap, vMap := range cast {
+		keys := make([]string, 0, len(cast))
+		for kMap := range cast {
+			keys = append(keys, kMap)
+		}
+		slices.Sort(keys)
+
+		for _, kMap := range keys {
+			vMap := cast[kMap]
+
 			typeOf := reflect.TypeOf(vMap)
 			if typeOf == nil {
 				fmt.Println("Nil value")
