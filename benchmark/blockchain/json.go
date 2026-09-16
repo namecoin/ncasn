@@ -31,6 +31,7 @@ import (
 	"strings"
 
 	"github.com/miekg/dns"
+	"github.com/namecoin/go-asn/mixedradix"
 	"github.com/namecoin/ncasn"
 	"github.com/namecoin/ncasn/benchmark/cbor"
 	"github.com/namecoin/ncasn/benchmark/tor"
@@ -72,7 +73,7 @@ func parseTypeOrSlice[E any](value any) ([]E, error) {
 }
 
 func handleField(key string, value any, name string, skipped *int) ([]ncasn.Record, error) {
-	var ret []ncasn.Record
+	ret := []ncasn.Record{}
 	switch key {
 	case "map":
 		cast, ok := value.(map[string]any)
@@ -87,6 +88,10 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 		slices.Sort(keys)
 
 		for _, kMap := range keys {
+			if !mixedradix.IsValidDnsMatcher(kMap) {
+				continue
+			}
+
 			vMap := cast[kMap]
 
 			typeOf := reflect.TypeOf(vMap)
@@ -165,6 +170,10 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 					continue
 				}
 
+				if !mixedradix.IsValidChainName(base) {
+					continue
+				}
+
 				var subPtr *string
 				if len(elem) >= 2 {
 					sub, ok := elem[1].(string)
@@ -199,6 +208,11 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 			if len(elem) < 3 || len(elem) > 63 {
 				continue
 			}
+
+			if !mixedradix.IsValidChainName(elem) {
+				continue
+			}
+
 			ret = append(ret, ncasn.Record{
 				Name: &name,
 				RecordData: ncasn.RecordUnion{

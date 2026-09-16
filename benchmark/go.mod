@@ -6,7 +6,8 @@ require (
 	github.com/fxamacker/cbor v1.5.1
 	github.com/google/uuid v1.6.0
 	github.com/miekg/dns v1.1.72
-	github.com/namecoin/ncasn v0.0.0-20260915134336-71e68e535281
+	github.com/namecoin/go-asn v0.0.0-20260916214503-c851cf455a10
+	github.com/namecoin/ncasn v0.0.0-20260916214809-ba07d1dc0772
 )
 
 require (
@@ -19,7 +20,6 @@ require (
 	github.com/multiformats/go-multibase v0.3.0 // indirect
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-varint v0.1.0 // indirect
-	github.com/namecoin/go-asn v0.0.0-20260915100628-d9061068f58f // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.53.0 // indirect

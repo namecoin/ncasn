@@ -27,6 +27,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/namecoin/go-asn/mixedradix"
 	"github.com/namecoin/ncasn"
 	"github.com/namecoin/ncasn/benchmark/util"
 )
@@ -72,7 +73,7 @@ func parseSrv(name *string, value any) ([]ncasn.Record, error) {
 			return nil, errors.New("srv target is not a string")
 		}
 
-		if len(target) > 255 || !util.IsAscii(target) {
+		if len(target) > 255 || !mixedradix.IsValidDnsName(target) {
 			continue
 		}
 
