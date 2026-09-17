@@ -40,7 +40,7 @@ type RecordUnion struct {
 	Loc   *LOC   `asn1:"choice:6"`
 	Mx    *MX    `asn1:"choice:7"`
 	Sshfp *SSHFP `asn1:"choice:8"`
-	// This is analogous to a DNS ALIAS record, Namecoin's aliases are analogous to DNS CNAME records, which can be specified in Generic instead.
+	// This is analogous to a DNS ALIAS record, Namecoin's aliases are analogous to DNS CNAME records.
 	Alias    *string      `asn1:"choice:9,dnsname,size:0..255"`
 	Onion    *OnionV3     `asn1:"choice:10"`
 	I2p      *I2PB32      `asn1:"choice:11"`
@@ -51,6 +51,7 @@ type RecordUnion struct {
 	Hyphanet *HyphanetUSK `asn1:"choice:16"`
 	Cname    *string      `asn1:"choice:17,dnsname,size:0..255"`
 	Ns       *string      `asn1:"choice:18,dnsname,size:0..255"`
+	Dname    *string      `asn1:"choice:19,dnsname,size:0..255"`
 }
 
 // This is used in order to avoid manually handling data before Zone.Records, Zone cannot be (un)marshalled directly due to relying on consuming all data to determine the length of Zone.Records, which go-asn cannot do.
