@@ -61,7 +61,7 @@ func toTor(record *ncasn.RecordUnion) (*string, error) {
 	case record.Generic != nil:
 		data := record.Generic.Target
 		typeOf := record.Generic.Type
-		if (typeOf == dns.TypeNS || typeOf == dns.TypeCNAME || typeOf == dns.TypeDNAME) && !strings.HasSuffix(data, ".") {
+		if typeOf == dns.TypeDNAME && !strings.HasSuffix(data, ".") {
 			data += "."
 		}
 
@@ -81,6 +81,20 @@ func toTor(record *ncasn.RecordUnion) (*string, error) {
 		return &ret, nil
 	case record.Hyphanet != nil:
 		ret := "hypha " + record.Hyphanet.ToKey()
+		return &ret, nil
+	case record.Ns != nil:
+		ret := "ns " + *record.Ns
+		if !strings.HasSuffix(ret, ".") {
+			ret += "."
+		}
+
+		return &ret, nil
+	case record.Cname != nil:
+		ret := "cname " + *record.Cname
+		if !strings.HasSuffix(ret, ".") {
+			ret += "."
+		}
+
 		return &ret, nil
 	case record.Import != nil:
 		fallthrough

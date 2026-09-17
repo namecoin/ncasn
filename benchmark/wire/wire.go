@@ -139,7 +139,7 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 	case record.Generic != nil:
 		data := record.Generic.Target
 		typeOf := record.Generic.Type
-		if (typeOf == dns.TypeNS || typeOf == dns.TypeCNAME || typeOf == dns.TypeDNAME) && !strings.HasSuffix(data, ".") {
+		if typeOf == dns.TypeDNAME && !strings.HasSuffix(data, ".") {
 			data += "."
 		}
 
@@ -201,6 +201,10 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 		return append(ret, domainToWire(record.Srv.Target)...)
 	case record.Mx != nil:
 		return append(binary.BigEndian.AppendUint16(nil, record.Mx.Priority), domainToWire(record.Mx.Target)...)
+	case record.Ns != nil:
+		return domainToWire(*record.Ns)
+	case record.Cname != nil:
+		return domainToWire(*record.Cname)
 	}
 
 	return nil

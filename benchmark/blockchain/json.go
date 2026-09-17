@@ -277,16 +277,15 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 		}
 
 		str := value.(string)
-		if len(str) > 255 || !util.IsAscii(str) {
+		if len(str) > 255 || !mixedradix.IsValidDnsName(str) {
 			break
 		}
 
 		ret = append(ret, ncasn.Record{
 			Name: &name,
-			RecordData: ncasn.RecordUnion{Generic: &ncasn.Generic{
-				Type:   dns.TypeCNAME,
-				Target: str,
-			}},
+			RecordData: ncasn.RecordUnion{
+				Cname: &str,
+			},
 		})
 	case "srv":
 		parsed, err := parseSrv(&name, value)
@@ -537,16 +536,13 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 		}
 
 		for _, record := range records {
-			if len(record) > 255 || !util.IsAscii(record) {
+			if len(record) > 255 || !mixedradix.IsValidDnsName(record) {
 				continue
 			}
 			ret = append(ret, ncasn.Record{
 				Name: &name,
 				RecordData: ncasn.RecordUnion{
-					Generic: &ncasn.Generic{
-						Type:   dns.TypeNS,
-						Target: record,
-					},
+					Ns: &record,
 				},
 			})
 		}

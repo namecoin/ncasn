@@ -145,7 +145,15 @@ func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
 		union = &ncasn.RecordUnion{
 			Sshfp: &ncasn.SSHFP{KeyAlgoIndex: uint8(keyAlgo) - 4, Fingerprint: bytes},
 		}
-	case "CNAME", "HTTPS", "NS":
+	case "NS":
+		union = &ncasn.RecordUnion{
+			Ns: &fields[4],
+		}
+	case "CNAME":
+		union = &ncasn.RecordUnion{
+			Cname: &fields[4],
+		}
+	case "HTTPS":
 		union = &ncasn.RecordUnion{
 			Generic: &ncasn.Generic{Type: dns.StringToType[typeName], Target: strings.Join(fields[4:], " ")},
 		}
@@ -315,14 +323,14 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["import"] = append(cast, subArr)
 	case record.Hyphanet != nil:
 		obj["freenet"] = record.Hyphanet.ToKey()
+	case record.Ns != nil:
+		obj["ns"] = *record.Ns
+	case record.Cname != nil:
+		obj["alias"] = *record.Cname
 	case record.Generic != nil:
 		switch record.Generic.Type {
-		case dns.TypeCNAME:
-			obj["alias"] = record.Generic.Target
 		case dns.TypeDNAME:
 			obj["translate"] = record.Generic.Target
-		case dns.TypeNS:
-			obj["ns"] = record.Generic.Target
 		default: // Unsure if anything in the sample actually reaches this, but it's semantically nice
 			generic, found := obj["o"]
 			var cast [][]any

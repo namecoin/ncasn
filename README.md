@@ -22,19 +22,19 @@ Zone file coverage: 0.29
 Blockchain coverage: 1.00
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.74919 | 1.00 | 233565
-Tor: 1.70137 | 0.89 | 207094
-CBOR: 1.05467 | 0.98 | 228766
+JSON: 3.85605 | 1.00 | 227790
+Tor: 1.75505 | 0.88 | 201319
+CBOR: 1.30747 | 0.99 | 225812
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.86754 | 1.00 | 233565
-Tor: 1.77111 | 0.89 | 207094
-CBOR: 1.09210 | 0.98 | 228766
+JSON: 3.97955 | 1.00 | 227790
+Tor: 1.82832 | 0.88 | 201319
+CBOR: 1.35163 | 0.99 | 225812
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.29901 | 1.00 | 233565
-Tor: 1.91002 | 0.89 | 207094
-CBOR: 1.21861 | 0.98 | 228766
+JSON: 4.52082 | 1.00 | 227790
+Tor: 2.04756 | 0.88 | 201319
+CBOR: 1.55704 | 0.99 | 225812
 ```

@@ -67,7 +67,7 @@ func suppressNs(records []ncasn.Record) []ncasn.Record {
 	ns := []ncasn.Record{}
 
 	for _, record := range records {
-		if record.RecordData.Generic != nil && record.RecordData.Generic.Type == dns.TypeNS {
+		if record.RecordData.Ns != nil {
 			ns = append(ns, record)
 		}
 	}
@@ -79,7 +79,7 @@ func suppressNs(records []ncasn.Record) []ncasn.Record {
 		case higherLevel(&record, ns):
 			ret = append(ret, record)
 		case sameLevel(&record, ns):
-			if (record.RecordData.Generic != nil && record.RecordData.Generic.Type == dns.TypeNS) || record.RecordData.Ds != nil {
+			if record.RecordData.Ns != nil || record.RecordData.Ds != nil {
 				ret = append(ret, record)
 			}
 		case isGlue(&record, ns):
@@ -119,7 +119,7 @@ func suppressCname(records []ncasn.Record) []ncasn.Record {
 	var ret []ncasn.Record
 
 	for _, record := range records {
-		if record.RecordData.Generic != nil && record.RecordData.Generic.Type == dns.TypeCNAME {
+		if record.RecordData.Cname != nil {
 			cname = append(cname, record)
 		}
 	}
@@ -130,7 +130,7 @@ func suppressCname(records []ncasn.Record) []ncasn.Record {
 			fallthrough
 		case !sameLevel(&record, cname):
 			fallthrough
-		case record.RecordData.Generic != nil && record.RecordData.Generic.Type == dns.TypeCNAME:
+		case record.RecordData.Cname != nil:
 			ret = append(ret, record)
 		}
 	}
