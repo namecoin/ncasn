@@ -49,6 +49,8 @@ type RecordUnion struct {
 	Import   *Import      `asn1:"choice:14"`
 	Ipns     *IPNS        `asn1:"choice:15"`
 	Hyphanet *HyphanetUSK `asn1:"choice:16"`
+	Cname    *string      `asn1:"choice:17,dnsname,size:0..255"`
+	Ns       *string      `asn1:"choice:18,dnsname,size:0..255"`
 }
 
 // This is used in order to avoid manually handling data before Zone.Records, Zone cannot be (un)marshalled directly due to relying on consuming all data to determine the length of Zone.Records, which go-asn cannot do.
