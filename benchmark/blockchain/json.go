@@ -516,17 +516,14 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 			return nil, errors.New("translate field is not a string")
 		}
 
-		if len(str) > 255 || !util.IsAscii(str) {
+		if len(str) > 255 || !mixedradix.IsValidDnsName(str) {
 			break
 		}
 
 		ret = append(ret, ncasn.Record{
 			Name: &name,
 			RecordData: ncasn.RecordUnion{
-				Generic: &ncasn.Generic{
-					Type:   dns.TypeDNAME,
-					Target: str,
-				},
+				Dname: &str,
 			},
 		})
 	case "ns", "dns":

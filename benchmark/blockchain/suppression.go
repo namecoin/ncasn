@@ -20,7 +20,6 @@ package blockchain
 import (
 	"strings"
 
-	"github.com/miekg/dns"
 	"github.com/namecoin/ncasn"
 )
 
@@ -95,7 +94,7 @@ func suppressDname(records []ncasn.Record) []ncasn.Record {
 	var ret []ncasn.Record
 
 	for _, record := range records {
-		if record.RecordData.Generic != nil && record.RecordData.Generic.Type == dns.TypeDNAME {
+		if record.RecordData.Dname != nil {
 			dname = append(dname, record)
 		}
 	}
@@ -106,7 +105,7 @@ func suppressDname(records []ncasn.Record) []ncasn.Record {
 			fallthrough
 		case higherLevel(&record, dname):
 			fallthrough
-		case sameLevel(&record, dname) && record.RecordData.Generic != nil && record.RecordData.Generic.Type == dns.TypeDNAME:
+		case sameLevel(&record, dname) && record.RecordData.Dname != nil:
 			ret = append(ret, record)
 		}
 	}

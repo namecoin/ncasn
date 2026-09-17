@@ -138,10 +138,6 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 		return append(bytes, record.Sshfp.Fingerprint...)
 	case record.Generic != nil:
 		data := record.Generic.Target
-		typeOf := record.Generic.Type
-		if typeOf == dns.TypeDNAME && !strings.HasSuffix(data, ".") {
-			data += "."
-		}
 
 		// Parsing the record contents alone is not possible...
 		dummy := "example.org. 0 IN " + dns.TypeToString[record.Generic.Type] + " "
@@ -205,6 +201,8 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 		return domainToWire(*record.Ns)
 	case record.Cname != nil:
 		return domainToWire(*record.Cname)
+	case record.Dname != nil:
+		return domainToWire(*record.Dname)
 	}
 
 	return nil

@@ -327,21 +327,19 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["ns"] = *record.Ns
 	case record.Cname != nil:
 		obj["alias"] = *record.Cname
+	case record.Dname != nil:
+		obj["translate"] = *record.Dname
 	case record.Generic != nil:
-		switch record.Generic.Type {
-		case dns.TypeDNAME:
-			obj["translate"] = record.Generic.Target
-		default: // Unsure if anything in the sample actually reaches this, but it's semantically nice
-			generic, found := obj["o"]
-			var cast [][]any
-			if found {
-				cast = generic.([][]any)
-			}
-
-			b64 := base64.StdEncoding.EncodeToString(wire.ToWire(record))
-
-			obj["o"] = append(cast, []any{record.Generic.Type, b64})
+		// Unsure if anything in the sample actually reaches this, but it's semantically nice
+		generic, found := obj["o"]
+		var cast [][]any
+		if found {
+			cast = generic.([][]any)
 		}
+
+		b64 := base64.StdEncoding.EncodeToString(wire.ToWire(record))
+
+		obj["o"] = append(cast, []any{record.Generic.Type, b64})
 	}
 }
 
