@@ -43,7 +43,7 @@ func isGlue(record *ncasn.Record, ns []ncasn.Record) bool {
 	}
 
 	for _, elem := range ns {
-		if elem.RecordData.Generic.Target == *record.Name {
+		if *elem.RecordData.Ns == *record.Name {
 			return true
 		}
 	}
