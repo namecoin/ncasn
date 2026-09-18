@@ -31,6 +31,8 @@ github.com/namecoin/ncasn v0.0.0-20260917003933-7b8613d284c0 h1:FcPGhApOoWkmGdUt
 github.com/namecoin/ncasn v0.0.0-20260917003933-7b8613d284c0/go.mod h1:htd5csCPI86S0QkG8l2WmcaRbKgYV2bAP0VVGBjeZRw=
 github.com/namecoin/ncasn v0.0.0-20260917010030-969c2048f5fe h1:9qFqLaDz8N4DoX96yK/px1qCFp4TFYus8WZShOxNpGY=
 github.com/namecoin/ncasn v0.0.0-20260917010030-969c2048f5fe/go.mod h1:htd5csCPI86S0QkG8l2WmcaRbKgYV2bAP0VVGBjeZRw=
+github.com/namecoin/ncasn v0.0.0-20260918135044-2e40e6ac05da h1:WO4J21dgmvrgzxYSZAd1SCUMc2iGqg0LmMmbVOrbsXk=
+github.com/namecoin/ncasn v0.0.0-20260918135044-2e40e6ac05da/go.mod h1:htd5csCPI86S0QkG8l2WmcaRbKgYV2bAP0VVGBjeZRw=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
