@@ -21,8 +21,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/namecoin/ncasn"
 	"github.com/namecoin/ncasn/benchmark/blockchain"
@@ -263,7 +265,7 @@ func printZoneCoverage(fromFiles []util.Zone, fromChain []util.Zone) {
 	fmt.Printf("Blockchain coverage: %.2f\n", chainAcc/float64(len(fromChain)))
 }
 
-func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType) {
+func compareBin(zones []util.Zone, encoding ncasn.EncodingType) {
 	var results []Results
 	for _, zone := range zones {
 		result, err := runComparison(&zone, encoding)
@@ -276,12 +278,55 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType) {
 	}
 
 	final := weightedAverage(results)
-
-	fmt.Println(encoding.String(), "benchmark results:")
 	fmt.Println("Format: Size ratio | Record coverage | Record count")
 	fmt.Printf("JSON: %.5f | %.2f | %d\n", final.Json.Ratio, final.Json.Coverage, final.Json.Count)
 	fmt.Printf("Tor: %.5f | %.2f | %d\n", final.Tor.Ratio, final.Tor.Coverage, final.Tor.Count)
 	fmt.Printf("CBOR: %.5f | %.2f | %d\n", final.Cbor.Ratio, final.Cbor.Coverage, final.Cbor.Count)
+}
+
+func typesFromRecords(records []ncasn.Record) []string {
+	var ret []string
+
+	for _, record := range records {
+		ref := reflect.ValueOf(record.RecordData)
+		choice := ncasn.GetChoice(ref)
+		ret = append(ret, ref.Type().Field(int(choice)).Name)
+
+		if *record.Name != "" {
+			ret = append(ret, "map")
+		}
+	}
+
+	slices.Sort(ret)
+	return slices.Compact(ret)
+}
+
+func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool) {
+	fmt.Println(encoding.String(), "benchmark results:")
+
+	if !bin {
+		compareBin(zones, encoding)
+		return
+	}
+
+	bins := map[string][]util.Zone{}
+
+	for _, zone := range zones {
+		types := "(" + strings.Join(typesFromRecords(zone.Zone.Records), ", ") + ")"
+		bins[types] = append(bins[types], zone)
+	}
+
+	keys := make([]string, 0, len(bins))
+	for k := range bins {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+
+	for _, k := range keys {
+		bin := bins[k]
+		fmt.Println("Bin", k)
+		compareBin(bin, encoding)
+	}
 }
 
 func benchmark() {
@@ -302,13 +347,18 @@ func benchmark() {
 		os.Exit(1)
 	}
 
+	bin := false
+	if len(os.Args) > 4 && os.Args[4] == "bin" {
+		bin = true
+	}
+
 	aggregated := append(zones, fromChain...)
 
 	printZoneCoverage(zones, fromChain)
 
-	compareEncoding(aggregated, ncasn.APER)
+	compareEncoding(aggregated, ncasn.APER, bin)
 	fmt.Println()
-	compareEncoding(aggregated, ncasn.UPER)
+	compareEncoding(aggregated, ncasn.UPER, bin)
 	fmt.Println()
-	compareEncoding(aggregated, ncasn.MixedRadix)
+	compareEncoding(aggregated, ncasn.MixedRadix, bin)
 }
