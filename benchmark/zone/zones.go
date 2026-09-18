@@ -46,7 +46,7 @@ func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
 	}
 
 	parts := strings.Split(fields[0], ".")
-	subdomain := strings.Join(parts[:len(parts)-2], ".")
+	subdomain := strings.Join(parts[:len(parts)-3], ".")
 	if len(fields) < 5 {
 		return nil, errors.New("Invalid record: no type/data")
 	}
