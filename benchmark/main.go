@@ -290,9 +290,9 @@ func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper i
 	fmt.Printf("CBOR: %.5f | %.2f | %d\n", final.Cbor.Ratio, final.Cbor.Coverage, final.Cbor.Count)
 
 	if aper != -1 {
-		fmt.Printf("APER: %.5f | %.2f | %d\n", float64(final.TypeLen)/float64(aper), 1.0, final.Json.Count)
+		fmt.Printf("APER: %.5f | %.2f | %d\n", float64(aper)/float64(final.TypeLen), 1.0, final.Json.Count)
 		if uper != -1 {
-			fmt.Printf("UPER: %.5f | %.2f | %d\n", float64(final.TypeLen)/float64(uper), 1.0, final.Json.Count)
+			fmt.Printf("UPER: %.5f | %.2f | %d\n", float64(uper)/float64(final.TypeLen), 1.0, final.Json.Count)
 		}
 	}
 
