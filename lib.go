@@ -50,7 +50,7 @@ type RecordUnion struct {
 	Ipns     *IPNS        `asn1:"choice:15"`
 	Hyphanet *HyphanetUSK `asn1:"choice:16"`
 	Cname    *string      `asn1:"choice:17,dnsname,size:0..255"`
-	Ns       *string      `asn1:"choice:18,dnsname,size:0..255"`
+	Ns       *NS          `asn1:"choice:18"`
 	Dname    *string      `asn1:"choice:19,dnsname,size:0..255"`
 }
 
@@ -71,11 +71,9 @@ type Record struct {
 	RecordData RecordUnion
 }
 
-func PostProcessIpv6(records []Record) {
-	for i := range records {
-		data := records[i].RecordData.AAAA
-
-		if data == nil || data.ZeroOffset == nil {
+func PostProcessIpv6(records []*AAAA) {
+	for _, data := range records {
+		if data.ZeroOffset == nil {
 			continue
 		}
 
@@ -136,6 +134,20 @@ func UnmarshalRecords(data []byte, encoding EncodingType) (*Zone, error) {
 	return unmarshalPacked(data, encoding)
 }
 
+func getIpv6(records []Record) []*AAAA {
+	ipv6 := []*AAAA{}
+	for _, record := range records {
+		switch {
+		case record.RecordData.AAAA != nil:
+			ipv6 = append(ipv6, record.RecordData.AAAA)
+		case record.RecordData.Ns != nil && record.RecordData.Ns.Ip != nil && record.RecordData.Ns.Ip.AAAA != nil:
+			ipv6 = append(ipv6, record.RecordData.Ns.Ip.AAAA)
+		}
+	}
+
+	return ipv6
+}
+
 func unmarshalPacked(data []byte, encoding EncodingType) (*Zone, error) {
 	reader := encoding.NewReader(data)
 
@@ -176,7 +188,7 @@ func unmarshalPacked(data []byte, encoding EncodingType) (*Zone, error) {
 		lastName = tmp.Name
 	}
 
-	PostProcessIpv6(ret)
+	PostProcessIpv6(getIpv6(ret))
 	return &Zone{Info: extraData.Info, Records: ret}, nil
 }
 
@@ -205,7 +217,7 @@ func unmarshalMixedRadix(data []byte) (*Zone, error) {
 		lastName = tmp.Name
 	}
 
-	PostProcessIpv6(ret)
+	PostProcessIpv6(getIpv6(ret))
 	return &Zone{Info: extraData.Info, Records: ret}, nil
 }
 
@@ -222,13 +234,8 @@ func countConsecutiveZeroBytes(slice []byte) uint8 {
 	return ret
 }
 
-func PreProcessIpv6(records []Record) {
-	for i := range records {
-		record := records[i].RecordData.AAAA
-		if record == nil {
-			continue
-		}
-
+func PreProcessIpv6(records []*AAAA) {
+	for _, record := range records {
 		oldBytes := record.Bytes
 		oldLength := uint8(len(oldBytes))
 
@@ -304,7 +311,7 @@ func marshalPacked(zone Zone, encoding EncodingType) ([]byte, error) {
 		return nil, err
 	}
 
-	PreProcessIpv6(zone.Records)
+	PreProcessIpv6(getIpv6(zone.Records))
 	writer := encoding.NewWriter()
 
 	err = encoding.MarshalValue(writer, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
@@ -335,7 +342,7 @@ func marshalMixedRadix(zone Zone) ([]byte, error) {
 		return nil, err
 	}
 
-	PreProcessIpv6(zone.Records)
+	PreProcessIpv6(getIpv6(zone.Records))
 	num := &asn1.MixedRadixNumber{
 		Value: new(big.Int),
 		Base:  big.NewInt(1),

@@ -58,7 +58,7 @@ func TestPostProcessIpv6(t *testing.T) {
 		RecordData: ncasn.RecordUnion{AAAA: &sampleCopy},
 	}
 
-	ncasn.PostProcessIpv6([]ncasn.Record{record})
+	ncasn.PostProcessIpv6([]*ncasn.AAAA{record.RecordData.AAAA})
 
 	if !slices.Equal(sampleCopy.Bytes, SAMPLE_AAAA.Bytes) {
 		t.Error("Bytes != sample")
@@ -89,7 +89,7 @@ func TestPreProcessIpv6(t *testing.T) {
 		Name:       &SAMPLE_NAME0,
 		RecordData: ncasn.RecordUnion{AAAA: &sampleCopy},
 	}
-	ncasn.PreProcessIpv6([]ncasn.Record{record})
+	ncasn.PreProcessIpv6([]*ncasn.AAAA{record.RecordData.AAAA})
 
 	if !slices.Equal(sampleCopy.Bytes, SAMPLE_PROCESSED.Bytes) {
 		t.Error("Bytes != sample")

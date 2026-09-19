@@ -124,3 +124,13 @@ type Import struct {
 	Name      string  `asn1:"chainname,size:3..63"`
 	Subdomain *string `asn1:"optional,dnsmatcher,size:0..249"`
 }
+
+type NSIP struct {
+	A    *A    `asn1:"choice:0"`
+	AAAA *AAAA `asn1:"choice:1"`
+}
+
+type NS struct {
+	String *string `asn1:"choice:0,dnsname,size:0..255"`
+	Ip     *NSIP   `asn1:"choice:1"`
+}
