@@ -4,9 +4,9 @@ Blockchain coverage: 1.00
 APER benchmark results:
 Bin (A)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.38674 | 1.00 | 46081
-Tor: 1.91755 | 1.00 | 46081
-CBOR: 1.57346 | 1.00 | 46081
+JSON: 5.38621 | 1.00 | 46078
+Tor: 1.91754 | 1.00 | 46078
+CBOR: 1.57346 | 1.00 | 46078
 
 Bin (A, AAAA)
 Format: Size ratio | Record coverage | Record count
@@ -194,11 +194,17 @@ JSON: 3.44444 | 1.00 | 7034
 Tor: 1.83333 | 0.50 | 3517
 CBOR: 1.37037 | 1.00 | 7034
 
+Bin (A, Import, Tlsa, map)
+Format: Size ratio | Record coverage | Record count
+JSON: 2.78528 | 1.00 | 10
+Tor: 2.10753 | 0.40 | 4
+CBOR: 1.33129 | 1.00 | 10
+
 Bin (A, Import, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 6.15495 | 1.00 | 23
-Tor: 2.12173 | 0.39 | 9
-CBOR: 1.34705 | 1.00 | 23
+JSON: 6.65444 | 1.00 | 15
+Tor: 2.08929 | 0.47 | 7
+CBOR: 1.30533 | 1.00 | 15
 
 Bin (A, Ns, map)
 Format: Size ratio | Record coverage | Record count
@@ -212,11 +218,23 @@ JSON: 2.51786 | 1.00 | 14
 Tor: 2.17582 | 1.00 | 14
 CBOR: 1.22500 | 1.00 | 14
 
+Bin (A, Onion, Tlsa, map)
+Format: Size ratio | Record coverage | Record count
+JSON: 4.76238 | 1.00 | 4
+Tor: 1.98000 | 1.00 | 4
+CBOR: 1.21782 | 1.00 | 4
+
 Bin (A, Onion, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.75753 | 1.00 | 24
-Tor: 1.91797 | 1.00 | 24
-CBOR: 1.20502 | 1.00 | 24
+JSON: 5.52289 | 1.00 | 21
+Tor: 1.92188 | 1.00 | 21
+CBOR: 1.20354 | 1.00 | 21
+
+Bin (A, Tlsa, map)
+Format: Size ratio | Record coverage | Record count
+JSON: 4.51774 | 1.00 | 9
+Tor: 2.15126 | 1.00 | 9
+CBOR: 1.28861 | 1.00 | 9
 
 Bin (A, Txt)
 Format: Size ratio | Record coverage | Record count
@@ -232,9 +250,9 @@ CBOR: 1.29926 | 1.00 | 20
 
 Bin (A, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.14151 | 1.00 | 65941
-Tor: 2.28773 | 1.00 | 65941
-CBOR: 1.46868 | 1.00 | 65941
+JSON: 5.14087 | 1.00 | 65939
+Tor: 2.28773 | 1.00 | 65939
+CBOR: 1.46869 | 1.00 | 65939
 
 Bin (AAAA)
 Format: Size ratio | Record coverage | Record count
@@ -383,10 +401,10 @@ CBOR: 1.16745 | 1.00 | 11
 UPER benchmark results:
 Bin (A)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.38757 | 1.00 | 46081
-Tor: 1.91762 | 1.00 | 46081
-CBOR: 1.57351 | 1.00 | 46081
-APER: 1.00052 | 1.00 | 46081
+JSON: 5.38704 | 1.00 | 46078
+Tor: 1.91762 | 1.00 | 46078
+CBOR: 1.57351 | 1.00 | 46078
+APER: 1.00052 | 1.00 | 46078
 
 Bin (A, AAAA)
 Format: Size ratio | Record coverage | Record count
@@ -605,12 +623,19 @@ Tor: 1.83333 | 0.50 | 3517
 CBOR: 1.42308 | 1.00 | 7034
 APER: 1.03846 | 1.00 | 7034
 
+Bin (A, Import, Tlsa, map)
+Format: Size ratio | Record coverage | Record count
+JSON: 2.92903 | 1.00 | 10
+Tor: 2.17778 | 0.40 | 4
+CBOR: 1.40000 | 1.00 | 10
+APER: 1.05161 | 1.00 | 10
+
 Bin (A, Import, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 6.44384 | 1.00 | 23
-Tor: 2.31049 | 0.39 | 9
-CBOR: 1.41234 | 1.00 | 23
-APER: 1.04036 | 1.00 | 23
+JSON: 6.92771 | 1.00 | 15
+Tor: 2.29206 | 0.47 | 7
+CBOR: 1.35908 | 1.00 | 15
+APER: 1.03571 | 1.00 | 15
 
 Bin (A, Ns, map)
 Format: Size ratio | Record coverage | Record count
@@ -626,12 +651,26 @@ Tor: 2.17582 | 1.00 | 14
 CBOR: 1.22500 | 1.00 | 14
 APER: 1.00000 | 1.00 | 14
 
+Bin (A, Onion, Tlsa, map)
+Format: Size ratio | Record coverage | Record count
+JSON: 4.90816 | 1.00 | 4
+Tor: 2.04124 | 1.00 | 4
+CBOR: 1.25510 | 1.00 | 4
+APER: 1.03061 | 1.00 | 4
+
 Bin (A, Onion, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.92897 | 1.00 | 24
-Tor: 1.97507 | 1.00 | 24
-CBOR: 1.24048 | 1.00 | 24
-APER: 1.02924 | 1.00 | 24
+JSON: 5.68526 | 1.00 | 21
+Tor: 1.97842 | 1.00 | 21
+CBOR: 1.23855 | 1.00 | 21
+APER: 1.02889 | 1.00 | 21
+
+Bin (A, Tlsa, map)
+Format: Size ratio | Record coverage | Record count
+JSON: 4.61251 | 1.00 | 9
+Tor: 2.20049 | 1.00 | 9
+CBOR: 1.31746 | 1.00 | 9
+APER: 1.02260 | 1.00 | 9
 
 Bin (A, Txt)
 Format: Size ratio | Record coverage | Record count
@@ -649,10 +688,10 @@ APER: 1.03303 | 1.00 | 20
 
 Bin (A, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.50037 | 1.00 | 65941
-Tor: 2.47840 | 1.00 | 65941
-CBOR: 1.58266 | 1.00 | 65941
-APER: 1.07283 | 1.00 | 65941
+JSON: 5.49969 | 1.00 | 65939
+Tor: 2.47840 | 1.00 | 65939
+CBOR: 1.58266 | 1.00 | 65939
+APER: 1.07283 | 1.00 | 65939
 
 Bin (AAAA)
 Format: Size ratio | Record coverage | Record count
@@ -825,11 +864,11 @@ APER: 1.01878 | 1.00 | 11
 Mixed radix benchmark results:
 Bin (A)
 Format: Size ratio | Record coverage | Record count
-JSON: 6.17990 | 1.00 | 46081
-Tor: 2.22499 | 1.00 | 46081
-CBOR: 1.78794 | 1.00 | 46081
-APER: 1.12613 | 1.00 | 46081
-UPER: 1.12554 | 1.00 | 46081
+JSON: 6.17927 | 1.00 | 46078
+Tor: 2.22498 | 1.00 | 46078
+CBOR: 1.78793 | 1.00 | 46078
+APER: 1.12612 | 1.00 | 46078
+UPER: 1.12554 | 1.00 | 46078
 
 Bin (A, AAAA)
 Format: Size ratio | Record coverage | Record count
@@ -1079,13 +1118,21 @@ CBOR: 1.76190 | 1.00 | 7034
 APER: 1.28571 | 1.00 | 7034
 UPER: 1.23810 | 1.00 | 7034
 
+Bin (A, Import, Tlsa, map)
+Format: Size ratio | Record coverage | Record count
+JSON: 3.26619 | 1.00 | 10
+Tor: 2.25287 | 0.40 | 4
+CBOR: 1.56115 | 1.00 | 10
+APER: 1.17266 | 1.00 | 10
+UPER: 1.11511 | 1.00 | 10
+
 Bin (A, Import, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 7.54944 | 1.00 | 23
-Tor: 2.53915 | 0.39 | 9
-CBOR: 1.72044 | 1.00 | 23
-APER: 1.19897 | 1.00 | 23
-UPER: 1.15245 | 1.00 | 23
+JSON: 7.96188 | 1.00 | 15
+Tor: 2.54082 | 0.47 | 7
+CBOR: 1.65094 | 1.00 | 15
+APER: 1.17813 | 1.00 | 15
+UPER: 1.13750 | 1.00 | 15
 
 Bin (A, Ns, map)
 Format: Size ratio | Record coverage | Record count
@@ -1103,13 +1150,29 @@ CBOR: 1.22500 | 1.00 | 14
 APER: 1.00000 | 1.00 | 14
 UPER: 1.00000 | 1.00 | 14
 
+Bin (A, Onion, Tlsa, map)
+Format: Size ratio | Record coverage | Record count
+JSON: 5.17204 | 1.00 | 4
+Tor: 2.15217 | 1.00 | 4
+CBOR: 1.32258 | 1.00 | 4
+APER: 1.08602 | 1.00 | 4
+UPER: 1.05376 | 1.00 | 4
+
 Bin (A, Onion, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 6.39179 | 1.00 | 24
-Tor: 2.12782 | 1.00 | 24
-CBOR: 1.33551 | 1.00 | 24
-APER: 1.10692 | 1.00 | 24
-UPER: 1.07547 | 1.00 | 24
+JSON: 6.12017 | 1.00 | 21
+Tor: 2.12854 | 1.00 | 21
+CBOR: 1.33171 | 1.00 | 21
+APER: 1.10501 | 1.00 | 21
+UPER: 1.07399 | 1.00 | 21
+
+Bin (A, Tlsa, map)
+Format: Size ratio | Record coverage | Record count
+JSON: 4.73923 | 1.00 | 9
+Tor: 2.23188 | 1.00 | 9
+CBOR: 1.33560 | 1.00 | 9
+APER: 1.03429 | 1.00 | 9
+UPER: 1.01143 | 1.00 | 9
 
 Bin (A, Txt)
 Format: Size ratio | Record coverage | Record count
@@ -1129,11 +1192,11 @@ UPER: 1.02778 | 1.00 | 20
 
 Bin (A, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.84570 | 1.00 | 65941
-Tor: 2.61184 | 1.00 | 65941
-CBOR: 1.66342 | 1.00 | 65941
-APER: 1.13486 | 1.00 | 65941
-UPER: 1.05781 | 1.00 | 65941
+JSON: 5.84497 | 1.00 | 65939
+Tor: 2.61184 | 1.00 | 65939
+CBOR: 1.66342 | 1.00 | 65939
+APER: 1.13486 | 1.00 | 65939
+UPER: 1.05781 | 1.00 | 65939
 
 Bin (AAAA)
 Format: Size ratio | Record coverage | Record count

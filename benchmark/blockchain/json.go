@@ -355,13 +355,18 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			ret = append(ret, parsed...)
 		}
 	case "tls":
-		arr, ok := value.([][]any)
+		arr, ok := value.([]any)
 		if !ok {
-			return nil, errors.New("tls field is not an array of arrays")
+			return nil, errors.New("tls field is not an array")
 		}
 
 		for _, elem := range arr {
-			parsed, err := parseTlsaRecord(&name, elem, skipped)
+			nested, ok := elem.([]any)
+			if !ok {
+				return nil, errors.New("tls field is not an array of arrays")
+			}
+
+			parsed, err := parseTlsaRecord(&name, nested, skipped)
 			if err != nil {
 				fmt.Println("Failed to parse TLSA record:", err.Error())
 				continue
@@ -385,12 +390,17 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			ret = append(ret, *parsed)
 		}
 	case "sshfp":
-		records, ok := value.([][]any)
+		records, ok := value.([]any)
 		if !ok {
-			return nil, errors.New("sshfp field is not a slice of slices")
+			return nil, errors.New("sshfp field is not a slice")
 		}
 
-		for _, record := range records {
+		for _, elem := range records {
+			record, ok := elem.([]any)
+			if !ok {
+				return nil, errors.New("sshfp field is not a slice of slices")
+			}
+
 			length := len(record)
 			if length < 3 {
 				fmt.Println("SSHFP record too short")
@@ -596,12 +606,17 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			parent[key] = replace
 		}
 	case "o":
-		arr, ok := value.([][]any)
+		arr, ok := value.([]any)
 		if !ok {
-			return nil, errors.New("Invalid o field")
+			return nil, errors.New("o field is not a slice")
 		}
 
-		for _, record := range arr {
+		for _, elem := range arr {
+			record, ok := elem.([]any)
+			if !ok {
+				return nil, errors.New("o field is not a slice of slices")
+			}
+
 			if len(record) < 2 {
 				fmt.Println("Arbitrary record is too short")
 				continue
