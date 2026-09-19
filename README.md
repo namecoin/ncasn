@@ -20,6 +20,7 @@ Blockchain data were obtained with a minimum block height of 0 and maximum of 84
 ```
 Zone file coverage: 0.29
 Blockchain coverage: 1.00
+
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
 JSON: 4.19522 | 1.00 | 200883

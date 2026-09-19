@@ -322,10 +322,13 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool) {
 	}
 	slices.Sort(keys)
 
-	for _, k := range keys {
+	for i, k := range keys {
 		bin := bins[k]
 		fmt.Println("Bin", k)
 		compareBin(bin, encoding)
+		if i != len(keys)-1 {
+			fmt.Println()
+		}
 	}
 }
 
@@ -355,7 +358,7 @@ func benchmark() {
 	aggregated := append(zones, fromChain...)
 
 	printZoneCoverage(zones, fromChain)
-
+	fmt.Println()
 	compareEncoding(aggregated, ncasn.APER, bin)
 	fmt.Println()
 	compareEncoding(aggregated, ncasn.UPER, bin)
