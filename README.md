@@ -38,3 +38,5 @@ JSON: 4.93907 | 1.00 | 200883
 Tor: 2.23178 | 0.87 | 174412
 CBOR: 1.76511 | 1.00 | 200883
 ```
+
+Results binned based on the record types in a given zone are available in Binned.txt.
