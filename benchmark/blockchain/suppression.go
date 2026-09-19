@@ -37,20 +37,6 @@ func sameLevel(record *ncasn.Record, list []ncasn.Record) bool {
 	return false
 }
 
-func isGlue(record *ncasn.Record, ns []ncasn.Record) bool {
-	if record.RecordData.A == nil && record.RecordData.AAAA == nil {
-		return false
-	}
-
-	for _, elem := range ns {
-		if *elem.RecordData.Ns == *record.Name {
-			return true
-		}
-	}
-
-	return false
-}
-
 func higherLevel(record *ncasn.Record, records []ncasn.Record) bool {
 	for _, baseRec := range records {
 		if *record.Name == *baseRec.Name || strings.HasSuffix(*record.Name, "."+*baseRec.Name) {
@@ -81,8 +67,6 @@ func suppressNs(records []ncasn.Record) []ncasn.Record {
 			if record.RecordData.Ns != nil || record.RecordData.Ds != nil {
 				ret = append(ret, record)
 			}
-		case isGlue(&record, ns):
-			ret = append(ret, record)
 		}
 	}
 

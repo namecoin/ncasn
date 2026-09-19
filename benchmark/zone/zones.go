@@ -147,7 +147,9 @@ func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
 		}
 	case "NS":
 		union = &ncasn.RecordUnion{
-			Ns: &fields[4],
+			Ns: &ncasn.NS{
+				String: &fields[4],
+			},
 		}
 	case "CNAME":
 		union = &ncasn.RecordUnion{
@@ -343,7 +345,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 	}
 }
 
-func zoneFromRecords(records []ncasn.Record) (*util.Zone, error) {
+func zoneFromRecords(records []ncasn.Record, base string) (*util.Zone, error) {
 	obj := map[string]any{}
 
 	for _, record := range records {
@@ -386,8 +388,8 @@ func zoneFromRecords(records []ncasn.Record) (*util.Zone, error) {
 		return nil, err
 	}
 
-	ret := util.Zone{Zone: &ncasn.Zone{Records: records}, Json: string(str)}
-	slices.SortFunc(ret.Zone.Records, util.CmpRecords)
+	ret := util.Zone{Json: string(str)}
+	slices.SortFunc(records, util.CmpRecords)
 	ret.Cbor, err = cbor.RecordsToCbor(records)
 	if err != nil {
 		return nil, err
@@ -397,6 +399,8 @@ func zoneFromRecords(records []ncasn.Record) (*util.Zone, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to convert zone records to Tor format: %s", err.Error())
 	}
+
+	ret.Zone = &ncasn.Zone{Records: util.CollapseNsGlues(records, base)}
 
 	return &ret, nil
 }
@@ -436,7 +440,10 @@ func readZone(filePath string) (*util.Zone, error) {
 		return nil, err
 	}
 
-	ret, err := zoneFromRecords(records)
+	segments := strings.Split(filePath, "/")
+	base := strings.TrimSuffix(segments[len(segments)-1], ".zone")
+
+	ret, err := zoneFromRecords(records, base)
 	if err != nil {
 		return nil, err
 	}

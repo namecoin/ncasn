@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cbor
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/fxamacker/cbor"
@@ -33,15 +34,39 @@ func RecordsToCbor(records []ncasn.Record) (*util.CborRecords, error) {
 	ignored := []*ncasn.Record{}
 	encoded := [][]any{}
 
+	nsIdx := 0
 	var lastName *string
 	for i := range records {
 		var encRecord []any
-		encRecord, tmpName := recordToCbor(&records[i], lastName)
+		encRecord, tmpName := recordToCbor(&records[i], lastName, nsIdx)
 		if encRecord == nil {
 			ignored = append(ignored, &records[i])
 		} else {
 			lastName = tmpName
 			encoded = append(encoded, encRecord)
+		}
+
+		if records[i].RecordData.Ns != nil && records[i].RecordData.Ns.String == nil {
+			nsStr := fmt.Sprint("ns", nsIdx)
+			var record []any
+			if records[i].RecordData.Ns.Ip.A != nil {
+				record, _ = recordToCbor(&ncasn.Record{
+					Name: &nsStr,
+					RecordData: ncasn.RecordUnion{
+						A: records[i].RecordData.Ns.Ip.A,
+					},
+				}, lastName, nsIdx)
+			} else {
+				record, _ = recordToCbor(&ncasn.Record{
+					Name: &nsStr,
+					RecordData: ncasn.RecordUnion{
+						AAAA: records[i].RecordData.Ns.Ip.AAAA,
+					},
+				}, lastName, nsIdx)
+			}
+
+			encoded = append(encoded, record)
+			nsIdx++
 		}
 	}
 
@@ -53,7 +78,7 @@ func RecordsToCbor(records []ncasn.Record) (*util.CborRecords, error) {
 	return &util.CborRecords{Data: cborData, Ignored: ignored}, nil
 }
 
-func recordDataToCbor(record *ncasn.RecordUnion) ([]byte, []any) {
+func recordDataToCbor(record *ncasn.RecordUnion, nsIdx int) ([]byte, []any) {
 	switch {
 	case record.Srv != nil:
 		ret := []any{record.Srv.Priority}
@@ -70,12 +95,14 @@ func recordDataToCbor(record *ncasn.RecordUnion) ([]byte, []any) {
 		}
 
 		return nil, data
+	case record.Ns != nil && record.Ns.String == nil:
+		return wire.DomainToWire(fmt.Sprint("ns", nsIdx)), nil
 	default:
 		return wire.ToWire(record), nil
 	}
 }
 
-func recordToCbor(record *ncasn.Record, lastName *string) ([]any, *string) {
+func recordToCbor(record *ncasn.Record, lastName *string, nsIdx int) ([]any, *string) {
 	var ret []any
 	if lastName == nil || *lastName != *record.Name {
 		lastName = record.Name
@@ -89,7 +116,7 @@ func recordToCbor(record *ncasn.Record, lastName *string) ([]any, *string) {
 
 	ret = append(ret, 0, util.TypeFromUnion(&record.RecordData), dns.ClassINET)
 
-	bytes, arr := recordDataToCbor(&record.RecordData)
+	bytes, arr := recordDataToCbor(&record.RecordData, nsIdx)
 
 	switch {
 	case bytes != nil:

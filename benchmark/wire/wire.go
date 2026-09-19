@@ -29,7 +29,7 @@ import (
 	"github.com/namecoin/ncasn/benchmark/util"
 )
 
-func domainToWire(domain string) []byte {
+func DomainToWire(domain string) []byte {
 	labels := strings.Split(domain, ".")
 	if len(labels[len(labels)-1]) != 0 {
 		labels = append(labels, "")
@@ -194,15 +194,15 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 
 		ret = binary.BigEndian.AppendUint16(ret, record.Srv.Port)
 
-		return append(ret, domainToWire(record.Srv.Target)...)
+		return append(ret, DomainToWire(record.Srv.Target)...)
 	case record.Mx != nil:
-		return append(binary.BigEndian.AppendUint16(nil, record.Mx.Priority), domainToWire(record.Mx.Target)...)
+		return append(binary.BigEndian.AppendUint16(nil, record.Mx.Priority), DomainToWire(record.Mx.Target)...)
 	case record.Ns != nil:
-		return domainToWire(*record.Ns)
+		return DomainToWire(*record.Ns.String)
 	case record.Cname != nil:
-		return domainToWire(*record.Cname)
+		return DomainToWire(*record.Cname)
 	case record.Dname != nil:
-		return domainToWire(*record.Dname)
+		return DomainToWire(*record.Dname)
 	}
 
 	return nil

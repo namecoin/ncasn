@@ -19,6 +19,7 @@ package tor
 
 import (
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/miekg/dns"
@@ -31,9 +32,10 @@ func RecordsToTor(records []ncasn.Record) (*util.TorRecords, error) {
 	ret := []string{}
 	ignored := []*ncasn.Record{}
 
+	nsIdx := 0
 	var lastName *string
 	for i := range records {
-		encoded, err := toTor(&records[i].RecordData)
+		encoded, err := toTor(&records[i].RecordData, nsIdx)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert record to Tor format: %s", err.Error())
 		}
@@ -46,6 +48,20 @@ func RecordsToTor(records []ncasn.Record) (*util.TorRecords, error) {
 				prefix = *records[i].Name + " "
 			}
 
+			ns := records[i].RecordData.Ns
+			if ns != nil && ns.String == nil {
+				var str string
+				if ns.Ip.A != nil {
+					str = " a " + net.IP(ns.Ip.A.Target).To4().String()
+				} else {
+					str = " aaaa " + net.IP(ns.Ip.AAAA.Bytes).String()
+				}
+
+				ret = append(ret, fmt.Sprint("ns", nsIdx)+str)
+
+				nsIdx++
+			}
+
 			ret = append(ret, prefix+*encoded)
 			lastName = records[i].Name
 		}
@@ -56,7 +72,7 @@ func RecordsToTor(records []ncasn.Record) (*util.TorRecords, error) {
 
 // See https://spec.torproject.org/proposals/343-rend-caa.html
 
-func toTor(record *ncasn.RecordUnion) (*string, error) {
+func toTor(record *ncasn.RecordUnion, nsIdx int) (*string, error) {
 	switch {
 	case record.Generic != nil:
 		data := record.Generic.Target
@@ -78,7 +94,15 @@ func toTor(record *ncasn.RecordUnion) (*string, error) {
 		ret := "hypha " + record.Hyphanet.ToKey()
 		return &ret, nil
 	case record.Ns != nil:
-		ret := "ns " + *record.Ns
+		// Any non-string records at this point in the stack must come from malformed IP-based NS records replaced with domains with the form nsN, so follow that here
+		var data string
+		if record.Ns.String != nil {
+			data = *record.Ns.String
+		} else {
+			data = fmt.Sprint("ns", nsIdx)
+		}
+
+		ret := "ns " + data
 		if !strings.HasSuffix(ret, ".") {
 			ret += "."
 		}

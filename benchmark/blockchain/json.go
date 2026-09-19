@@ -72,7 +72,7 @@ func parseTypeOrSlice[E any](value any) ([]E, error) {
 	}
 }
 
-func handleField(key string, value any, name string, skipped *int) ([]ncasn.Record, error) {
+func handleField(key string, value any, name string, skipped *int, parent map[string]any) ([]ncasn.Record, error) {
 	ret := []ncasn.Record{}
 	switch key {
 	case "map":
@@ -139,7 +139,7 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 					} else {
 						relName = kMap + "." + name
 					}
-					nested, err := handleField(kNested, vNested, relName, skipped)
+					nested, err := handleField(kNested, vNested, relName, skipped, cast)
 					if err == nil {
 						ret = append(ret, nested...)
 					} else {
@@ -532,16 +532,68 @@ func handleField(key string, value any, name string, skipped *int) ([]ncasn.Reco
 			return nil, fmt.Errorf("Invalid ns/dns record type: %s", err.Error())
 		}
 
+		replace := []string{}
+		nsIdx := 0
+
 		for _, record := range records {
+			// Handle malformed records pointing to IP addresses
+			ip := net.ParseIP(record)
+			if ip != nil {
+				v4 := ip.To4()
+				if v4 == nil {
+					ret = append(ret, ncasn.Record{
+						Name: &name,
+						RecordData: ncasn.RecordUnion{
+							Ns: &ncasn.NS{
+								Ip: &ncasn.NSIP{
+									AAAA: &ncasn.AAAA{
+										Bytes: ip,
+									},
+								},
+							},
+						},
+					})
+				} else {
+					ret = append(ret, ncasn.Record{
+						Name: &name,
+						RecordData: ncasn.RecordUnion{
+							Ns: &ncasn.NS{
+								Ip: &ncasn.NSIP{
+									A: &ncasn.A{
+										Target: v4,
+									},
+								},
+							},
+						},
+					})
+				}
+
+				replace = append(replace, fmt.Sprint("ns", nsIdx))
+				nsIdx++
+				continue
+			}
+
 			if len(record) > 255 || !mixedradix.IsValidDnsName(record) {
 				continue
 			}
 			ret = append(ret, ncasn.Record{
 				Name: &name,
 				RecordData: ncasn.RecordUnion{
-					Ns: &record,
+					Ns: &ncasn.NS{
+						String: &record,
+					},
 				},
 			})
+
+			replace = append(replace, record)
+		}
+		switch len(replace) {
+		case 0:
+			// Nothing
+		case 1:
+			parent[key] = replace[0]
+		default:
+			parent[key] = replace
 		}
 	case "o":
 		arr, ok := value.([][]any)
@@ -692,6 +744,54 @@ type zoneWithCoverage struct {
 	Skipped int
 }
 
+func fixNs(index int, record *ncasn.NSIP, obj map[string]any) {
+	sub, ok := obj["map"]
+	if !ok {
+		sub = map[string]any{}
+		obj["map"] = sub
+	}
+
+	cast := sub.(map[string]any)
+
+	indexed := fmt.Sprint("ns", index)
+	ns, ok := cast[indexed]
+	if !ok {
+		ns = map[string]any{}
+		cast[indexed] = ns
+	}
+
+	nsCast := ns.(map[string]any)
+
+	var ipKey string
+	var ipVal string
+	if record.A != nil {
+		ipKey = "ip"
+		ipVal = net.IP(record.A.Target).To4().String()
+	} else {
+		ipKey = "ip6"
+		ipVal = net.IP(record.AAAA.Bytes).String()
+	}
+
+	ip, ok := nsCast[ipKey]
+	if !ok {
+		ip = []string{}
+	}
+
+	ipStr, ok := ip.(string)
+	if ok {
+		ip = []string{ipStr}
+	}
+
+	ipCast := ip.([]string)
+	ipCast = append(ipCast, ipVal)
+
+	if len(ipCast) == 1 {
+		nsCast[ipKey] = ipCast[0]
+	} else {
+		nsCast[ipKey] = ipCast
+	}
+}
+
 func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 	parser := json.NewDecoder(bytes.NewReader([]byte(data.Value)))
 	parser.UseNumber()
@@ -720,7 +820,7 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 			continue
 		}
 
-		record, err := handleField(key, value, "", &coverage.Skipped)
+		record, err := handleField(key, value, "", &coverage.Skipped, parsed)
 		if err != nil {
 			fmt.Printf("Error while parsing %s for %s: %s\n", key, data.Name, err.Error())
 			continue
@@ -732,6 +832,21 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 
 	if ret == nil {
 		return nil, nil
+	}
+
+	i := 0
+	for _, record := range ret {
+		if record.RecordData.Ns == nil {
+			continue
+		}
+
+		if record.RecordData.Ns.Ip == nil {
+			continue
+		}
+
+		fixNs(i, record.RecordData.Ns.Ip, parsed)
+
+		i++
 	}
 
 	ret = applySuppression(ret)
@@ -795,6 +910,9 @@ func JsonFileToZones(file string) ([]util.Zone, error) {
 			if zone.Total != 0 {
 				merged.Coverage = float64(zone.Total-zone.Skipped) / float64(zone.Total)
 			}
+
+			base := strings.TrimPrefix(name.Name, "d/") + ".bit"
+			merged.Zone.Records = util.CollapseNsGlues(merged.Zone.Records, base)
 
 			ret = append(ret, *merged)
 		}

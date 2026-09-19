@@ -19,6 +19,8 @@ package util
 
 import (
 	"cmp"
+	"slices"
+	"strings"
 	"unicode"
 
 	"github.com/miekg/dns"
@@ -33,6 +35,85 @@ func IsAscii(str string) bool {
 	}
 
 	return true
+}
+
+func isNsGlue(record *ncasn.Record, ns []ncasn.Record, base string) *string {
+	if record.RecordData.A == nil && record.RecordData.AAAA == nil {
+		return nil
+	}
+
+	for _, elem := range ns {
+		if elem.RecordData.Ns.String == nil {
+			continue
+		}
+
+		target := strings.TrimSuffix(*elem.RecordData.Ns.String, ".")
+		target = strings.TrimSuffix(target, "."+base)
+		if target == *record.Name {
+			return elem.RecordData.Ns.String
+		}
+	}
+
+	return nil
+}
+
+func CollapseNsGlues(records []ncasn.Record, base string) []ncasn.Record {
+	var ns []ncasn.Record
+
+	for _, record := range records {
+		if record.RecordData.Ns != nil {
+			ns = append(ns, record)
+		}
+	}
+
+	if ns == nil {
+		return records
+	}
+
+	ret := []ncasn.Record{}
+	for _, record := range records {
+		if record.RecordData.Ns != nil {
+			continue
+		}
+
+		target := isNsGlue(&record, ns, base)
+		if target == nil {
+			ret = append(ret, record)
+			continue
+		}
+
+		ns = slices.DeleteFunc(ns, func(record ncasn.Record) bool {
+			return *record.RecordData.Ns.String == *target
+		})
+
+		var union ncasn.RecordUnion
+		if record.RecordData.A != nil {
+			union = ncasn.RecordUnion{
+				Ns: &ncasn.NS{
+					Ip: &ncasn.NSIP{
+						A: record.RecordData.A,
+					},
+				},
+			}
+		} else {
+			union = ncasn.RecordUnion{
+				Ns: &ncasn.NS{
+					Ip: &ncasn.NSIP{
+						AAAA: record.RecordData.AAAA,
+					},
+				},
+			}
+		}
+
+		ret = append(ret, ncasn.Record{
+			Name:       record.Name,
+			RecordData: union,
+		})
+	}
+
+	ret = append(ret, ns...)
+
+	return ret
 }
 
 func SplitTxt(record string) []string {
