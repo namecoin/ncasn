@@ -32,12 +32,15 @@ Format: Size ratio | Record coverage | Record count
 JSON: 4.33340 | 1.00 | 200883
 Tor: 1.98505 | 0.87 | 174412
 CBOR: 1.53709 | 1.00 | 200883
+APER: 0.97422 | 1.00 | 200883
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
 JSON: 4.93907 | 1.00 | 200883
 Tor: 2.23178 | 0.87 | 174412
 CBOR: 1.76511 | 1.00 | 200883
+APER: 0.82470 | 1.00 | 200883
+UPER: 0.84652 | 1.00 | 200883
 ```
 
 Results binned based on the record types in a given zone are available in Binned.txt.

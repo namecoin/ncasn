@@ -133,9 +133,10 @@ type Result struct {
 }
 
 type Results struct {
-	Json *Result
-	Cbor *Result
-	Tor  *Result
+	Json    *Result
+	Cbor    *Result
+	Tor     *Result
+	TypeLen int
 }
 
 func runComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results, error) {
@@ -210,9 +211,10 @@ func runComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results, erro
 	}
 
 	return &Results{
-		Json: &jsonResult,
-		Cbor: &cborResult,
-		Tor:  &torResult,
+		Json:    &jsonResult,
+		Cbor:    &cborResult,
+		Tor:     &torResult,
+		TypeLen: len(jsonEncoded) + 1,
 	}, nil
 }
 
@@ -220,6 +222,8 @@ func weightedAverage(results []Results) Results {
 	var jsonResult Result
 	var torResult Result
 	var cborResult Result
+
+	typeLen := 0
 
 	for _, result := range results {
 		jsonCount := float64(result.Json.Count)
@@ -233,6 +237,8 @@ func weightedAverage(results []Results) Results {
 		cborCount := float64(result.Cbor.Count)
 		cborResult.Ratio += result.Cbor.Ratio * cborCount
 		cborResult.Count += result.Cbor.Count
+
+		typeLen += result.TypeLen
 	}
 
 	jsonCount := float64(jsonResult.Count)
@@ -247,7 +253,7 @@ func weightedAverage(results []Results) Results {
 	cborResult.Ratio /= cborCount
 	cborResult.Coverage = cborCount / jsonCount
 
-	return Results{Json: &jsonResult, Tor: &torResult, Cbor: &cborResult}
+	return Results{Json: &jsonResult, Tor: &torResult, Cbor: &cborResult, TypeLen: typeLen}
 }
 
 func printZoneCoverage(fromFiles []util.Zone, fromChain []util.Zone) {
@@ -265,7 +271,7 @@ func printZoneCoverage(fromFiles []util.Zone, fromChain []util.Zone) {
 	fmt.Printf("Blockchain coverage: %.2f\n", chainAcc/float64(len(fromChain)))
 }
 
-func compareBin(zones []util.Zone, encoding ncasn.EncodingType) {
+func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper int) int {
 	var results []Results
 	for _, zone := range zones {
 		result, err := runComparison(&zone, encoding)
@@ -282,6 +288,15 @@ func compareBin(zones []util.Zone, encoding ncasn.EncodingType) {
 	fmt.Printf("JSON: %.5f | %.2f | %d\n", final.Json.Ratio, final.Json.Coverage, final.Json.Count)
 	fmt.Printf("Tor: %.5f | %.2f | %d\n", final.Tor.Ratio, final.Tor.Coverage, final.Tor.Count)
 	fmt.Printf("CBOR: %.5f | %.2f | %d\n", final.Cbor.Ratio, final.Cbor.Coverage, final.Cbor.Count)
+
+	if aper != -1 {
+		fmt.Printf("APER: %.5f | %.2f | %d\n", float64(final.TypeLen)/float64(aper), 1.0, final.Json.Count)
+		if uper != -1 {
+			fmt.Printf("UPER: %.5f | %.2f | %d\n", float64(final.TypeLen)/float64(uper), 1.0, final.Json.Count)
+		}
+	}
+
+	return final.TypeLen
 }
 
 func typesFromRecords(records []ncasn.Record) []string {
@@ -301,12 +316,19 @@ func typesFromRecords(records []ncasn.Record) []string {
 	return slices.Compact(ret)
 }
 
-func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool) {
+func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, aper []int, uper []int) []int {
 	fmt.Println(encoding.String(), "benchmark results:")
 
 	if !bin {
-		compareBin(zones, encoding)
-		return
+		aperUnit := -1
+		uperUnit := -1
+		if aper != nil {
+			aperUnit = aper[0]
+			if uper != nil {
+				uperUnit = uper[0]
+			}
+		}
+		return []int{compareBin(zones, encoding, aperUnit, uperUnit)}
 	}
 
 	bins := map[string][]util.Zone{}
@@ -322,14 +344,25 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool) {
 	}
 	slices.Sort(keys)
 
+	var ret []int
 	for i, k := range keys {
 		bin := bins[k]
 		fmt.Println("Bin", k)
-		compareBin(bin, encoding)
+		aperUnit := -1
+		uperUnit := -1
+		if aper != nil {
+			aperUnit = aper[i]
+			if uper != nil {
+				uperUnit = uper[i]
+			}
+		}
+		ret = append(ret, compareBin(bin, encoding, aperUnit, uperUnit))
 		if i != len(keys)-1 {
 			fmt.Println()
 		}
 	}
+
+	return ret
 }
 
 func benchmark() {
@@ -359,9 +392,9 @@ func benchmark() {
 
 	printZoneCoverage(zones, fromChain)
 	fmt.Println()
-	compareEncoding(aggregated, ncasn.APER, bin)
+	aper := compareEncoding(aggregated, ncasn.APER, bin, nil, nil)
 	fmt.Println()
-	compareEncoding(aggregated, ncasn.UPER, bin)
+	uper := compareEncoding(aggregated, ncasn.UPER, bin, aper, nil)
 	fmt.Println()
-	compareEncoding(aggregated, ncasn.MixedRadix, bin)
+	compareEncoding(aggregated, ncasn.MixedRadix, bin, aper, uper)
 }
