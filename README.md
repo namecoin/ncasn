@@ -43,4 +43,4 @@ APER: 1.21254 | 1.00 | 200890
 UPER: 1.18128 | 1.00 | 200890
 ```
 
-Results binned based on the record types in a given zone are available in Binned.txt.
+Results binned based on the record types in a given zone are available in doc/Binned.txt.
