@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package ncasn
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"math/big"
@@ -297,6 +298,19 @@ func preValidate(records []Record) error {
 }
 
 func MarshalRecords(zone Zone, encoding EncodingType) ([]byte, error) {
+	err := preValidate(zone.Records)
+
+	if err != nil {
+		return nil, err
+	}
+
+	PreProcessIpv6(getIpv6(zone.Records))
+
+	// Sort in order to group subdomains, maximizing name elision
+	slices.SortFunc(zone.Records, func(a Record, b Record) int {
+		return cmp.Compare(*a.Name, *b.Name)
+	})
+
 	if encoding == MixedRadix {
 		return marshalMixedRadix(zone)
 	}
@@ -305,16 +319,9 @@ func MarshalRecords(zone Zone, encoding EncodingType) ([]byte, error) {
 }
 
 func marshalPacked(zone Zone, encoding EncodingType) ([]byte, error) {
-	err := preValidate(zone.Records)
-
-	if err != nil {
-		return nil, err
-	}
-
-	PreProcessIpv6(getIpv6(zone.Records))
 	writer := encoding.NewWriter()
 
-	err = encoding.MarshalValue(writer, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
+	err := encoding.MarshalValue(writer, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -336,19 +343,12 @@ func marshalPacked(zone Zone, encoding EncodingType) ([]byte, error) {
 }
 
 func marshalMixedRadix(zone Zone) ([]byte, error) {
-	err := preValidate(zone.Records)
-
-	if err != nil {
-		return nil, err
-	}
-
-	PreProcessIpv6(getIpv6(zone.Records))
 	num := &asn1.MixedRadixNumber{
 		Value: new(big.Int),
 		Base:  big.NewInt(1),
 	}
 
-	err = mixedradix.MarshalValue(num, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
+	err := mixedradix.MarshalValue(num, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
