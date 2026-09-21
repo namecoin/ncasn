@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/miekg/dns v1.1.72
 	github.com/namecoin/go-asn v0.0.0-20260916224240-e0605e6620b1
-	github.com/namecoin/ncasn v0.0.0-20260919021357-b0b9a968723c
+	github.com/namecoin/ncasn v0.0.0-20260921234504-0d8357956e4b
 )
 
 require (

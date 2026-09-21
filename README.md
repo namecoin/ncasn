@@ -23,24 +23,24 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.19473 | 1.00 | 200890
-Tor: 1.90206 | 0.87 | 174419
-CBOR: 1.48885 | 1.00 | 200890
+JSON: 4.19474 | 1.00 | 200890
+Tor: 1.90205 | 0.87 | 174419
+CBOR: 1.48886 | 1.00 | 200890
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
 JSON: 4.33289 | 1.00 | 200890
 Tor: 1.98506 | 0.87 | 174419
 CBOR: 1.53707 | 1.00 | 200890
-APER: 1.02646 | 1.00 | 200890
+APER: 1.02643 | 1.00 | 200890
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.93845 | 1.00 | 200890
-Tor: 2.23177 | 0.87 | 174419
-CBOR: 1.76508 | 1.00 | 200890
-APER: 1.21254 | 1.00 | 200890
-UPER: 1.18128 | 1.00 | 200890
+JSON: 4.93854 | 1.00 | 200890
+Tor: 2.23181 | 0.87 | 174419
+CBOR: 1.76511 | 1.00 | 200890
+APER: 1.21253 | 1.00 | 200890
+UPER: 1.18131 | 1.00 | 200890
 ```
 
 Results binned based on the record types in a given zone are available in doc/Binned.txt.
