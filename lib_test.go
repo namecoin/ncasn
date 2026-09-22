@@ -105,18 +105,18 @@ func TestNameOmission(t *testing.T) {
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
-		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
-		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
+		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
+		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 	}
 
 	names := []*string{
 		&SAMPLE_NAME0,
 		nil,
 		nil,
+		nil,
 		&SAMPLE_NAME1,
 		nil,
-		&SAMPLE_NAME0,
 	}
 
 	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil}, ncasn.MixedRadix)
@@ -157,9 +157,9 @@ func TestNameAddition(t *testing.T) {
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
-		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
-		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
+		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
+		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 	}
 
 	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil}, ncasn.MixedRadix)
