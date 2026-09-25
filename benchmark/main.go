@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/miekg/dns"
 	"github.com/namecoin/ncasn"
 	"github.com/namecoin/ncasn/benchmark/blockchain"
 	"github.com/namecoin/ncasn/benchmark/util"
@@ -305,7 +306,13 @@ func typesFromRecords(records []ncasn.Record) []string {
 	for _, record := range records {
 		ref := reflect.ValueOf(record.RecordData)
 		choice := ncasn.GetChoice(ref)
-		ret = append(ret, ref.Type().Field(int(choice)).Name)
+		name := ref.Type().Field(int(choice)).Name
+
+		if record.RecordData.Generic != nil {
+			name += "-" + dns.TypeToString[record.RecordData.Generic.Type]
+		}
+
+		ret = append(ret, name)
 
 		if *record.Name != "" {
 			ret = append(ret, "map")

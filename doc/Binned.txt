@@ -14,13 +14,13 @@ JSON: 3.89734 | 1.00 | 594
 Tor: 2.25360 | 1.00 | 594
 CBOR: 2.91679 | 1.00 | 594
 
-Bin (A, AAAA, Cname, Generic, Mx, Ns, Sshfp, Txt, map)
+Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Sshfp, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.47817 | 1.00 | 266
 Tor: 1.38523 | 1.00 | 266
 CBOR: 1.31327 | 1.00 | 266
 
-Bin (A, AAAA, Cname, Generic, Mx, Ns, Txt, map)
+Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.23374 | 1.00 | 73
 Tor: 1.17468 | 1.00 | 73
@@ -413,14 +413,14 @@ Tor: 2.25425 | 1.00 | 594
 CBOR: 2.91739 | 1.00 | 594
 APER: 1.00486 | 1.00 | 594
 
-Bin (A, AAAA, Cname, Generic, Mx, Ns, Sshfp, Txt, map)
+Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Sshfp, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.50621 | 1.00 | 266
 Tor: 1.40911 | 1.00 | 266
 CBOR: 1.33590 | 1.00 | 266
 APER: 1.01897 | 1.00 | 266
 
-Bin (A, AAAA, Cname, Generic, Mx, Ns, Txt, map)
+Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.24833 | 1.00 | 73
 Tor: 1.18857 | 1.00 | 73
@@ -878,7 +878,7 @@ CBOR: 3.21094 | 1.00 | 594
 APER: 1.08547 | 1.00 | 594
 UPER: 1.08022 | 1.00 | 594
 
-Bin (A, AAAA, Cname, Generic, Mx, Ns, Sshfp, Txt, map)
+Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Sshfp, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.68371 | 1.00 | 266
 Tor: 1.57518 | 1.00 | 266
@@ -886,7 +886,7 @@ CBOR: 1.49333 | 1.00 | 266
 APER: 1.13904 | 1.00 | 266
 UPER: 1.11784 | 1.00 | 266
 
-Bin (A, AAAA, Cname, Generic, Mx, Ns, Txt, map)
+Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.38627 | 1.00 | 73
 Tor: 1.31995 | 1.00 | 73
