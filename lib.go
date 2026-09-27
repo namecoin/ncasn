@@ -24,6 +24,7 @@ import (
 	"math/big"
 	"reflect"
 	"slices"
+	"strconv"
 
 	"github.com/namecoin/go-asn/aper"
 	"github.com/namecoin/go-asn/asn1"
@@ -58,18 +59,83 @@ type RecordUnion struct {
 // This is used in order to avoid manually handling data before Zone.Records, Zone cannot be (un)marshalled directly due to relying on consuming all data to determine the length of Zone.Records, which go-asn cannot do.
 type ParsingPlaceholder struct {
 	Info *Whois `asn1:"optional"`
+	// Used for hidden subdomains
+	Nonce *[]byte `asn1:"optional,size:8"`
 }
 
-type Zone struct {
-	Info    *Whois
-	Records []Record
+type Record interface {
+	NameString() *string
+	Data() RecordUnion
 }
 
-type Record struct {
+type HiddenDomainRecord struct {
+	Index      *uint16 `asn1:"optional,size:0..500"`
+	RecordData RecordUnion
+	name       string // Only used for seed grinding, not stored, must be private to prevent marshalling
+}
+
+func (record *HiddenDomainRecord) GetName() string {
+	return record.name
+}
+
+func (record *HiddenDomainRecord) SetName(name string) {
+	record.name = name
+}
+
+func (record HiddenDomainRecord) NameString() *string {
+	if record.Index == nil {
+		return nil
+	}
+
+	tmp := strconv.Itoa(int(*record.Index))
+	return &tmp
+}
+
+func (record HiddenDomainRecord) Data() RecordUnion {
+	return record.RecordData
+}
+
+type VisibleDomainRecord struct {
 	// Relative to the base domain, 249 = 255 - 6 (.x.bit).
 	// Always non-nil after being unmarshalled, the base domain is represented as an empty string. During (un)marshalling, nils are used to refer to the previous entry.
 	Name       *string `asn1:"optional,dnsmatcher,size:0..249"`
 	RecordData RecordUnion
+}
+
+func (record VisibleDomainRecord) NameString() *string {
+	return record.Name
+}
+
+func (record VisibleDomainRecord) Data() RecordUnion {
+	return record.RecordData
+}
+
+type RecordsUnion struct {
+	Visible []VisibleDomainRecord
+	Hidden  []HiddenDomainRecord
+}
+
+func (union *RecordsUnion) GetRecords() []Record {
+	var records []Record
+	if union.Hidden == nil {
+		records = make([]Record, 0, len(union.Visible))
+		for _, record := range union.Visible {
+			records = append(records, record)
+		}
+	} else {
+		records = make([]Record, 0, len(union.Hidden))
+		for _, record := range union.Hidden {
+			records = append(records, record)
+		}
+	}
+
+	return records
+}
+
+type Zone struct {
+	Info    *Whois
+	Nonce   []byte
+	Records RecordsUnion
 }
 
 func PostProcessIpv6(records []*AAAA) {
@@ -138,11 +204,12 @@ func UnmarshalRecords(data []byte, encoding EncodingType) (*Zone, error) {
 func getIpv6(records []Record) []*AAAA {
 	ipv6 := []*AAAA{}
 	for _, record := range records {
+		data := record.Data()
 		switch {
-		case record.RecordData.AAAA != nil:
-			ipv6 = append(ipv6, record.RecordData.AAAA)
-		case record.RecordData.Ns != nil && record.RecordData.Ns.Ip != nil && record.RecordData.Ns.Ip.AAAA != nil:
-			ipv6 = append(ipv6, record.RecordData.Ns.Ip.AAAA)
+		case data.AAAA != nil:
+			ipv6 = append(ipv6, data.AAAA)
+		case data.Ns != nil && data.Ns.Ip != nil && data.Ns.Ip.AAAA != nil:
+			ipv6 = append(ipv6, data.Ns.Ip.AAAA)
 		}
 	}
 
@@ -158,39 +225,21 @@ func unmarshalPacked(data []byte, encoding EncodingType) (*Zone, error) {
 		return nil, err
 	}
 
-	ret := []Record{}
-	var lastName *string
-	for reader.RemainingBits() > 0 {
-		tmp := Record{}
-		readerCopy := *reader
-		err = encoding.UnmarshalValue(reader, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
-		if err != nil {
-			// Check if the error is caused by unused trailing bits, ignore it and jump out of the loop if so.
-			if readerCopy.RemainingBits() < 8 {
-				remaining, err := readerCopy.ReadBits(readerCopy.RemainingBits())
-				if err != nil {
-					return nil, err
-				}
-
-				if remaining != 0 {
-					return nil, fmt.Errorf("Unaccounted for bits: %x", remaining)
-				}
-
-				// Cannot be a meaningful record, so it must just be the zero padding of the last byte.
-				break
-			}
-
-			return nil, err
-		}
-		if tmp.Name == nil {
-			tmp.Name = lastName
-		}
-		ret = append(ret, tmp)
-		lastName = tmp.Name
+	var union *RecordsUnion
+	var nonce []byte
+	if extraData.Nonce == nil {
+		union, err = unmarshalPackedVisible(reader, encoding)
+	} else {
+		union, err = unmarshalPackedHidden(reader, encoding)
+		nonce = *extraData.Nonce
 	}
 
-	PostProcessIpv6(getIpv6(ret))
-	return &Zone{Info: extraData.Info, Records: ret}, nil
+	if err != nil {
+		return nil, err
+	}
+
+	PostProcessIpv6(getIpv6(union.GetRecords()))
+	return &Zone{Info: extraData.Info, Records: *union, Nonce: nonce}, nil
 }
 
 func unmarshalMixedRadix(data []byte) (*Zone, error) {
@@ -202,24 +251,22 @@ func unmarshalMixedRadix(data []byte) (*Zone, error) {
 		return nil, err
 	}
 
-	ret := []Record{}
-	zero := big.NewInt(0)
-	var lastName *string
-	for num.Cmp(zero) == 1 {
-		tmp := Record{}
-		err = mixedradix.UnmarshalValue(num, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
-		if err != nil {
-			return nil, err
-		}
-		if tmp.Name == nil {
-			tmp.Name = lastName
-		}
-		ret = append(ret, tmp)
-		lastName = tmp.Name
+	var union *RecordsUnion
+	var nonce []byte
+	if extraData.Nonce == nil {
+		union, err = unmarshalMixedRadixVisible(num)
+	} else {
+		union, err = unmarshalMixedRadixHidden(num)
+		nonce = *extraData.Nonce
 	}
 
-	PostProcessIpv6(getIpv6(ret))
-	return &Zone{Info: extraData.Info, Records: ret}, nil
+	if err != nil {
+		return nil, err
+	}
+
+	PostProcessIpv6(getIpv6(union.GetRecords()))
+
+	return &Zone{Info: extraData.Info, Records: *union, Nonce: nonce}, nil
 }
 
 func countConsecutiveZeroBytes(slice []byte) uint8 {
@@ -279,19 +326,31 @@ func validateChoice(val reflect.Value) bool {
 	return false
 }
 
-func preValidate(records []Record) error {
-	if len(records) == 0 {
+func preValidate(records RecordsUnion) error {
+	cast := records.GetRecords()
+
+	if len(cast) == 0 {
 		return errors.New("len(records) == 0")
 	}
 
-	for _, record := range records {
-		if record.Name == nil {
-			return errors.New("record.Name == nil")
+	for _, record := range cast {
+		err := validateRecord(record)
+		if err != nil {
+			return err
 		}
+	}
 
-		if !validateChoice(reflect.ValueOf(record)) {
-			return fmt.Errorf("Empty CHOICE for %s", *record.Name)
-		}
+	return nil
+}
+
+func validateRecord(record Record) error {
+	name := record.NameString()
+	if name == nil {
+		return errors.New("record.NameString() == nil")
+	}
+
+	if !validateChoice(reflect.ValueOf(record.Data())) {
+		return fmt.Errorf("Empty CHOICE for %s", *name)
 	}
 
 	return nil
@@ -304,12 +363,18 @@ func MarshalRecords(zone Zone, encoding EncodingType) ([]byte, error) {
 		return nil, err
 	}
 
-	PreProcessIpv6(getIpv6(zone.Records))
+	PreProcessIpv6(getIpv6(zone.Records.GetRecords()))
 
 	// Sort in order to group subdomains, maximizing name elision
-	slices.SortFunc(zone.Records, func(a Record, b Record) int {
-		return cmp.Compare(*a.Name, *b.Name)
-	})
+	if zone.Records.Hidden == nil {
+		slices.SortFunc(zone.Records.Visible, func(a VisibleDomainRecord, b VisibleDomainRecord) int {
+			return cmp.Compare(*a.Name, *b.Name)
+		})
+	} else {
+		slices.SortFunc(zone.Records.Hidden, func(a HiddenDomainRecord, b HiddenDomainRecord) int {
+			return cmp.Compare(*a.Index, *b.Index)
+		})
+	}
 
 	if encoding == MixedRadix {
 		return marshalMixedRadix(zone)
@@ -321,25 +386,20 @@ func MarshalRecords(zone Zone, encoding EncodingType) ([]byte, error) {
 func marshalPacked(zone Zone, encoding EncodingType) ([]byte, error) {
 	writer := encoding.NewWriter()
 
-	err := encoding.MarshalValue(writer, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
+	var nonce *[]byte
+	if zone.Nonce != nil {
+		nonce = &zone.Nonce
+	}
+
+	err := encoding.MarshalValue(writer, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info, Nonce: nonce}), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	var lastName *string
-	for _, elem := range zone.Records {
-		if lastName != nil && *elem.Name == *lastName {
-			elem.Name = nil
-		} else {
-			lastName = elem.Name
-		}
-		err = encoding.MarshalValue(writer, reflect.ValueOf(elem), asn1.FieldOptions{})
-		if err != nil {
-			return nil, err
-		}
+	if zone.Nonce == nil {
+		return marshalPackedVisible(writer, encoding, &zone.Records)
 	}
-
-	return writer.Bytes(), nil
+	return marshalPackedHidden(writer, encoding, &zone.Records)
 }
 
 func marshalMixedRadix(zone Zone) ([]byte, error) {
@@ -348,25 +408,21 @@ func marshalMixedRadix(zone Zone) ([]byte, error) {
 		Base:  big.NewInt(1),
 	}
 
-	err := mixedradix.MarshalValue(num, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info}), asn1.FieldOptions{})
+	var nonce *[]byte
+	if zone.Nonce != nil {
+		nonce = &zone.Nonce
+	}
+
+	err := mixedradix.MarshalValue(num, reflect.ValueOf(ParsingPlaceholder{Info: zone.Info, Nonce: nonce}), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	var lastName *string
-	for _, elem := range zone.Records {
-		if lastName != nil && *elem.Name == *lastName {
-			elem.Name = nil
-		} else {
-			lastName = elem.Name
-		}
-		err = mixedradix.MarshalValue(num, reflect.ValueOf(elem), asn1.FieldOptions{})
-		if err != nil {
-			return nil, err
-		}
+	if zone.Nonce == nil {
+		return marshalMixedRadixVisible(num, &zone.Records)
 	}
 
-	return num.Value.Bytes(), nil
+	return marshalMixedRadixHidden(num, &zone.Records)
 }
 
 func GetChoice(ref reflect.Value) uint8 {

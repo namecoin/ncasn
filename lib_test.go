@@ -53,7 +53,7 @@ var SAMPLE_NAME1 = "cba"
 
 func TestPostProcessIpv6(t *testing.T) {
 	sampleCopy := SAMPLE_PROCESSED
-	record := ncasn.Record{
+	record := ncasn.VisibleDomainRecord{
 		Name:       &SAMPLE_NAME0,
 		RecordData: ncasn.RecordUnion{AAAA: &sampleCopy},
 	}
@@ -85,7 +85,7 @@ func TestGetChoice(t *testing.T) {
 
 func TestPreProcessIpv6(t *testing.T) {
 	sampleCopy := SAMPLE_AAAA
-	record := ncasn.Record{
+	record := ncasn.VisibleDomainRecord{
 		Name:       &SAMPLE_NAME0,
 		RecordData: ncasn.RecordUnion{AAAA: &sampleCopy},
 	}
@@ -101,12 +101,12 @@ func TestPreProcessIpv6(t *testing.T) {
 }
 
 func TestNameOmission(t *testing.T) {
-	records := []ncasn.Record{
-		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
+	records := []ncasn.VisibleDomainRecord{
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
+		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 	}
 
@@ -119,7 +119,7 @@ func TestNameOmission(t *testing.T) {
 		nil,
 	}
 
-	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil}, ncasn.MixedRadix)
+	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: ncasn.RecordsUnion{Visible: records}, Info: nil}, ncasn.MixedRadix)
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
@@ -134,7 +134,7 @@ func TestNameOmission(t *testing.T) {
 	}
 
 	for i := range records {
-		var record ncasn.Record
+		var record ncasn.VisibleDomainRecord
 		err = mixedradix.UnmarshalValue(num, reflect.ValueOf(&record).Elem(), asn1.FieldOptions{})
 		if err != nil {
 			t.Fatalf("err != nil: %s", err.Error())
@@ -153,7 +153,7 @@ func TestNameOmission(t *testing.T) {
 }
 
 func TestNameAddition(t *testing.T) {
-	records := []ncasn.Record{
+	records := []ncasn.VisibleDomainRecord{
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
@@ -162,7 +162,7 @@ func TestNameAddition(t *testing.T) {
 		{Name: &SAMPLE_NAME1, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 	}
 
-	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil}, ncasn.MixedRadix)
+	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: ncasn.RecordsUnion{Visible: records}, Info: nil}, ncasn.MixedRadix)
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
@@ -172,7 +172,7 @@ func TestNameAddition(t *testing.T) {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
 
-	for i, decodedRecord := range decoded.Records {
+	for i, decodedRecord := range decoded.Records.Visible {
 		if decodedRecord.Name == nil {
 			t.Fatalf("Nil name at %d", i)
 		}
@@ -184,7 +184,7 @@ func TestNameAddition(t *testing.T) {
 }
 
 func TestRecordCount(t *testing.T) {
-	records := []ncasn.Record{
+	records := []ncasn.VisibleDomainRecord{
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
@@ -193,7 +193,7 @@ func TestRecordCount(t *testing.T) {
 		{Name: &SAMPLE_NAME0, RecordData: ncasn.RecordUnion{AAAA: &SAMPLE_AAAA}},
 	}
 
-	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: records, Info: nil}, ncasn.MixedRadix)
+	encoded, err := ncasn.MarshalRecords(ncasn.Zone{Records: ncasn.RecordsUnion{Visible: records}, Info: nil}, ncasn.MixedRadix)
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
 	}
@@ -204,8 +204,8 @@ func TestRecordCount(t *testing.T) {
 	}
 
 	sampleLen := len(records)
-	actualLen := len(decoded.Records)
-	if len(records) != len(decoded.Records) {
+	actualLen := len(decoded.Records.Visible)
+	if len(records) != len(decoded.Records.Visible) {
 		t.Errorf("Count != sample: %d != %d", actualLen, sampleLen)
 	}
 }
