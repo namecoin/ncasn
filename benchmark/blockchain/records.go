@@ -19,14 +19,17 @@ package blockchain
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 
+	"github.com/miekg/dns"
 	"github.com/namecoin/go-asn/mixedradix"
 	"github.com/namecoin/ncasn"
 	"github.com/namecoin/ncasn/benchmark/util"
@@ -105,6 +108,76 @@ func parseSrv(name *string, value any) ([]ncasn.Record, error) {
 				},
 			})
 		}
+	}
+
+	return ret, nil
+}
+
+func parseGenericDs(name *string, value any) ([]ncasn.Record, error) {
+	typeOf := reflect.TypeOf(value)
+	if typeOf == nil {
+		return nil, errors.New("Nil value")
+	}
+
+	kind := typeOf.Kind()
+	if kind != reflect.Slice {
+		return nil, errors.New("ds is not a slice")
+	}
+
+	list := value.([]any)
+	ret := []ncasn.Record{}
+	for _, elemAny := range list {
+		elem, ok := elemAny.([]any)
+		if !ok {
+			return nil, errors.New("ds element type is not slice")
+		}
+
+		if len(elem) < 4 {
+			return nil, errors.New("ds array with < 4 parts")
+		}
+		var str string
+
+		key, err := parseUint16(elem[0])
+		if err != nil {
+			return nil, fmt.Errorf("ds key is not a uint16: %s", err.Error())
+		}
+		str += strconv.Itoa(int(*key)) + " "
+
+		algo, err := parseUint8(elem[1])
+		if err != nil {
+			return nil, fmt.Errorf("ds key algorithm is not a uint8: %s", err.Error())
+		}
+		str += strconv.Itoa(int(*algo)) + " "
+
+		digestType, err := parseUint8(elem[2])
+		if err != nil {
+			return nil, fmt.Errorf("ds digest type is not a uint8: %s", err.Error())
+		}
+
+		str += strconv.Itoa(int(*digestType)) + " "
+
+		digest, ok := elem[3].(string)
+		if !ok {
+			return nil, errors.New("ds digest is not a string")
+		}
+
+		data, err := base64.StdEncoding.DecodeString(digest)
+		if err != nil {
+			return nil, err
+		}
+		digest = hex.EncodeToString(data)
+
+		str += digest
+
+		ret = append(ret, ncasn.Record{
+			Name: name,
+			RecordData: ncasn.RecordUnion{
+				Generic: &ncasn.Generic{
+					Type:   dns.TypeDS,
+					Target: str,
+				},
+			},
+		})
 	}
 
 	return ret, nil
@@ -355,6 +428,54 @@ func parseUint16(value any) (*uint16, error) {
 	return &cast, nil
 }
 
+func parseGenericTlsa(name *string, value []any) (*ncasn.Record, error) {
+	length := len(value)
+	if length < 4 {
+		return nil, errors.New("Too few values for a TLSA record")
+	}
+
+	var record string
+
+	usage, err := parseUint8(value[0])
+	if err != nil {
+		return nil, fmt.Errorf("TLSA certificate usage is not a uint8: %s", err.Error())
+	}
+
+	record += strconv.Itoa(int(*usage)) + " "
+
+	selector, err := parseUint8(value[1])
+	if err != nil {
+		return nil, fmt.Errorf("TLSA selector is not a uint8: %s", err.Error())
+	}
+
+	record += strconv.Itoa(int(*selector)) + " "
+
+	matchingType, err := parseUint8(value[2])
+	if err != nil {
+		return nil, fmt.Errorf("TLSA matching type is not a uint8: %s", err.Error())
+	}
+
+	record += strconv.Itoa(int(*matchingType)) + " "
+
+	dataStr, ok := value[3].(string)
+	if !ok {
+		return nil, errors.New("TLSA data is not a string")
+	}
+
+	data, err := base64.StdEncoding.DecodeString(dataStr)
+	if err != nil {
+		return nil, err
+	}
+	dataStr = hex.EncodeToString(data)
+
+	record += dataStr
+
+	return &ncasn.Record{Name: name, RecordData: ncasn.RecordUnion{Generic: &ncasn.Generic{
+		Type:   dns.TypeTLSA,
+		Target: record,
+	}}}, nil
+}
+
 func parseTlsaRecord(name *string, value []any, skipped *int) (*ncasn.Record, error) {
 	length := len(value)
 	if length < 4 {
@@ -443,4 +564,54 @@ func parseLocRecord(name *string, value string) (*ncasn.Record, error) {
 	}
 
 	return &ncasn.Record{Name: name, RecordData: ncasn.RecordUnion{Loc: data}}, nil
+}
+
+func parseGenericSshfp(name *string, value any) (*ncasn.Record, error) {
+	record, ok := value.([]any)
+	if !ok {
+		return nil, errors.New("sshfp field is not a slice of slices")
+	}
+
+	length := len(record)
+	if length < 3 {
+		return nil, errors.New("SSHFP record too short")
+	}
+
+	algo, err := parseUint8(record[0])
+	if err != nil {
+		return nil, fmt.Errorf("Invalid SSHFP algorithm: %s", err.Error())
+	}
+
+	str := strconv.Itoa(int(*algo)) + " "
+
+	digestType, err := parseUint8(record[1])
+	if err != nil {
+		return nil, fmt.Errorf("Invalid digest algorithm: %s", err.Error())
+	}
+
+	str += strconv.Itoa(int(*digestType)) + " "
+
+	digest, ok := record[2].(string)
+	if !ok {
+		return nil, errors.New("SSHFP digest is not a string")
+	}
+
+	str += digest + " "
+
+	bytes, err := base64.StdEncoding.DecodeString(digest)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid SSHFP digest: %s", err.Error())
+	}
+
+	str += hex.EncodeToString(bytes)
+
+	return &ncasn.Record{
+		Name: name,
+		RecordData: ncasn.RecordUnion{
+			Generic: &ncasn.Generic{
+				Type:   dns.TypeSSHFP,
+				Target: str,
+			},
+		},
+	}, nil
 }

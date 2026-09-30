@@ -87,7 +87,8 @@ func parseDs(fields []string) (*ncasn.RecordUnion, error) {
 	}
 
 	if !slices.Contains(ncasn.DS_DIGEST_TYPES, uint8(digestType)) {
-		return nil, fmt.Errorf("Unsupporteed DS digest type: %d", digestType)
+		fmt.Println("Unsupported DS digest type:", digestType)
+		return nil, nil
 	}
 
 	bytes, err := hex.DecodeString(strings.ToLower(fields[7]))
@@ -126,5 +127,45 @@ func parseDs(fields []string) (*ncasn.RecordUnion, error) {
 		}}, nil
 	}
 
-	return nil, fmt.Errorf("Unsupported digest type %d", digestType)
+	fmt.Println("Unsupported digest type:", digestType)
+	return nil, nil
+}
+
+func parseSshfp(fields []string) (*ncasn.RecordUnion, error) {
+	keyAlgo, err := strconv.ParseUint(fields[0], 10, 3)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse SSHFP key algo: %s", err.Error())
+	}
+	if keyAlgo < 4 {
+		fmt.Println("Unsupported SSHFP key algo:", keyAlgo)
+		return nil, nil
+	}
+	keyAlgo -= 4
+
+	hashAlgo, err := strconv.ParseUint(fields[1], 10, 2)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse SSHFP hash algo: %s", err.Error())
+	}
+
+	if hashAlgo != 2 {
+		fmt.Println("Unsupported SSHFP hash algo:", hashAlgo)
+		return nil, nil
+	}
+
+	bytes, err := hex.DecodeString(fields[2])
+	if err != nil {
+		return nil, err
+	}
+
+	length := len(bytes)
+	if length != 32 {
+		return nil, fmt.Errorf("Invalid SSHFP fingerprint length %d", length)
+	}
+
+	return &ncasn.RecordUnion{
+		Sshfp: &ncasn.SSHFP{
+			KeyAlgoIndex: uint8(keyAlgo),
+			Fingerprint:  bytes,
+		},
+	}, nil
 }

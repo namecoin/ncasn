@@ -295,9 +295,20 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 		ret = append(ret, parsed...)
 	case "ds":
+		oldSkipped := *skipped
 		parsed, err := parseDs(&name, value, skipped)
 		if err != nil {
-			return nil, err
+			if oldSkipped != *skipped {
+				fmt.Println("Unsupported DS record, falling back:", err.Error())
+				parsed, err = parseGenericDs(&name, value)
+				if err != nil {
+					return nil, err
+				}
+
+				ret = append(ret, parsed...)
+			} else {
+				return nil, err
+			}
 		}
 
 		ret = append(ret, parsed...)
@@ -366,9 +377,18 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				return nil, errors.New("tls field is not an array of arrays")
 			}
 
+			oldSkipped := *skipped
 			parsed, err := parseTlsaRecord(&name, nested, skipped)
 			if err != nil {
 				fmt.Println("Failed to parse TLSA record:", err.Error())
+				if oldSkipped != *skipped {
+					parsed, err = parseGenericTlsa(&name, nested)
+					if err == nil {
+						ret = append(ret, *parsed)
+					} else {
+						fmt.Println("Failed to parse TLSA record as Generic:", err.Error())
+					}
+				}
 				continue
 			}
 
@@ -395,7 +415,18 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			return nil, errors.New("sshfp field is not a slice")
 		}
 
-		for _, elem := range records {
+		oldSkipped := *skipped
+		for i, elem := range records {
+			if oldSkipped != *skipped {
+				parsed, err := parseGenericSshfp(&name, records[i-1])
+				if err == nil {
+					ret = append(ret, *parsed)
+				} else {
+					fmt.Println("Failed to parse generic SSHFP record:", err.Error())
+				}
+			}
+			oldSkipped = *skipped
+
 			record, ok := elem.([]any)
 			if !ok {
 				return nil, errors.New("sshfp field is not a slice of slices")
@@ -668,7 +699,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				continue
 			}
 
-			decoded, err := zone.ParseRecord(parsed.String(), false)
+			var discard int
+			decoded, err := zone.ParseRecord(parsed.String(), false, &discard)
 			if err != nil {
 				fmt.Println("Invalid arbitrary record:", err.Error())
 				continue

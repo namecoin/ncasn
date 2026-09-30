@@ -19,7 +19,6 @@ package zone
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,7 +37,7 @@ import (
 )
 
 // Both may be nil if the record is ignored
-func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
+func ParseRecord(line string, zone bool, skipped *int) (*ncasn.Record, error) {
 	fields := strings.Fields(line)
 
 	if len(fields) == 0 {
@@ -85,6 +84,17 @@ func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if union == nil {
+			*skipped++
+			data := strings.Join(fields[4:], " ")
+			union = &ncasn.RecordUnion{
+				Generic: &ncasn.Generic{
+					Type:   dns.TypeDS,
+					Target: data,
+				},
+			}
+		}
 	case "TXT":
 		data := strings.Join(fields[4:], " ")
 
@@ -113,37 +123,21 @@ func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
 			return nil, errors.New("Missing SSHFP fields")
 		}
 
-		keyAlgo, err := strconv.ParseUint(fields[4], 10, 3)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to parse SSHFP key algo: %s", err.Error())
-		}
-		if keyAlgo < 4 {
-			fmt.Printf("SSHFP key algo %d is not supported\n", keyAlgo)
-			return nil, nil
-		}
-
-		hashAlgo, err := strconv.ParseUint(fields[5], 10, 2)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to parse SSHFP hash algo: %s", err.Error())
-		}
-
-		if hashAlgo != 2 {
-			fmt.Printf("SSHFP hash algo %d is not supported\n", hashAlgo)
-			return nil, nil
-		}
-
-		bytes, err := hex.DecodeString(fields[6])
+		var err error
+		union, err = parseSshfp(fields[4:])
 		if err != nil {
 			return nil, err
 		}
 
-		length := len(bytes)
-		if length != 32 {
-			return nil, fmt.Errorf("Invalid SSHFP fingerprint length %d", length)
-		}
-
-		union = &ncasn.RecordUnion{
-			Sshfp: &ncasn.SSHFP{KeyAlgoIndex: uint8(keyAlgo) - 4, Fingerprint: bytes},
+		if union == nil {
+			*skipped++
+			data := strings.Join(fields[4:], " ")
+			union = &ncasn.RecordUnion{
+				Generic: &ncasn.Generic{
+					Type:   dns.TypeSSHFP,
+					Target: data,
+				},
+			}
 		}
 	case "NS":
 		union = &ncasn.RecordUnion{
@@ -161,6 +155,7 @@ func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
 		}
 	case "SOA", "NSEC3", "NSEC3PARAM", "DNSKEY", "RRSIG", "CDS", "CDNSKEY", "CAA":
 		if zone {
+			*skipped++
 			return nil, nil
 		}
 
@@ -170,6 +165,7 @@ func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
 	}
 
 	if union == nil {
+		*skipped++
 		fmt.Println("Unsupported record:", strings.Join(fields, " "))
 		return nil, nil
 	}
@@ -418,16 +414,15 @@ func readZone(filePath string) (*util.Zone, error) {
 	parser := dns.NewZoneParser(fd, "", filePath)
 	record, ok := parser.Next()
 	n := 0
-	nParsed := 0
+	skipped := 0
 	for ok {
 		raw := record.String()
-		parsed, err := ParseRecord(raw, true)
+		parsed, err := ParseRecord(raw, true, &skipped)
 		if err != nil {
 			return nil, err
 		}
 
 		if parsed != nil {
-			nParsed++
 			records = append(records, *parsed)
 		}
 
@@ -448,7 +443,7 @@ func readZone(filePath string) (*util.Zone, error) {
 		return nil, err
 	}
 
-	ret.Coverage = float64(nParsed) / float64(n)
+	ret.Coverage = float64(n-skipped) / float64(n)
 	return ret, nil
 }
 
