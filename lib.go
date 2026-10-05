@@ -69,7 +69,7 @@ type Record interface {
 }
 
 type HiddenDomainRecord struct {
-	Index      *uint16 `asn1:"optional,size:0..500"`
+	Index      *uint16 `asn1:"optional,size:0..19"`
 	RecordData RecordUnion
 	name       string // Only used for seed grinding, not stored, must be private to prevent marshalling
 }
