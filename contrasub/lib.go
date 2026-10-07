@@ -20,14 +20,17 @@ package contrasub
 import (
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"math/big"
+	"reflect"
 	"slices"
 
+	"github.com/namecoin/go-asn/asn1"
 	"github.com/namecoin/ncasn"
 	"golang.org/x/crypto/blake2s"
 )
 
-func getUniqueSubNames(records []ncasn.HiddenDomainRecord) int {
+func GetUniqueSubNames(records []ncasn.HiddenDomainRecord) int {
 	subs := []string{}
 	for _, record := range records {
 		if !slices.Contains(subs, record.GetName()) {
@@ -71,13 +74,50 @@ func CalculateIndexWithCount(zone *ncasn.Zone, sub string, count int) (*uint16, 
 	return &index, nil
 }
 
+var maxSubsCache *int64
+
+func getMaxSubs() (*int64, error) {
+	// Reflection is expensive and this is static, so cache it
+	if maxSubsCache != nil {
+		return maxSubsCache, nil
+	}
+
+	typeFor := reflect.TypeFor[ncasn.HiddenDomainRecord]()
+	field, ok := typeFor.FieldByName("Index")
+	if !ok {
+		return nil, errors.New("Index field not found")
+	}
+
+	tag := field.Tag.Get("asn1")
+	opts, err := asn1.ParseTag(tag)
+	if err != nil {
+		return nil, err
+	}
+
+	if opts.SizeMax == nil {
+		return nil, errors.New("opts.SizeMax == nil")
+	}
+
+	maxSubsCache = opts.SizeMax
+	*maxSubsCache++
+	return maxSubsCache, nil
+}
+
 func PreProcess(zone *ncasn.Zone) error {
 	if zone.Records.Hidden == nil {
 		return errors.New("Not a hidden domain records zone")
 	}
 
 	zone.Nonce = make([]byte, 8)
-	subCount := getUniqueSubNames(zone.Records.Hidden)
+	subCount := GetUniqueSubNames(zone.Records.Hidden)
+	maxSubs, err := getMaxSubs()
+	if err != nil {
+		return err
+	}
+
+	if int64(subCount) > *maxSubs {
+		return fmt.Errorf("Subdomain count %d > %d", subCount, *maxSubs)
+	}
 
 	invalid := true
 	for invalid {
