@@ -242,9 +242,8 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 
 	addedSubs := []string{}
 	for i := range zone.Zone.Records {
-		// TODO: Increase after multithreading
 		// Excessive unique subdomains make nonce generation prohibitively expensive for this much data
-		if len(addedSubs) > 16 && !slices.Contains(addedSubs, zone.Zone.Records[i].Name) {
+		if len(addedSubs) >= 20 && !slices.Contains(addedSubs, zone.Zone.Records[i].Name) {
 			continue
 		}
 
