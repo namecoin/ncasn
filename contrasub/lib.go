@@ -112,7 +112,7 @@ func pollDone(done chan bool) bool {
 	}
 }
 
-func grindIndex(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan bool) {
+func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan bool) {
 	invalid := true
 	for invalid && !pollDone(quit) {
 		rand.Read(zone.Nonce)
@@ -164,11 +164,11 @@ func PreProcess(zone *ncasn.Zone) error {
 	for i := 0; i < 8; i++ {
 		copy := *zone
 		copy.Nonce = make([]byte, 8)
-		go grindIndex(copy, subCount, channel, done)
+		go grind(copy, subCount, channel, done)
 	}
 
 	*zone = <-channel
-	done <- true
+	close(done)
 
 	return nil
 }
