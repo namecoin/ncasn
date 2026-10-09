@@ -103,28 +103,25 @@ func getMaxSubs() (*int64, error) {
 	return maxSubsCache, nil
 }
 
-func PreProcess(zone *ncasn.Zone) error {
-	if zone.Records.Hidden == nil {
-		return errors.New("Not a hidden domain records zone")
+func pollDone(done chan bool) bool {
+	select {
+	case <-done:
+		return true
+	default:
+		return false
 	}
+}
 
-	zone.Nonce = make([]byte, 8)
-	subCount := GetUniqueSubNames(zone.Records.Hidden)
-	maxSubs, err := getMaxSubs()
-	if err != nil {
-		return err
-	}
-
-	if int64(subCount) > *maxSubs {
-		return fmt.Errorf("Subdomain count %d > %d", subCount, *maxSubs)
-	}
-
+func grindIndex(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan bool) {
 	invalid := true
-	for invalid {
+	for invalid && !pollDone(quit) {
 		rand.Read(zone.Nonce)
 		indices := []uint16{}
 		mapped := map[string]uint16{}
 		for i := range zone.Records.Hidden {
+			if pollDone(quit) {
+				return
+			}
 			sub := zone.Records.Hidden[i].GetName()
 			existing, found := mapped[sub]
 			if found {
@@ -132,7 +129,7 @@ func PreProcess(zone *ncasn.Zone) error {
 				continue
 			}
 
-			index, _ := CalculateIndexWithCount(zone, sub, subCount)
+			index, _ := CalculateIndexWithCount(&zone, sub, subCount)
 			if slices.Contains(indices, *index) {
 				break
 			}
@@ -143,6 +140,35 @@ func PreProcess(zone *ncasn.Zone) error {
 
 		invalid = len(indices) != subCount
 	}
+
+	ret <- zone
+}
+
+func PreProcess(zone *ncasn.Zone) error {
+	if zone.Records.Hidden == nil {
+		return errors.New("Not a hidden domain records zone")
+	}
+
+	subCount := GetUniqueSubNames(zone.Records.Hidden)
+	maxSubs, err := getMaxSubs()
+	if err != nil {
+		return err
+	}
+
+	if int64(subCount) > *maxSubs {
+		return fmt.Errorf("Subdomain count %d > %d", subCount, *maxSubs)
+	}
+
+	channel := make(chan ncasn.Zone)
+	done := make(chan bool)
+	for i := 0; i < 8; i++ {
+		copy := *zone
+		copy.Nonce = make([]byte, 8)
+		go grindIndex(copy, subCount, channel, done)
+	}
+
+	*zone = <-channel
+	done <- true
 
 	return nil
 }
