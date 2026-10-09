@@ -162,9 +162,12 @@ func PreProcess(zone *ncasn.Zone) error {
 	channel := make(chan ncasn.Zone)
 	done := make(chan bool)
 	for i := 0; i < 8; i++ {
-		copy := *zone
-		copy.Nonce = make([]byte, 8)
-		go grind(copy, subCount, channel, done)
+		copied := *zone
+		copied.Nonce = make([]byte, 8)
+		records := make([]ncasn.HiddenDomainRecord, len(copied.Records.Hidden))
+		copy(records, copied.Records.Hidden)
+		copied.Records.Hidden = records
+		go grind(copied, subCount, channel, done)
 	}
 
 	*zone = <-channel
