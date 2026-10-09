@@ -17,33 +17,60 @@ Some (hopefully reasonable) assumptions had to be made in order to achieve good 
 These numbers are subject to change (hopefully improve!) as the format is updated and the benchmark may have to be tweaked, but the following comparisons to different formats can currently be made (as a ratio with our storage usage as the denominator):
 
 Blockchain data were obtained with a minimum block height of 0 and maximum of 840795. Zone/blockchain coverage ratios refer to the exclusion of records based on the aforementioned assumptions.
+Standard benchmark results:
 ```
 Zone file coverage: 0.29
 Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.19474 | 1.00 | 200890
-Tor: 1.90205 | 0.87 | 174419
-CBOR: 1.48886 | 1.00 | 200890
+JSON: 4.18719 | 1.00 | 200890
+Tor: 1.89511 | 0.87 | 174419
+CBOR: 1.48220 | 1.00 | 200890
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.33289 | 1.00 | 200890
-Tor: 1.98506 | 0.87 | 174419
-CBOR: 1.53707 | 1.00 | 200890
-APER: 1.02643 | 1.00 | 200890
+JSON: 4.32033 | 1.00 | 200890
+Tor: 1.97290 | 0.87 | 174419
+CBOR: 1.52843 | 1.00 | 200890
+APER: 1.02916 | 1.00 | 200890
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.93854 | 1.00 | 200890
-Tor: 2.23181 | 0.87 | 174419
-CBOR: 1.76511 | 1.00 | 200890
-APER: 1.21253 | 1.00 | 200890
-UPER: 1.18131 | 1.00 | 200890
+JSON: 4.89763 | 1.00 | 200890
+Tor: 2.20271 | 0.87 | 174419
+CBOR: 1.75001 | 1.00 | 200890
+APER: 1.21167 | 1.00 | 200890
+UPER: 1.17734 | 1.00 | 200890
+```
+Results with contrasub (note the caveats in runHiddenComparison()):
+```
+Zone file coverage: 0.29
+Blockchain coverage: 1.00
+
+APER benchmark results:
+Format: Size ratio | Record coverage | Record count
+JSON: 3.76798 | 1.00 | 200630
+Tor: 1.64241 | 0.87 | 174159
+CBOR: 1.34714 | 1.00 | 200630
+
+UPER benchmark results:
+Format: Size ratio | Record coverage | Record count
+JSON: 3.87222 | 1.00 | 200630
+Tor: 1.71996 | 0.87 | 174159
+CBOR: 1.39438 | 1.00 | 200630
+APER: 1.03467 | 1.00 | 200630
+
+Mixed radix benchmark results:
+Format: Size ratio | Record coverage | Record count
+JSON: 4.39768 | 1.00 | 200630
+Tor: 1.91431 | 0.87 | 174159
+CBOR: 1.59666 | 1.00 | 200630
+APER: 1.19696 | 1.00 | 200630
+UPER: 1.15685 | 1.00 | 200630
 ```
 
-Results binned based on the record types in a given zone are available in doc/Binned.txt.
+Results binned based on the record types in a given zone are available in doc/binned/Visible.txt and doc/binned/Hidden.txt.
 
 ## Copyright
 

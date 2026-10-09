@@ -21,15 +21,16 @@ import (
 	"strings"
 
 	"github.com/namecoin/ncasn"
+	"github.com/namecoin/ncasn/benchmark/util"
 )
 
 func notDns(union *ncasn.RecordUnion) bool {
 	return union.Onion != nil || union.I2p != nil || union.I2pLs2 != nil || union.Ipns != nil || union.Hyphanet != nil
 }
 
-func sameLevel(record *ncasn.Record, list []ncasn.Record) bool {
+func sameLevel(record *util.GenericNameRecord, list []util.GenericNameRecord) bool {
 	for _, elem := range list {
-		if *record.Name == *elem.Name {
+		if record.Name == elem.Name {
 			return true
 		}
 	}
@@ -37,9 +38,9 @@ func sameLevel(record *ncasn.Record, list []ncasn.Record) bool {
 	return false
 }
 
-func higherLevel(record *ncasn.Record, records []ncasn.Record) bool {
+func higherLevel(record *util.GenericNameRecord, records []util.GenericNameRecord) bool {
 	for _, baseRec := range records {
-		if *record.Name == *baseRec.Name || strings.HasSuffix(*record.Name, "."+*baseRec.Name) {
+		if record.Name == baseRec.Name || strings.HasSuffix(record.Name, "."+baseRec.Name) {
 			return false
 		}
 	}
@@ -47,9 +48,9 @@ func higherLevel(record *ncasn.Record, records []ncasn.Record) bool {
 	return true
 }
 
-func suppressNs(records []ncasn.Record) []ncasn.Record {
-	var ret []ncasn.Record
-	ns := []ncasn.Record{}
+func suppressNs(records []util.GenericNameRecord) []util.GenericNameRecord {
+	var ret []util.GenericNameRecord
+	ns := []util.GenericNameRecord{}
 
 	for _, record := range records {
 		if record.RecordData.Ns != nil {
@@ -73,9 +74,9 @@ func suppressNs(records []ncasn.Record) []ncasn.Record {
 	return ret
 }
 
-func suppressDname(records []ncasn.Record) []ncasn.Record {
-	dname := []ncasn.Record{}
-	var ret []ncasn.Record
+func suppressDname(records []util.GenericNameRecord) []util.GenericNameRecord {
+	dname := []util.GenericNameRecord{}
+	var ret []util.GenericNameRecord
 
 	for _, record := range records {
 		if record.RecordData.Dname != nil {
@@ -97,9 +98,9 @@ func suppressDname(records []ncasn.Record) []ncasn.Record {
 	return ret
 }
 
-func suppressCname(records []ncasn.Record) []ncasn.Record {
-	cname := []ncasn.Record{}
-	var ret []ncasn.Record
+func suppressCname(records []util.GenericNameRecord) []util.GenericNameRecord {
+	cname := []util.GenericNameRecord{}
+	var ret []util.GenericNameRecord
 
 	for _, record := range records {
 		if record.RecordData.Cname != nil {
@@ -121,7 +122,7 @@ func suppressCname(records []ncasn.Record) []ncasn.Record {
 	return ret
 }
 
-func applySuppression(records []ncasn.Record) []ncasn.Record {
+func applySuppression(records []util.GenericNameRecord) []util.GenericNameRecord {
 	ret := suppressNs(records)
 	ret = suppressDname(ret)
 	return suppressCname(ret)

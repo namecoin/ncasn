@@ -30,8 +30,8 @@ import (
 
 // See https://datatracker.ietf.org/doc/draft-lenders-dns-cbor, WIP.
 
-func RecordsToCbor(records []ncasn.Record) (*util.CborRecords, error) {
-	ignored := []*ncasn.Record{}
+func RecordsToCbor(records []util.GenericNameRecord) (*util.CborRecords, error) {
+	ignored := []*util.GenericNameRecord{}
 	encoded := [][]any{}
 
 	nsIdx := 0
@@ -50,15 +50,15 @@ func RecordsToCbor(records []ncasn.Record) (*util.CborRecords, error) {
 			nsStr := fmt.Sprint("ns", nsIdx)
 			var record []any
 			if records[i].RecordData.Ns.Ip.A != nil {
-				record, _ = recordToCbor(&ncasn.Record{
-					Name: &nsStr,
+				record, _ = recordToCbor(&util.GenericNameRecord{
+					Name: nsStr,
 					RecordData: ncasn.RecordUnion{
 						A: records[i].RecordData.Ns.Ip.A,
 					},
 				}, lastName, nsIdx)
 			} else {
-				record, _ = recordToCbor(&ncasn.Record{
-					Name: &nsStr,
+				record, _ = recordToCbor(&util.GenericNameRecord{
+					Name: nsStr,
 					RecordData: ncasn.RecordUnion{
 						AAAA: records[i].RecordData.Ns.Ip.AAAA,
 					},
@@ -102,15 +102,15 @@ func recordDataToCbor(record *ncasn.RecordUnion, nsIdx int) ([]byte, []any) {
 	}
 }
 
-func recordToCbor(record *ncasn.Record, lastName *string, nsIdx int) ([]any, *string) {
+func recordToCbor(record *util.GenericNameRecord, lastName *string, nsIdx int) ([]any, *string) {
 	var ret []any
-	if lastName == nil || *lastName != *record.Name {
-		lastName = record.Name
+	if lastName == nil || *lastName != record.Name {
+		lastName = &record.Name
 
-		if strings.Contains(*record.Name, ".") {
-			ret = append(ret, strings.Split(*record.Name, "."))
+		if strings.Contains(record.Name, ".") {
+			ret = append(ret, strings.Split(record.Name, "."))
 		} else {
-			ret = append(ret, *record.Name)
+			ret = append(ret, record.Name)
 		}
 	}
 

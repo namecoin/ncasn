@@ -72,8 +72,8 @@ func parseTypeOrSlice[E any](value any) ([]E, error) {
 	}
 }
 
-func handleField(key string, value any, name string, skipped *int, parent map[string]any) ([]ncasn.Record, error) {
-	ret := []ncasn.Record{}
+func handleField(key string, value any, name string, skipped *int, parent map[string]any) ([]util.GenericNameRecord, error) {
+	ret := []util.GenericNameRecord{}
 	switch key {
 	case "map":
 		cast, ok := value.(map[string]any)
@@ -118,8 +118,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 				union := ncasn.RecordUnion{A: &ncasn.A{Target: ip}}
 
-				ret = append(ret, ncasn.Record{
-					Name:       &kMap,
+				ret = append(ret, util.GenericNameRecord{
+					Name:       kMap,
 					RecordData: union,
 				})
 			case reflect.Map:
@@ -183,8 +183,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 					subPtr = &sub
 				}
 
-				ret = append(ret, ncasn.Record{
-					Name: &name,
+				ret = append(ret, util.GenericNameRecord{
+					Name: name,
 					RecordData: ncasn.RecordUnion{
 						Import: &ncasn.Import{
 							Name:      base,
@@ -213,8 +213,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				continue
 			}
 
-			ret = append(ret, ncasn.Record{
-				Name: &name,
+			ret = append(ret, util.GenericNameRecord{
+				Name: name,
 				RecordData: ncasn.RecordUnion{
 					Import: &ncasn.Import{
 						Name: elem,
@@ -239,8 +239,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				return nil, errors.New("IPv6 but should be IPv4")
 			}
 
-			ret = append(ret, ncasn.Record{
-				Name:       &name,
+			ret = append(ret, util.GenericNameRecord{
+				Name:       name,
 				RecordData: ncasn.RecordUnion{A: &ncasn.A{Target: ip}},
 			})
 		}
@@ -260,8 +260,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				return nil, errors.New("IPv4 but should be IPv6")
 			}
 
-			ret = append(ret, ncasn.Record{
-				Name:       &name,
+			ret = append(ret, util.GenericNameRecord{
+				Name:       name,
 				RecordData: ncasn.RecordUnion{AAAA: &ncasn.AAAA{Bytes: ip}},
 			})
 		}
@@ -281,21 +281,21 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			break
 		}
 
-		ret = append(ret, ncasn.Record{
-			Name: &name,
+		ret = append(ret, util.GenericNameRecord{
+			Name: name,
 			RecordData: ncasn.RecordUnion{
 				Cname: &str,
 			},
 		})
 	case "srv":
-		parsed, err := parseSrv(&name, value)
+		parsed, err := parseSrv(name, value)
 		if err != nil {
 			return nil, err
 		}
 
 		ret = append(ret, parsed...)
 	case "ds":
-		parsed, err := parseDs(&name, value, skipped)
+		parsed, err := parseDs(name, value, skipped)
 		if err != nil {
 			return nil, err
 		}
@@ -323,8 +323,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				return nil, fmt.Errorf("Invalid IPNS TXT record: %s", err.Error())
 			}
 
-			ret = append(ret, ncasn.Record{
-				Name: &name,
+			ret = append(ret, util.GenericNameRecord{
+				Name: name,
 				RecordData: ncasn.RecordUnion{
 					Ipns: ipns,
 				},
@@ -340,14 +340,14 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				return nil, err
 			}
 
-			ret = append(ret, ncasn.Record{
-				Name: &name,
+			ret = append(ret, util.GenericNameRecord{
+				Name: name,
 				RecordData: ncasn.RecordUnion{
 					Onion: record,
 				},
 			})
 		default:
-			parsed, err := parseTxt(&name, value)
+			parsed, err := parseTxt(name, value)
 			if err != nil {
 				return nil, fmt.Errorf("Failed to parse TXT record: %s", err.Error())
 			}
@@ -366,7 +366,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				return nil, errors.New("tls field is not an array of arrays")
 			}
 
-			parsed, err := parseTlsaRecord(&name, nested, skipped)
+			parsed, err := parseTlsaRecord(name, nested, skipped)
 			if err != nil {
 				fmt.Println("Failed to parse TLSA record:", err.Error())
 				continue
@@ -381,7 +381,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 		}
 
 		for _, record := range records {
-			parsed, err := parseLocRecord(&name, record)
+			parsed, err := parseLocRecord(name, record)
 			if err != nil {
 				fmt.Println("Failed to parse LOC record:", err.Error())
 				continue
@@ -452,8 +452,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				continue
 			}
 
-			ret = append(ret, ncasn.Record{
-				Name: &name,
+			ret = append(ret, util.GenericNameRecord{
+				Name: name,
 				RecordData: ncasn.RecordUnion{
 					Sshfp: &ncasn.SSHFP{
 						KeyAlgoIndex: *algo,
@@ -475,8 +475,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				continue
 			}
 
-			ret = append(ret, ncasn.Record{
-				Name: &name,
+			ret = append(ret, util.GenericNameRecord{
+				Name: name,
 				RecordData: ncasn.RecordUnion{
 					Onion: parsed,
 				},
@@ -495,8 +495,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				continue
 			}
 
-			ret = append(ret, ncasn.Record{
-				Name: &name,
+			ret = append(ret, util.GenericNameRecord{
+				Name: name,
 				RecordData: ncasn.RecordUnion{
 					I2p:    old,
 					I2pLs2: ls2,
@@ -514,8 +514,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			return nil, fmt.Errorf("Invalid USK: %s", err.Error())
 		}
 
-		ret = append(ret, ncasn.Record{
-			Name: &name,
+		ret = append(ret, util.GenericNameRecord{
+			Name: name,
 			RecordData: ncasn.RecordUnion{
 				Hyphanet: parsed,
 			},
@@ -530,8 +530,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			break
 		}
 
-		ret = append(ret, ncasn.Record{
-			Name: &name,
+		ret = append(ret, util.GenericNameRecord{
+			Name: name,
 			RecordData: ncasn.RecordUnion{
 				Dname: &str,
 			},
@@ -551,8 +551,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			if ip != nil {
 				v4 := ip.To4()
 				if v4 == nil {
-					ret = append(ret, ncasn.Record{
-						Name: &name,
+					ret = append(ret, util.GenericNameRecord{
+						Name: name,
 						RecordData: ncasn.RecordUnion{
 							Ns: &ncasn.NS{
 								Ip: &ncasn.NSIP{
@@ -564,8 +564,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 						},
 					})
 				} else {
-					ret = append(ret, ncasn.Record{
-						Name: &name,
+					ret = append(ret, util.GenericNameRecord{
+						Name: name,
 						RecordData: ncasn.RecordUnion{
 							Ns: &ncasn.NS{
 								Ip: &ncasn.NSIP{
@@ -586,8 +586,8 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			if len(record) > 255 || !mixedradix.IsValidDnsName(record) {
 				continue
 			}
-			ret = append(ret, ncasn.Record{
-				Name: &name,
+			ret = append(ret, util.GenericNameRecord{
+				Name: name,
 				RecordData: ncasn.RecordUnion{
 					Ns: &ncasn.NS{
 						String: &record,
@@ -754,7 +754,7 @@ func parseWhois(value any) *ncasn.Whois {
 }
 
 type zoneWithCoverage struct {
-	Zone    *ncasn.Zone
+	Zone    *util.GenericZone
 	Total   int
 	Skipped int
 }
@@ -817,8 +817,8 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 		return nil, err
 	}
 
-	var ret []ncasn.Record
-	var zone ncasn.Zone
+	var ret []util.GenericNameRecord
+	var zone util.GenericZone
 	var coverage zoneWithCoverage
 
 	// Account for nondeterministic map iteration
@@ -871,7 +871,7 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 	return &coverage, nil
 }
 
-func combine(zone *ncasn.Zone, json *Name) (*util.Zone, error) {
+func combine(zone *util.GenericZone, json *Name) (*util.Zone, error) {
 	slices.SortFunc(zone.Records, util.CmpRecords)
 	cborEncoded, err := cbor.RecordsToCbor(zone.Records)
 	if err != nil {

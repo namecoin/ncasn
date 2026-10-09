@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/miekg/dns v1.1.72
 	github.com/namecoin/go-asn v0.0.0-20260916224240-e0605e6620b1
-	github.com/namecoin/ncasn v0.0.0-20260921234504-0d8357956e4b
+	github.com/namecoin/ncasn v0.0.0-20261007181139-3e04a7e8e31a
 )
 
 require (
@@ -22,11 +22,11 @@ require (
 	github.com/multiformats/go-varint v0.1.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/mod v0.31.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/tools v0.40.0 // indirect
 	lukechampine.com/blake3 v1.1.6 // indirect
 )

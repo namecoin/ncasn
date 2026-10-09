@@ -30,6 +30,7 @@ import (
 	"github.com/namecoin/ncasn/benchmark/blockchain"
 	"github.com/namecoin/ncasn/benchmark/util"
 	"github.com/namecoin/ncasn/benchmark/zone"
+	"github.com/namecoin/ncasn/contrasub"
 )
 
 func main() {
@@ -46,7 +47,9 @@ func main() {
 			os.Exit(1)
 		}
 	case "run":
-		benchmark()
+		benchmark(false)
+	case "hidden":
+		benchmark(true)
 	default:
 		fmt.Fprintln(os.Stderr, "Invalid operation")
 		os.Exit(1)
@@ -139,30 +142,44 @@ type Results struct {
 	TypeLen int
 }
 
-func runComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results, error) {
-	cborCopy := []ncasn.Record{}
-	torCopy := []ncasn.Record{}
+func runVisibleComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results, error) {
+	cborCopy := []ncasn.VisibleDomainRecord{}
+	torCopy := []ncasn.VisibleDomainRecord{}
+	jsonCopy := []ncasn.VisibleDomainRecord{}
 	for i := range zone.Zone.Records {
 		if !slices.Contains(zone.Cbor.Ignored, &zone.Zone.Records[i]) {
-			cborCopy = append(cborCopy, zone.Zone.Records[i])
+			cborCopy = append(cborCopy, zone.Zone.Records[i].ToVisible())
 		}
 
 		if !slices.Contains(zone.Tor.Ignored, &zone.Zone.Records[i]) {
-			torCopy = append(torCopy, zone.Zone.Records[i])
+			torCopy = append(torCopy, zone.Zone.Records[i].ToVisible())
 		}
+
+		jsonCopy = append(jsonCopy, zone.Zone.Records[i].ToVisible())
 	}
 
 	cborZone := ncasn.Zone{
-		Records: cborCopy,
+		Records: ncasn.RecordsUnion{
+			Visible: cborCopy,
+		},
 	}
 
 	torZone := ncasn.Zone{
-		Records: torCopy,
+		Records: ncasn.RecordsUnion{
+			Visible: torCopy,
+		},
+	}
+
+	jsonZone := ncasn.Zone{
+		Info: zone.Zone.Info,
+		Records: ncasn.RecordsUnion{
+			Visible: jsonCopy,
+		},
 	}
 
 	total := len(zone.Zone.Records)
 
-	jsonEncoded, err := ncasn.MarshalRecords(*zone.Zone, encoding)
+	jsonEncoded, err := ncasn.MarshalRecords(jsonZone, encoding)
 	if err != nil {
 		return nil, err
 	}
@@ -195,6 +212,114 @@ func runComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results, erro
 
 	if len(torCopy) != 0 {
 		torEncoded, err := ncasn.MarshalRecords(torZone, encoding)
+		if err != nil {
+			return nil, err
+		}
+
+		torSum := 0
+		for _, torRec := range zone.Tor.Data {
+			torSum += len(torRec)
+		}
+
+		torResult = Result{
+			Ratio: float64(torSum) / float64(len(torEncoded)),
+			Count: len(torCopy),
+		}
+	}
+
+	return &Results{
+		Json:    &jsonResult,
+		Cbor:    &cborResult,
+		Tor:     &torResult,
+		TypeLen: len(jsonEncoded) + 1,
+	}, nil
+}
+
+func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results, error) {
+	cborCopy := []ncasn.HiddenDomainRecord{}
+	torCopy := []ncasn.HiddenDomainRecord{}
+	jsonCopy := []ncasn.HiddenDomainRecord{}
+
+	addedSubs := []string{}
+	for i := range zone.Zone.Records {
+		// TODO: Increase after multithreading
+		// Excessive unique subdomains make nonce generation prohibitively expensive for this much data
+		if len(addedSubs) > 16 && !slices.Contains(addedSubs, zone.Zone.Records[i].Name) {
+			continue
+		}
+
+		if !slices.Contains(zone.Cbor.Ignored, &zone.Zone.Records[i]) {
+			cborCopy = append(cborCopy, zone.Zone.Records[i].ToHidden())
+		}
+
+		if !slices.Contains(zone.Tor.Ignored, &zone.Zone.Records[i]) {
+			torCopy = append(torCopy, zone.Zone.Records[i].ToHidden())
+		}
+
+		jsonCopy = append(jsonCopy, zone.Zone.Records[i].ToHidden())
+		if !slices.Contains(addedSubs, zone.Zone.Records[i].Name) {
+			addedSubs = append(addedSubs, zone.Zone.Records[i].Name)
+		}
+	}
+
+	if len(addedSubs) < 2 {
+		return runVisibleComparison(zone, encoding)
+	}
+
+	cborZone := ncasn.Zone{
+		Records: ncasn.RecordsUnion{
+			Hidden: cborCopy,
+		},
+	}
+
+	torZone := ncasn.Zone{
+		Records: ncasn.RecordsUnion{
+			Hidden: torCopy,
+		},
+	}
+
+	jsonZone := ncasn.Zone{
+		Info: zone.Zone.Info,
+		Records: ncasn.RecordsUnion{
+			Hidden: jsonCopy,
+		},
+	}
+
+	total := len(jsonCopy)
+
+	jsonEncoded, err := contrasub.MarshalRecords(jsonZone, encoding)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonResult := Result{
+		// + 1 to account for an extra byte used for schema versioning, see #4
+		Ratio: float64(len(zone.Json)) / float64(len(jsonEncoded)+1),
+		Count: total,
+	}
+
+	// Dummy for empty zones
+	cborResult := Result{
+		Ratio: 1.0,
+		Count: 0,
+	}
+	torResult := cborResult
+
+	if len(cborCopy) != 0 {
+		cborEncoded, err := contrasub.MarshalRecords(cborZone, encoding)
+		if err != nil {
+			return nil, err
+		}
+
+		cborResult = Result{
+			// + 1 to account for an extra byte used for schema versioning, see #4
+			Ratio: float64(len(zone.Cbor.Data)) / float64(len(cborEncoded)+1),
+			Count: len(cborCopy),
+		}
+	}
+
+	if len(torCopy) != 0 {
+		torEncoded, err := contrasub.MarshalRecords(torZone, encoding)
 		if err != nil {
 			return nil, err
 		}
@@ -271,10 +396,17 @@ func printZoneCoverage(fromFiles []util.Zone, fromChain []util.Zone) {
 	fmt.Printf("Blockchain coverage: %.2f\n", chainAcc/float64(len(fromChain)))
 }
 
-func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper int) int {
+// TODO: Add nonce optionak + data bytes
+func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper int, hidden bool) int {
 	var results []Results
 	for _, zone := range zones {
-		result, err := runComparison(&zone, encoding)
+		var result *Results
+		var err error
+		if hidden {
+			result, err = runHiddenComparison(&zone, encoding)
+		} else {
+			result, err = runVisibleComparison(&zone, encoding)
+		}
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
@@ -299,7 +431,7 @@ func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper i
 	return final.TypeLen
 }
 
-func typesFromRecords(records []ncasn.Record) []string {
+func typesFromRecords(records []util.GenericNameRecord) []string {
 	var ret []string
 
 	for _, record := range records {
@@ -307,7 +439,7 @@ func typesFromRecords(records []ncasn.Record) []string {
 		choice := ncasn.GetChoice(ref)
 		ret = append(ret, ref.Type().Field(int(choice)).Name)
 
-		if *record.Name != "" {
+		if record.Name != "" {
 			ret = append(ret, "map")
 		}
 	}
@@ -316,7 +448,7 @@ func typesFromRecords(records []ncasn.Record) []string {
 	return slices.Compact(ret)
 }
 
-func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, aper []int, uper []int) []int {
+func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, aper []int, uper []int, hidden bool) []int {
 	fmt.Println(encoding.String(), "benchmark results:")
 
 	if !bin {
@@ -328,7 +460,7 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, a
 				uperUnit = uper[0]
 			}
 		}
-		return []int{compareBin(zones, encoding, aperUnit, uperUnit)}
+		return []int{compareBin(zones, encoding, aperUnit, uperUnit, hidden)}
 	}
 
 	bins := map[string][]util.Zone{}
@@ -356,7 +488,7 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, a
 				uperUnit = uper[i]
 			}
 		}
-		ret = append(ret, compareBin(bin, encoding, aperUnit, uperUnit))
+		ret = append(ret, compareBin(bin, encoding, aperUnit, uperUnit, hidden))
 		if i != len(keys)-1 {
 			fmt.Println()
 		}
@@ -365,7 +497,7 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, a
 	return ret
 }
 
-func benchmark() {
+func benchmark(hidden bool) {
 	if len(os.Args) < 4 {
 		fmt.Fprintln(os.Stderr, "Insufficient arguments")
 		os.Exit(1)
@@ -392,9 +524,9 @@ func benchmark() {
 
 	printZoneCoverage(zones, fromChain)
 	fmt.Println()
-	aper := compareEncoding(aggregated, ncasn.APER, bin, nil, nil)
+	aper := compareEncoding(aggregated, ncasn.APER, bin, nil, nil, hidden)
 	fmt.Println()
-	uper := compareEncoding(aggregated, ncasn.UPER, bin, aper, nil)
+	uper := compareEncoding(aggregated, ncasn.UPER, bin, aper, nil, hidden)
 	fmt.Println()
-	compareEncoding(aggregated, ncasn.MixedRadix, bin, aper, uper)
+	compareEncoding(aggregated, ncasn.MixedRadix, bin, aper, uper, hidden)
 }

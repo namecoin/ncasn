@@ -32,7 +32,7 @@ import (
 	"github.com/namecoin/ncasn/benchmark/util"
 )
 
-func parseSrv(name *string, value any) ([]ncasn.Record, error) {
+func parseSrv(name string, value any) ([]util.GenericNameRecord, error) {
 	typeOf := reflect.TypeOf(value)
 	if typeOf == nil {
 		return nil, errors.New("Nil value")
@@ -43,7 +43,7 @@ func parseSrv(name *string, value any) ([]ncasn.Record, error) {
 		return nil, errors.New("srv is not a slice")
 	}
 
-	var ret []ncasn.Record
+	var ret []util.GenericNameRecord
 	for _, elemAny := range list {
 		elem, ok := elemAny.([]any)
 		if !ok {
@@ -81,7 +81,7 @@ func parseSrv(name *string, value any) ([]ncasn.Record, error) {
 			weight = nil
 		}
 
-		ret = append(ret, ncasn.Record{
+		ret = append(ret, util.GenericNameRecord{
 			Name: name,
 			RecordData: ncasn.RecordUnion{
 				Srv: &ncasn.SRV{
@@ -93,10 +93,9 @@ func parseSrv(name *string, value any) ([]ncasn.Record, error) {
 			},
 		})
 
-		empty := ""
-		if *port == 25 && *name == "_smtp._tcp" {
-			ret = append(ret, ncasn.Record{
-				Name: &empty,
+		if *port == 25 && name == "_smtp._tcp" {
+			ret = append(ret, util.GenericNameRecord{
+				Name: "",
 				RecordData: ncasn.RecordUnion{
 					Mx: &ncasn.MX{
 						Target:   target,
@@ -110,7 +109,7 @@ func parseSrv(name *string, value any) ([]ncasn.Record, error) {
 	return ret, nil
 }
 
-func parseDs(name *string, value any, skipped *int) ([]ncasn.Record, error) {
+func parseDs(name string, value any, skipped *int) ([]util.GenericNameRecord, error) {
 	typeOf := reflect.TypeOf(value)
 	if typeOf == nil {
 		return nil, errors.New("Nil value")
@@ -123,7 +122,7 @@ func parseDs(name *string, value any, skipped *int) ([]ncasn.Record, error) {
 
 	list := value.([]any)
 
-	var ret []ncasn.Record
+	var ret []util.GenericNameRecord
 	for _, elemAny := range list {
 		elem, ok := elemAny.([]any)
 		if !ok {
@@ -195,7 +194,7 @@ func parseDs(name *string, value any, skipped *int) ([]ncasn.Record, error) {
 			}
 		}
 
-		ret = append(ret, ncasn.Record{
+		ret = append(ret, util.GenericNameRecord{
 			Name: name,
 			RecordData: ncasn.RecordUnion{
 				Ds: &ncasn.DS{
@@ -235,8 +234,8 @@ func parseTxtString(value string) (*string, error) {
 	return &ret, nil
 }
 
-func parseTxt(name *string, value any) ([]ncasn.Record, error) {
-	var ret []ncasn.Record
+func parseTxt(name string, value any) ([]util.GenericNameRecord, error) {
+	var ret []util.GenericNameRecord
 
 	typeOf := reflect.TypeOf(value)
 	if typeOf == nil {
@@ -250,7 +249,7 @@ func parseTxt(name *string, value any) ([]ncasn.Record, error) {
 		if err != nil {
 			return nil, err
 		}
-		ret = append(ret, ncasn.Record{
+		ret = append(ret, util.GenericNameRecord{
 			Name: name,
 			RecordData: ncasn.RecordUnion{
 				Txt: &ncasn.TXT{
@@ -268,7 +267,7 @@ func parseTxt(name *string, value any) ([]ncasn.Record, error) {
 				if err != nil {
 					return nil, err
 				}
-				ret = append(ret, ncasn.Record{
+				ret = append(ret, util.GenericNameRecord{
 					Name: name,
 					RecordData: ncasn.RecordUnion{
 						Txt: &ncasn.TXT{
@@ -298,7 +297,7 @@ func parseTxt(name *string, value any) ([]ncasn.Record, error) {
 				}
 
 				str = str[:len(str)-1]
-				ret = append(ret, ncasn.Record{
+				ret = append(ret, util.GenericNameRecord{
 					Name: name,
 					RecordData: ncasn.RecordUnion{
 						Txt: &ncasn.TXT{
@@ -355,7 +354,7 @@ func parseUint16(value any) (*uint16, error) {
 	return &cast, nil
 }
 
-func parseTlsaRecord(name *string, value []any, skipped *int) (*ncasn.Record, error) {
+func parseTlsaRecord(name string, value []any, skipped *int) (*util.GenericNameRecord, error) {
 	length := len(value)
 	if length < 4 {
 		return nil, errors.New("Too few values for a TLSA record")
@@ -427,7 +426,7 @@ func parseTlsaRecord(name *string, value []any, skipped *int) (*ncasn.Record, er
 		return nil, fmt.Errorf("Unsupported TLSA matching type: %d", *matchingType)
 	}
 
-	return &ncasn.Record{
+	return &util.GenericNameRecord{
 		Name: name,
 		RecordData: ncasn.RecordUnion{Tlsa: &ncasn.TLSA{
 			Selector:        *selector,
@@ -436,11 +435,11 @@ func parseTlsaRecord(name *string, value []any, skipped *int) (*ncasn.Record, er
 	}, nil
 }
 
-func parseLocRecord(name *string, value string) (*ncasn.Record, error) {
+func parseLocRecord(name string, value string) (*util.GenericNameRecord, error) {
 	data, err := ncasn.StringToLoc(value)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ncasn.Record{Name: name, RecordData: ncasn.RecordUnion{Loc: data}}, nil
+	return &util.GenericNameRecord{Name: name, RecordData: ncasn.RecordUnion{Loc: data}}, nil
 }

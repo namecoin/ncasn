@@ -25,7 +25,24 @@ import (
 
 	"github.com/miekg/dns"
 	"github.com/namecoin/ncasn"
+	"github.com/namecoin/ncasn/contrasub"
 )
+
+type GenericNameRecord struct {
+	Name       string
+	RecordData ncasn.RecordUnion
+}
+
+func (record *GenericNameRecord) ToHidden() ncasn.HiddenDomainRecord {
+	return contrasub.NewHiddenDomainRecord(record.Name, &record.RecordData)
+}
+
+func (record *GenericNameRecord) ToVisible() ncasn.VisibleDomainRecord {
+	return ncasn.VisibleDomainRecord{
+		Name:       &record.Name,
+		RecordData: record.RecordData,
+	}
+}
 
 func IsAscii(str string) bool {
 	for _, c := range str {
@@ -37,7 +54,7 @@ func IsAscii(str string) bool {
 	return true
 }
 
-func isNsGlue(record *ncasn.Record, ns []ncasn.Record, base string) *string {
+func isNsGlue(record *GenericNameRecord, ns []GenericNameRecord, base string) *string {
 	if record.RecordData.A == nil && record.RecordData.AAAA == nil {
 		return nil
 	}
@@ -49,7 +66,7 @@ func isNsGlue(record *ncasn.Record, ns []ncasn.Record, base string) *string {
 
 		target := strings.TrimSuffix(*elem.RecordData.Ns.String, ".")
 		target = strings.TrimSuffix(target, "."+base)
-		if target == *record.Name {
+		if target == record.Name {
 			return elem.RecordData.Ns.String
 		}
 	}
@@ -57,8 +74,8 @@ func isNsGlue(record *ncasn.Record, ns []ncasn.Record, base string) *string {
 	return nil
 }
 
-func CollapseNsGlues(records []ncasn.Record, base string) []ncasn.Record {
-	var ns []ncasn.Record
+func CollapseNsGlues(records []GenericNameRecord, base string) []GenericNameRecord {
+	var ns []GenericNameRecord
 
 	for _, record := range records {
 		if record.RecordData.Ns != nil {
@@ -70,7 +87,7 @@ func CollapseNsGlues(records []ncasn.Record, base string) []ncasn.Record {
 		return records
 	}
 
-	ret := []ncasn.Record{}
+	ret := []GenericNameRecord{}
 	for _, record := range records {
 		if record.RecordData.Ns != nil {
 			continue
@@ -82,7 +99,7 @@ func CollapseNsGlues(records []ncasn.Record, base string) []ncasn.Record {
 			continue
 		}
 
-		ns = slices.DeleteFunc(ns, func(record ncasn.Record) bool {
+		ns = slices.DeleteFunc(ns, func(record GenericNameRecord) bool {
 			return *record.RecordData.Ns.String == *target
 		})
 
@@ -105,7 +122,7 @@ func CollapseNsGlues(records []ncasn.Record, base string) []ncasn.Record {
 			}
 		}
 
-		ret = append(ret, ncasn.Record{
+		ret = append(ret, GenericNameRecord{
 			Name:       record.Name,
 			RecordData: union,
 		})
@@ -140,8 +157,8 @@ func SplitTxt(record string) []string {
 	return parts
 }
 
-func CmpRecords(a ncasn.Record, b ncasn.Record) int {
-	return cmp.Compare(*a.Name, *b.Name)
+func CmpRecords(a GenericNameRecord, b GenericNameRecord) int {
+	return cmp.Compare(a.Name, b.Name)
 }
 
 func TypeFromUnion(union *ncasn.RecordUnion) uint16 {
@@ -176,16 +193,21 @@ func TypeFromUnion(union *ncasn.RecordUnion) uint16 {
 
 type TorRecords struct {
 	Data    []string
-	Ignored []*ncasn.Record
+	Ignored []*GenericNameRecord
 }
 
 type CborRecords struct {
 	Data    []byte
-	Ignored []*ncasn.Record
+	Ignored []*GenericNameRecord
+}
+
+type GenericZone struct {
+	Info    *ncasn.Whois
+	Records []GenericNameRecord
 }
 
 type Zone struct {
-	Zone     *ncasn.Zone
+	Zone     *GenericZone
 	Json     string
 	Cbor     *CborRecords
 	Tor      *TorRecords

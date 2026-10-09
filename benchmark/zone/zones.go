@@ -38,7 +38,7 @@ import (
 )
 
 // Both may be nil if the record is ignored
-func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
+func ParseRecord(line string, zone bool) (*util.GenericNameRecord, error) {
 	fields := strings.Fields(line)
 
 	if len(fields) == 0 {
@@ -174,7 +174,7 @@ func ParseRecord(line string, zone bool) (*ncasn.Record, error) {
 		return nil, nil
 	}
 
-	return &ncasn.Record{Name: &subdomain, RecordData: *union}, nil
+	return &util.GenericNameRecord{Name: subdomain, RecordData: *union}, nil
 }
 
 func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
@@ -345,16 +345,16 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 	}
 }
 
-func zoneFromRecords(records []ncasn.Record, base string) (*util.Zone, error) {
+func zoneFromRecords(records []util.GenericNameRecord, base string) (*util.Zone, error) {
 	obj := map[string]any{}
 
 	for _, record := range records {
-		if len(*record.Name) == 0 {
+		if len(record.Name) == 0 {
 			addRecord(&record.RecordData, obj)
 			continue
 		}
 
-		parts := strings.Split(*record.Name, ".")
+		parts := strings.Split(record.Name, ".")
 		slices.Reverse(parts)
 
 		last := obj
@@ -400,7 +400,7 @@ func zoneFromRecords(records []ncasn.Record, base string) (*util.Zone, error) {
 		return nil, fmt.Errorf("Failed to convert zone records to Tor format: %s", err.Error())
 	}
 
-	ret.Zone = &ncasn.Zone{Records: util.CollapseNsGlues(records, base)}
+	ret.Zone = &util.GenericZone{Records: util.CollapseNsGlues(records, base)}
 
 	return &ret, nil
 }
@@ -412,7 +412,7 @@ func readZone(filePath string) (*util.Zone, error) {
 	}
 	defer fd.Close()
 
-	var records []ncasn.Record
+	var records []util.GenericNameRecord
 
 	// Primarily used to handle RFC 3597
 	parser := dns.NewZoneParser(fd, "", filePath)
