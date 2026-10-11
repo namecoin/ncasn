@@ -103,7 +103,7 @@ func getMaxSubs() (*int64, error) {
 	return maxSubsCache, nil
 }
 
-func pollDone(done chan bool) bool {
+func pollDone(done chan struct{}) bool {
 	select {
 	case <-done:
 		return true
@@ -112,7 +112,7 @@ func pollDone(done chan bool) bool {
 	}
 }
 
-func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan bool) {
+func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan struct{}) {
 	invalid := true
 	for invalid && !pollDone(quit) {
 		rand.Read(zone.Nonce)
@@ -163,7 +163,7 @@ func PreProcess(zone *ncasn.Zone) error {
 	}
 
 	channel := make(chan ncasn.Zone)
-	done := make(chan bool)
+	done := make(chan struct{})
 	for i := 0; i < 8; i++ {
 		copied := *zone
 		copied.Nonce = make([]byte, 8)
