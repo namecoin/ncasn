@@ -141,7 +141,10 @@ func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan bool) {
 		invalid = len(indices) != subCount
 	}
 
-	ret <- zone
+	// Don't leak cancelled goroutines
+	if !invalid {
+		ret <- zone
+	}
 }
 
 func PreProcess(zone *ncasn.Zone) error {
