@@ -287,8 +287,15 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				Cname: &str,
 			},
 		})
+	case "service":
+		parsed, err := parseService(name, value)
+		if err != nil {
+			return nil, err
+		}
+
+		ret = append(ret, parsed...)
 	case "srv":
-		parsed, err := parseSrv(name, value)
+		parsed, err := parseSrvs(name, value)
 		if err != nil {
 			return nil, err
 		}

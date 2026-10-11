@@ -25,6 +25,7 @@ import (
 	"math"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/namecoin/go-asn/mixedradix"
@@ -32,9 +33,67 @@ import (
 	"github.com/namecoin/ncasn/benchmark/util"
 )
 
-func parseSrv(name string, value any) ([]util.GenericNameRecord, error) {
-	typeOf := reflect.TypeOf(value)
-	if typeOf == nil {
+func parseSrv(name string, elem []any) ([]util.GenericNameRecord, error) {
+	var ret []util.GenericNameRecord
+
+	priority, err := parseUint16(elem[0])
+	if err != nil {
+		return nil, fmt.Errorf("srv priority is not a uint16: %s", err.Error())
+	}
+
+	weight, err := parseUint16(elem[1])
+	if err != nil {
+		return nil, fmt.Errorf("srv weight is not a uint16: %s", err.Error())
+	}
+
+	port, err := parseUint16(elem[2])
+	if err != nil {
+		return nil, fmt.Errorf("srv port is not a uint16: %s", err.Error())
+	}
+
+	target, ok := elem[3].(string)
+	if !ok {
+		return nil, errors.New("srv target is not a string")
+	}
+
+	if len(target) > 255 || !mixedradix.IsValidDnsName(target) {
+		return nil, nil
+	}
+
+	if *weight == 0 {
+		weight = nil
+	}
+
+	ret = append(ret, util.GenericNameRecord{
+		Name: name,
+		RecordData: ncasn.RecordUnion{
+			Srv: &ncasn.SRV{
+				Priority: *priority,
+				Weight:   weight,
+				Port:     *port,
+				Target:   target,
+			},
+		},
+	})
+
+	// TODO: Not treated as a prefix
+	if *port == 25 && name == "_smtp._tcp" {
+		ret = append(ret, util.GenericNameRecord{
+			Name: "",
+			RecordData: ncasn.RecordUnion{
+				Mx: &ncasn.MX{
+					Target:   target,
+					Priority: *priority,
+				},
+			},
+		})
+	}
+
+	return ret, nil
+}
+
+func parseSrvs(name string, value any) ([]util.GenericNameRecord, error) {
+	if value == nil {
 		return nil, errors.New("Nil value")
 	}
 
@@ -53,74 +112,136 @@ func parseSrv(name string, value any) ([]util.GenericNameRecord, error) {
 		if len(elem) < 4 {
 			return nil, errors.New("srv array with < 4 parts")
 		}
-		priority, err := parseUint16(elem[0])
+
+		parsed, err := parseSrv(name, elem)
 		if err != nil {
-			return nil, fmt.Errorf("srv priority is not a uint16: %s", err.Error())
+			return nil, err
 		}
 
-		weight, err := parseUint16(elem[1])
-		if err != nil {
-			return nil, fmt.Errorf("srv weight is not a uint16: %s", err.Error())
-		}
-
-		port, err := parseUint16(elem[2])
-		if err != nil {
-			return nil, fmt.Errorf("srv port is not a uint16: %s", err.Error())
-		}
-
-		target, ok := elem[3].(string)
-		if !ok {
-			return nil, errors.New("srv target is not a string")
-		}
-
-		if len(target) > 255 || !mixedradix.IsValidDnsName(target) {
+		if parsed == nil {
 			continue
 		}
 
-		if *weight == 0 {
-			weight = nil
+		ret = append(ret, parsed...)
+	}
+
+	return ret, nil
+}
+
+func spdf(service *string, protocol *string) string {
+	var ret string
+	if service != nil && *service == "" {
+		service = nil
+	}
+
+	if protocol != nil && *protocol == "" {
+		protocol = nil
+	}
+
+	if service != nil {
+		if *service == "*" {
+			ret += "*."
+		} else {
+			ret += "_" + *service + "."
+		}
+	}
+
+	if protocol != nil {
+		if *protocol == "*" {
+			ret += "*."
+		} else {
+			ret += "_" + *protocol + "."
+		}
+	}
+
+	return ret
+}
+
+func parseService(name string, value any) ([]util.GenericNameRecord, error) {
+	if value == nil {
+		return nil, errors.New("Nil value")
+	}
+
+	list, ok := value.([]any)
+	if !ok {
+		return nil, errors.New("service array is not a slice")
+	}
+
+	ret := []util.GenericNameRecord{}
+	for _, srv := range list {
+		record, ok := srv.([]any)
+		if !ok {
+			return nil, errors.New("service is not a slice")
 		}
 
-		ret = append(ret, util.GenericNameRecord{
-			Name: name,
-			RecordData: ncasn.RecordUnion{
-				Srv: &ncasn.SRV{
-					Priority: *priority,
-					Weight:   weight,
-					Port:     *port,
-					Target:   target,
-				},
-			},
-		})
-
-		if *port == 25 && name == "_smtp._tcp" {
-			ret = append(ret, util.GenericNameRecord{
-				Name: "",
-				RecordData: ncasn.RecordUnion{
-					Mx: &ncasn.MX{
-						Target:   target,
-						Priority: *priority,
-					},
-				},
-			})
+		length := len(record)
+		if length < 6 {
+			return nil, fmt.Errorf("Too few service record elements: %d", length)
 		}
+
+		service := record[0]
+		var serviceStr *string
+		if service != nil {
+			cast, ok := service.(string)
+			if ok {
+				serviceStr = &cast
+			} else {
+				serviceInt, err := parseUint16(service)
+				if err != nil {
+					return nil, err
+				}
+				tmp := strconv.Itoa(int(*serviceInt))
+				serviceStr = &tmp
+			}
+		}
+
+		protocol := record[0]
+		var protocolStr *string
+		if protocol != nil {
+			cast, ok := protocol.(string)
+			if ok {
+				protocolStr = &cast
+			} else {
+				protocolInt, err := parseUint16(protocol)
+				if err != nil {
+					return nil, err
+				}
+				tmp := strconv.Itoa(int(*protocolInt))
+				protocolStr = &tmp
+			}
+		}
+
+		prefix := spdf(serviceStr, protocolStr)
+		if name == "" {
+			name = strings.TrimSuffix(prefix, ".")
+		} else {
+			name = prefix + name
+		}
+
+		parsed, err := parseSrv(name, record[2:])
+		if err != nil {
+			return nil, err
+		}
+
+		if parsed == nil {
+			continue
+		}
+
+		ret = append(ret, parsed...)
 	}
 
 	return ret, nil
 }
 
 func parseDs(name string, value any, skipped *int) ([]util.GenericNameRecord, error) {
-	typeOf := reflect.TypeOf(value)
-	if typeOf == nil {
+	if value == nil {
 		return nil, errors.New("Nil value")
 	}
 
-	kind := typeOf.Kind()
-	if kind != reflect.Slice {
+	list, ok := value.([]any)
+	if !ok {
 		return nil, errors.New("ds is not a slice")
 	}
-
-	list := value.([]any)
 
 	var ret []util.GenericNameRecord
 	for _, elemAny := range list {

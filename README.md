@@ -24,24 +24,24 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.18719 | 1.00 | 200890
-Tor: 1.89511 | 0.87 | 174419
-CBOR: 1.48220 | 1.00 | 200890
+JSON: 4.18524 | 1.00 | 200934
+Tor: 1.89482 | 0.87 | 174463
+CBOR: 1.48209 | 1.00 | 200934
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.32033 | 1.00 | 200890
-Tor: 1.97290 | 0.87 | 174419
-CBOR: 1.52843 | 1.00 | 200890
-APER: 1.02916 | 1.00 | 200890
+JSON: 4.31827 | 1.00 | 200934
+Tor: 1.97258 | 0.87 | 174463
+CBOR: 1.52832 | 1.00 | 200934
+APER: 1.02916 | 1.00 | 200934
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.89763 | 1.00 | 200890
-Tor: 2.20271 | 0.87 | 174419
-CBOR: 1.75001 | 1.00 | 200890
-APER: 1.21167 | 1.00 | 200890
-UPER: 1.17734 | 1.00 | 200890
+JSON: 4.89542 | 1.00 | 200934
+Tor: 2.20241 | 0.87 | 174463
+CBOR: 1.74991 | 1.00 | 200934
+APER: 1.21170 | 1.00 | 200934
+UPER: 1.17737 | 1.00 | 200934
 ```
 Results with contrasub (note the caveats in runHiddenComparison()):
 ```
@@ -50,24 +50,24 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.76781 | 1.00 | 200636
-Tor: 1.64234 | 0.87 | 174165
-CBOR: 1.34710 | 1.00 | 200636
+JSON: 3.76666 | 1.00 | 200680
+Tor: 1.64258 | 0.87 | 174209
+CBOR: 1.34739 | 1.00 | 200680
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.87209 | 1.00 | 200636
-Tor: 1.71989 | 0.87 | 174165
-CBOR: 1.39432 | 1.00 | 200636
-APER: 1.03468 | 1.00 | 200636
+JSON: 3.87086 | 1.00 | 200680
+Tor: 1.72016 | 0.87 | 174209
+CBOR: 1.39462 | 1.00 | 200680
+APER: 1.03467 | 1.00 | 200680
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.39759 | 1.00 | 200636
-Tor: 1.91424 | 0.87 | 174165
-CBOR: 1.59659 | 1.00 | 200636
-APER: 1.19697 | 1.00 | 200636
-UPER: 1.15685 | 1.00 | 200636
+JSON: 4.39624 | 1.00 | 200680
+Tor: 1.91452 | 0.87 | 174209
+CBOR: 1.59694 | 1.00 | 200680
+APER: 1.19694 | 1.00 | 200680
+UPER: 1.15683 | 1.00 | 200680
 ```
 
 Results binned based on the record types in a given zone are available in doc/binned/Visible.txt and doc/binned/Hidden.txt.
