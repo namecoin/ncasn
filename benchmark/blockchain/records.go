@@ -76,18 +76,25 @@ func parseSrv(name string, elem []any) ([]util.GenericNameRecord, error) {
 		},
 	})
 
-	// TODO: Not treated as a prefix
-	if *port == 25 && name == "_smtp._tcp" {
-		ret = append(ret, util.GenericNameRecord{
-			Name: "",
-			RecordData: ncasn.RecordUnion{
-				Mx: &ncasn.MX{
-					Target:   target,
-					Priority: *priority,
-				},
-			},
-		})
+	if *port != 25 {
+		return ret, nil
 	}
+
+	name, found := strings.CutPrefix(name, "_smtp._tcp")
+	if !found {
+		return ret, nil
+	}
+
+	name = strings.TrimPrefix(name, ".")
+	ret = append(ret, util.GenericNameRecord{
+		Name: name,
+		RecordData: ncasn.RecordUnion{
+			Mx: &ncasn.MX{
+				Target:   target,
+				Priority: *priority,
+			},
+		},
+	})
 
 	return ret, nil
 }
