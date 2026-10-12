@@ -19,9 +19,9 @@ package contrasub
 
 import (
 	"crypto/rand"
+	"encoding/binary"
 	"errors"
 	"fmt"
-	"math/big"
 	"reflect"
 	"slices"
 
@@ -66,11 +66,10 @@ func CalculateIndexWithCount(zone *ncasn.Zone, sub string, count int) (*uint16, 
 		return nil, errors.New("Not a hidden domain records zone")
 	}
 
-	subCount := big.NewInt(int64(count))
-
-	concat := slices.Concat(zone.Nonce, []byte(sub))
+	concat := slices.Concat([]byte("Contrasub-NMC:"), zone.Nonce, []byte(sub))
 	hash := blake2s.Sum256(concat)
-	index := uint16(new(big.Int).Mod(new(big.Int).SetBytes(hash[:]), subCount).Uint64())
+	trunc := binary.BigEndian.Uint64(hash[:8])
+	index := uint16(trunc % uint64(count))
 	return &index, nil
 }
 
