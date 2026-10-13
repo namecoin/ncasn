@@ -60,13 +60,15 @@ func CalculateIndex(zone *ncasn.Zone, sub string) (*uint16, error) {
 	return CalculateIndexWithCount(zone, sub, GetUniqueSubIndices(zone.Records.Hidden))
 }
 
+var prefixBytes = []byte("Contrasub-NMC:")
+
 // Allows the caller to provide the number of unique subdomains to avoid redundantly calculating it in a loop
 func CalculateIndexWithCount(zone *ncasn.Zone, sub string, count int) (*uint16, error) {
 	if zone.Nonce == nil {
 		return nil, errors.New("Not a hidden domain records zone")
 	}
 
-	concat := slices.Concat([]byte("Contrasub-NMC:"), zone.Nonce, []byte(sub))
+	concat := slices.Concat(prefixBytes, zone.Nonce, []byte(sub))
 	hash := blake2s.Sum256(concat)
 	trunc := binary.BigEndian.Uint64(hash[:8])
 	index := uint16(trunc % uint64(count))
