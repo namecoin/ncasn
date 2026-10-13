@@ -274,7 +274,7 @@ func parseService(name string, value any) ([]util.GenericNameRecord, error) {
 			}
 		}
 
-		protocol := record[0]
+		protocol := record[1]
 		var protocolStr *string
 		if protocol != nil {
 			cast, ok := protocol.(string)
