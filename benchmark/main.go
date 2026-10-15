@@ -294,7 +294,8 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 
 	jsonResult := Result{
 		// + 1 to account for an extra byte used for schema versioning, see #4
-		Ratio: float64(len(zone.Json)) / float64(len(jsonEncoded)+1),
+		// + 8 to account for contrasub nonce
+		Ratio: float64(len(zone.Json)+8) / float64(len(jsonEncoded)+1),
 		Count: total,
 	}
 
@@ -313,7 +314,8 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 
 		cborResult = Result{
 			// + 1 to account for an extra byte used for schema versioning, see #4
-			Ratio: float64(len(zone.Cbor.Data)) / float64(len(cborEncoded)+1),
+			// + 8 to account for contrasub nonce
+			Ratio: float64(len(zone.Cbor.Data)+8) / float64(len(cborEncoded)+1),
 			Count: len(cborCopy),
 		}
 	}

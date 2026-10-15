@@ -43,8 +43,11 @@ func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecor
 		if encoded == nil {
 			ignored = append(ignored, &records[i])
 		} else {
-			prefix := "0 "
-			if !hidden && (lastName == nil || *lastName != records[i].Name) {
+			var prefix string
+			switch {
+			case hidden:
+				prefix = "0 "
+			case lastName == nil || *lastName != records[i].Name:
 				prefix = records[i].Name + " "
 			}
 
