@@ -341,7 +341,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 	}
 }
 
-func zoneFromRecords(records []util.GenericNameRecord, base string) (*util.Zone, error) {
+func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool) (*util.Zone, error) {
 	obj := map[string]any{}
 
 	for _, record := range records {
@@ -386,12 +386,12 @@ func zoneFromRecords(records []util.GenericNameRecord, base string) (*util.Zone,
 
 	ret := util.Zone{Json: string(str)}
 	slices.SortFunc(records, util.CmpRecords)
-	ret.Cbor, err = cbor.RecordsToCbor(records)
+	ret.Cbor, err = cbor.RecordsToCbor(records, hidden)
 	if err != nil {
 		return nil, err
 	}
 
-	ret.Tor, err = tor.RecordsToTor(records)
+	ret.Tor, err = tor.RecordsToTor(records, hidden)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to convert zone records to Tor format: %s", err.Error())
 	}
@@ -401,7 +401,7 @@ func zoneFromRecords(records []util.GenericNameRecord, base string) (*util.Zone,
 	return &ret, nil
 }
 
-func readZone(filePath string) (*util.Zone, error) {
+func readZone(filePath string, hidden bool) (*util.Zone, error) {
 	fd, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -438,7 +438,7 @@ func readZone(filePath string) (*util.Zone, error) {
 	segments := strings.Split(filePath, "/")
 	base := strings.TrimSuffix(segments[len(segments)-1], ".zone")
 
-	ret, err := zoneFromRecords(records, base)
+	ret, err := zoneFromRecords(records, base, hidden)
 	if err != nil {
 		return nil, err
 	}
@@ -447,7 +447,7 @@ func readZone(filePath string) (*util.Zone, error) {
 	return ret, nil
 }
 
-func ReadZones(dir string) ([]util.Zone, error) {
+func ReadZones(dir string, hidden bool) ([]util.Zone, error) {
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -470,7 +470,7 @@ func ReadZones(dir string) ([]util.Zone, error) {
 			continue
 		}
 
-		zone, err := readZone(dir + "/" + name)
+		zone, err := readZone(dir+"/"+name, hidden)
 		if err != nil {
 			return nil, err
 		}

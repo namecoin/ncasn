@@ -396,7 +396,6 @@ func printZoneCoverage(fromFiles []util.Zone, fromChain []util.Zone) {
 	fmt.Printf("Blockchain coverage: %.2f\n", chainAcc/float64(len(fromChain)))
 }
 
-// TODO: Add nonce optionak + data bytes
 func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper int, hidden bool) int {
 	var results []Results
 	for _, zone := range zones {
@@ -509,13 +508,13 @@ func benchmark(hidden bool) {
 		os.Exit(1)
 	}
 
-	zones, err := zone.ReadZones(os.Args[2])
+	zones, err := zone.ReadZones(os.Args[2], hidden)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
-	fromChain, err := blockchain.JsonFileToZones(os.Args[3])
+	fromChain, err := blockchain.JsonFileToZones(os.Args[3], hidden)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)

@@ -28,7 +28,7 @@ import (
 	"github.com/namecoin/ncasn/benchmark/wire"
 )
 
-func RecordsToTor(records []util.GenericNameRecord) (*util.TorRecords, error) {
+func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecords, error) {
 	ret := []string{}
 	ignored := []*util.GenericNameRecord{}
 
@@ -43,8 +43,8 @@ func RecordsToTor(records []util.GenericNameRecord) (*util.TorRecords, error) {
 		if encoded == nil {
 			ignored = append(ignored, &records[i])
 		} else {
-			prefix := ""
-			if lastName == nil || *lastName != records[i].Name {
+			prefix := "0 "
+			if !hidden && (lastName == nil || *lastName != records[i].Name) {
 				prefix = records[i].Name + " "
 			}
 

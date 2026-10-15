@@ -910,14 +910,14 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 	return &coverage, nil
 }
 
-func combine(zone *util.GenericZone, json *Name) (*util.Zone, error) {
+func combine(zone *util.GenericZone, json *Name, hidden bool) (*util.Zone, error) {
 	slices.SortFunc(zone.Records, util.CmpRecords)
-	cborEncoded, err := cbor.RecordsToCbor(zone.Records)
+	cborEncoded, err := cbor.RecordsToCbor(zone.Records, hidden)
 	if err != nil {
 		return nil, err
 	}
 
-	torEncoded, err := tor.RecordsToTor(zone.Records)
+	torEncoded, err := tor.RecordsToTor(zone.Records, hidden)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to convert blockchain records to Tor format: %s", err.Error())
 	}
@@ -925,7 +925,7 @@ func combine(zone *util.GenericZone, json *Name) (*util.Zone, error) {
 	return &util.Zone{Zone: zone, Json: json.Value, Cbor: cborEncoded, Tor: torEncoded}, nil
 }
 
-func JsonFileToZones(file string) ([]util.Zone, error) {
+func JsonFileToZones(file string, hidden bool) ([]util.Zone, error) {
 	fd, err := os.Open(file)
 	if err != nil {
 		return nil, err
@@ -957,7 +957,7 @@ func JsonFileToZones(file string) ([]util.Zone, error) {
 		}
 
 		if zone != nil {
-			merged, err := combine(zone.Zone, &name)
+			merged, err := combine(zone.Zone, &name, hidden)
 			if err != nil {
 				return nil, err
 			}

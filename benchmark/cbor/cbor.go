@@ -30,7 +30,7 @@ import (
 
 // See https://datatracker.ietf.org/doc/draft-lenders-dns-cbor, WIP.
 
-func RecordsToCbor(records []util.GenericNameRecord) (*util.CborRecords, error) {
+func RecordsToCbor(records []util.GenericNameRecord, hidden bool) (*util.CborRecords, error) {
 	ignored := []*util.GenericNameRecord{}
 	encoded := [][]any{}
 
@@ -38,7 +38,7 @@ func RecordsToCbor(records []util.GenericNameRecord) (*util.CborRecords, error) 
 	var lastName *string
 	for i := range records {
 		var encRecord []any
-		encRecord, tmpName := recordToCbor(&records[i], lastName, nsIdx)
+		encRecord, tmpName := recordToCbor(&records[i], lastName, nsIdx, hidden)
 		if encRecord == nil {
 			ignored = append(ignored, &records[i])
 		} else {
@@ -55,14 +55,14 @@ func RecordsToCbor(records []util.GenericNameRecord) (*util.CborRecords, error) 
 					RecordData: ncasn.RecordUnion{
 						A: records[i].RecordData.Ns.Ip.A,
 					},
-				}, lastName, nsIdx)
+				}, lastName, nsIdx, hidden)
 			} else {
 				record, _ = recordToCbor(&util.GenericNameRecord{
 					Name: nsStr,
 					RecordData: ncasn.RecordUnion{
 						AAAA: records[i].RecordData.Ns.Ip.AAAA,
 					},
-				}, lastName, nsIdx)
+				}, lastName, nsIdx, hidden)
 			}
 
 			encoded = append(encoded, record)
@@ -102,14 +102,17 @@ func recordDataToCbor(record *ncasn.RecordUnion, nsIdx int) ([]byte, []any) {
 	}
 }
 
-func recordToCbor(record *util.GenericNameRecord, lastName *string, nsIdx int) ([]any, *string) {
+func recordToCbor(record *util.GenericNameRecord, lastName *string, nsIdx int, hidden bool) ([]any, *string) {
 	var ret []any
 	if lastName == nil || *lastName != record.Name {
 		lastName = &record.Name
 
-		if strings.Contains(record.Name, ".") {
+		switch {
+		case hidden:
+			ret = append(ret, uint8(0))
+		case strings.Contains(record.Name, "."):
 			ret = append(ret, strings.Split(record.Name, "."))
-		} else {
+		default:
 			ret = append(ret, record.Name)
 		}
 	}
