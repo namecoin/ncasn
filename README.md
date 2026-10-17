@@ -50,23 +50,23 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.76318 | 1.00 | 200753
-Tor: 1.64259 | 0.87 | 174282
-CBOR: 1.34685 | 1.00 | 200753
+JSON: 3.87648 | 1.00 | 200753
+Tor: 1.73278 | 0.87 | 174282
+CBOR: 1.42900 | 1.00 | 200753
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.86726 | 1.00 | 200753
-Tor: 1.72011 | 0.87 | 174282
-CBOR: 1.39406 | 1.00 | 200753
-APER: 1.03462 | 1.00 | 200753
+JSON: 3.98992 | 1.00 | 200753
+Tor: 1.81268 | 0.87 | 174282
+CBOR: 1.48484 | 1.00 | 200753
+APER: 1.03463 | 1.00 | 200753
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.39216 | 1.00 | 200753
-Tor: 1.91447 | 0.87 | 174282
-CBOR: 1.59630 | 1.00 | 200753
-APER: 1.19655 | 1.00 | 200753
+JSON: 4.51597 | 1.00 | 200753
+Tor: 2.02129 | 0.87 | 174282
+CBOR: 1.68618 | 1.00 | 200753
+APER: 1.19656 | 1.00 | 200753
 UPER: 1.15651 | 1.00 | 200753
 ```
 
