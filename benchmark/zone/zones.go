@@ -345,7 +345,10 @@ func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool)
 	obj := map[string]any{}
 
 	for _, record := range records {
-		if len(record.Name) == 0 {
+		switch {
+		case hidden:
+			record.Name = "0"
+		case len(record.Name) == 0:
 			addRecord(&record.RecordData, obj)
 			continue
 		}
