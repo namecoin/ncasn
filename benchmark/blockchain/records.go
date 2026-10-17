@@ -35,9 +35,7 @@ import (
 	"github.com/namecoin/ncasn/benchmark/util"
 )
 
-func parseSrv(name string, elem []any) ([]util.GenericNameRecord, error) {
-	var ret []util.GenericNameRecord
-
+func parseSrv(name string, elem []any) (*util.GenericNameRecord, error) {
 	priority, err := parseUint16(elem[0])
 	if err != nil {
 		return nil, fmt.Errorf("srv priority is not a uint16: %s", err.Error())
@@ -62,11 +60,27 @@ func parseSrv(name string, elem []any) ([]util.GenericNameRecord, error) {
 		return nil, nil
 	}
 
+	if *port == 25 {
+		name, found := strings.CutPrefix(name, "_smtp._tcp")
+		if found {
+			name = strings.TrimPrefix(name, ".")
+			return &util.GenericNameRecord{
+				Name: name,
+				RecordData: ncasn.RecordUnion{
+					Mx: &ncasn.MX{
+						Target:   target,
+						Priority: *priority,
+					},
+				},
+			}, nil
+		}
+	}
+
 	if *weight == 0 {
 		weight = nil
 	}
 
-	ret = append(ret, util.GenericNameRecord{
+	return &util.GenericNameRecord{
 		Name: name,
 		RecordData: ncasn.RecordUnion{
 			Srv: &ncasn.SRV{
@@ -76,29 +90,7 @@ func parseSrv(name string, elem []any) ([]util.GenericNameRecord, error) {
 				Target:   target,
 			},
 		},
-	})
-
-	if *port != 25 {
-		return ret, nil
-	}
-
-	name, found := strings.CutPrefix(name, "_smtp._tcp")
-	if !found {
-		return ret, nil
-	}
-
-	name = strings.TrimPrefix(name, ".")
-	ret = append(ret, util.GenericNameRecord{
-		Name: name,
-		RecordData: ncasn.RecordUnion{
-			Mx: &ncasn.MX{
-				Target:   target,
-				Priority: *priority,
-			},
-		},
-	})
-
-	return ret, nil
+	}, nil
 }
 
 func parseSrvs(name string, value any) ([]util.GenericNameRecord, error) {
@@ -131,7 +123,7 @@ func parseSrvs(name string, value any) ([]util.GenericNameRecord, error) {
 			continue
 		}
 
-		ret = append(ret, parsed...)
+		ret = append(ret, *parsed)
 	}
 
 	return ret, nil
@@ -306,7 +298,7 @@ func parseService(name string, value any) ([]util.GenericNameRecord, error) {
 			continue
 		}
 
-		ret = append(ret, parsed...)
+		ret = append(ret, *parsed)
 	}
 
 	return ret, nil
