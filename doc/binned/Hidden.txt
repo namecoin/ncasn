@@ -16,63 +16,63 @@ CBOR: 2.93684 | 1.00 | 586
 
 Bin (A, AAAA, Cname, Generic-DS, Generic-HTTPS, Generic-SSHFP, Mx, Ns, Sshfp, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.98481 | 1.00 | 43
-Tor: 7.91897 | 1.00 | 43
-CBOR: 5.59154 | 1.00 | 43
+JSON: 3.98664 | 1.00 | 43
+Tor: 7.92262 | 1.00 | 43
+CBOR: 5.59926 | 1.00 | 43
 
 Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.60000 | 1.00 | 42
-Tor: 2.41340 | 1.00 | 42
-CBOR: 2.39536 | 1.00 | 42
+Tor: 2.41092 | 1.00 | 42
+CBOR: 2.39413 | 1.00 | 42
 
 Bin (A, AAAA, Cname, Generic-TLSA, Import, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.47170 | 1.00 | 5
+JSON: 1.46250 | 1.00 | 5
 Tor: 1.33577 | 0.80 | 4
-CBOR: 0.51266 | 1.00 | 5
+CBOR: 0.51592 | 1.00 | 5
 
 Bin (A, AAAA, Cname, Generic-TLSA, Onion, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.49888 | 1.00 | 10
 Tor: 1.45692 | 1.00 | 10
-CBOR: 0.53487 | 1.00 | 10
+CBOR: 0.53630 | 1.00 | 10
 
 Bin (A, AAAA, Cname, Hyphanet, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.89360 | 1.00 | 19
-Tor: 1.52762 | 1.00 | 19
+JSON: 3.89759 | 1.00 | 19
+Tor: 1.53036 | 1.00 | 19
 CBOR: 1.20356 | 1.00 | 19
 
 Bin (A, AAAA, Cname, Import, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.16401 | 1.00 | 75
+JSON: 2.17006 | 1.00 | 75
 Tor: 1.63277 | 0.68 | 51
-CBOR: 1.32974 | 1.00 | 75
+CBOR: 1.33232 | 1.00 | 75
 
 Bin (A, AAAA, Cname, Loc, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.09127 | 1.00 | 16
-Tor: 2.20854 | 1.00 | 16
-CBOR: 1.31464 | 1.00 | 16
+JSON: 3.11642 | 1.00 | 16
+Tor: 2.21898 | 1.00 | 16
+CBOR: 1.30241 | 1.00 | 16
 
 Bin (A, AAAA, Cname, Mx, Ns, Srv, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 0.66385 | 1.00 | 22
-Tor: 1.29202 | 1.00 | 22
-CBOR: 1.27872 | 1.00 | 22
+Tor: 1.28983 | 1.00 | 22
+CBOR: 1.28088 | 1.00 | 22
 
 Bin (A, AAAA, Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 4.37500 | 1.00 | 8
+JSON: 4.30769 | 1.00 | 8
 Tor: 1.68254 | 1.00 | 8
-CBOR: 1.75000 | 1.00 | 8
+CBOR: 1.77778 | 1.00 | 8
 
 Bin (A, AAAA, Cname, Mx, Srv, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 2.90696 | 1.00 | 23
 Tor: 1.70387 | 1.00 | 23
-CBOR: 1.50342 | 1.00 | 23
+CBOR: 1.51052 | 1.00 | 23
 
 Bin (A, AAAA, Cname, Mx, map)
 Format: Size ratio | Record coverage | Record count
@@ -83,7 +83,7 @@ CBOR: 1.54902 | 1.00 | 20
 Bin (A, AAAA, Cname, Ns, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 3.79710 | 1.00 | 11
-Tor: 2.37349 | 1.00 | 11
+Tor: 2.34524 | 1.00 | 11
 CBOR: 1.91667 | 1.00 | 11
 
 Bin (A, AAAA, Cname, Onion, map)
@@ -94,9 +94,9 @@ CBOR: 1.28309 | 1.00 | 8
 
 Bin (A, AAAA, Cname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.44377 | 1.00 | 682
-Tor: 1.89527 | 1.00 | 682
-CBOR: 1.58658 | 1.00 | 682
+JSON: 3.44072 | 1.00 | 682
+Tor: 1.89655 | 1.00 | 682
+CBOR: 1.58342 | 1.00 | 682
 
 Bin (A, AAAA, Generic-SSHFP, Onion, Txt, map)
 Format: Size ratio | Record coverage | Record count
@@ -114,13 +114,13 @@ Bin (A, AAAA, Generic-TLSA, Onion, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.49590 | 1.00 | 8
 Tor: 1.44477 | 1.00 | 8
-CBOR: 0.48596 | 1.00 | 8
+CBOR: 0.48595 | 1.00 | 8
 
 Bin (A, AAAA, Generic-TLSA, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.27187 | 1.00 | 6
-Tor: 1.29396 | 1.00 | 6
-CBOR: 0.27981 | 1.00 | 6
+JSON: 1.26444 | 1.00 | 6
+Tor: 1.28947 | 1.00 | 6
+CBOR: 0.28091 | 1.00 | 6
 
 Bin (A, AAAA, Hyphanet, I2p, Onion, map)
 Format: Size ratio | Record coverage | Record count
@@ -166,9 +166,9 @@ CBOR: 1.52818 | 1.00 | 6
 
 Bin (A, AAAA, Mx, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.67602 | 1.00 | 31
-Tor: 2.09595 | 1.00 | 31
-CBOR: 1.48736 | 1.00 | 31
+JSON: 2.68575 | 1.00 | 31
+Tor: 2.10194 | 1.00 | 31
+CBOR: 1.47783 | 1.00 | 31
 
 Bin (A, AAAA, Onion, map)
 Format: Size ratio | Record coverage | Record count
@@ -190,9 +190,9 @@ CBOR: 1.38421 | 1.00 | 1267
 
 Bin (A, Cname, Generic-TLSA, Import, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.85328 | 1.00 | 16
+JSON: 1.85099 | 1.00 | 16
 Tor: 1.20843 | 0.75 | 12
-CBOR: 0.39138 | 1.00 | 16
+CBOR: 0.38944 | 1.00 | 16
 
 Bin (A, Cname, Hyphanet, map)
 Format: Size ratio | Record coverage | Record count
@@ -203,50 +203,50 @@ CBOR: 1.14151 | 1.00 | 4
 Bin (A, Cname, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 0.84011 | 1.00 | 21
-Tor: 1.21739 | 1.00 | 21
-CBOR: 1.22764 | 1.00 | 21
+Tor: 1.21409 | 1.00 | 21
+CBOR: 1.23098 | 1.00 | 21
 
 Bin (A, Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.39549 | 1.00 | 30
+JSON: 3.38775 | 1.00 | 30
 Tor: 1.46709 | 1.00 | 30
-CBOR: 1.44396 | 1.00 | 30
+CBOR: 1.44779 | 1.00 | 30
 
 Bin (A, Cname, Mx, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.53513 | 1.00 | 18
+JSON: 5.54926 | 1.00 | 18
 Tor: 1.50877 | 1.00 | 18
-CBOR: 1.40789 | 1.00 | 18
+CBOR: 1.40223 | 1.00 | 18
 
 Bin (A, Cname, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 4.53896 | 1.00 | 15
-Tor: 1.80500 | 1.00 | 15
-CBOR: 1.67910 | 1.00 | 15
+JSON: 4.54329 | 1.00 | 15
+Tor: 1.82937 | 1.00 | 15
+CBOR: 1.66540 | 1.00 | 15
 
 Bin (A, Cname, Onion, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 3.37097 | 1.00 | 3
-Tor: 1.70968 | 1.00 | 3
+Tor: 1.73770 | 1.00 | 3
 CBOR: 1.22581 | 1.00 | 3
 
 Bin (A, Cname, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.29592 | 1.00 | 7
+JSON: 2.31959 | 1.00 | 7
 Tor: 1.72165 | 1.00 | 7
 CBOR: 1.34694 | 1.00 | 7
 
 Bin (A, Cname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.87256 | 1.00 | 627
-Tor: 1.59372 | 1.00 | 627
-CBOR: 1.42196 | 1.00 | 627
+JSON: 3.86422 | 1.00 | 627
+Tor: 1.59197 | 1.00 | 627
+CBOR: 1.42274 | 1.00 | 627
 
 Bin (A, Dname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.96142 | 1.00 | 24
-Tor: 1.30957 | 1.00 | 24
-CBOR: 1.31432 | 1.00 | 24
+JSON: 3.97098 | 1.00 | 24
+Tor: 1.31740 | 1.00 | 24
+CBOR: 1.30684 | 1.00 | 24
 
 Bin (A, Generic-TLSA, Import, map)
 Format: Size ratio | Record coverage | Record count
@@ -256,15 +256,15 @@ CBOR: 0.63333 | 1.00 | 4
 
 Bin (A, Generic-TLSA, Onion, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.07601 | 1.00 | 26
-Tor: 1.39328 | 1.00 | 26
-CBOR: 0.43312 | 1.00 | 26
+JSON: 2.07309 | 1.00 | 26
+Tor: 1.39489 | 1.00 | 26
+CBOR: 0.43191 | 1.00 | 26
 
 Bin (A, Generic-TLSA, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.30069 | 1.00 | 26
-Tor: 1.16012 | 1.00 | 26
-CBOR: 0.26689 | 1.00 | 26
+JSON: 1.29992 | 1.00 | 26
+Tor: 1.15564 | 1.00 | 26
+CBOR: 0.26676 | 1.00 | 26
 
 Bin (A, I2p)
 Format: Size ratio | Record coverage | Record count
@@ -288,11 +288,11 @@ Bin (A, Import, Tlsa, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 3.14286 | 1.00 | 10
 Tor: 2.12360 | 0.40 | 4
-CBOR: 1.36054 | 1.00 | 10
+CBOR: 1.36986 | 1.00 | 10
 
 Bin (A, Import, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 7.52495 | 1.00 | 12
+JSON: 7.53502 | 1.00 | 12
 Tor: 1.37143 | 0.50 | 6
 CBOR: 1.28529 | 1.00 | 12
 
@@ -304,15 +304,15 @@ CBOR: 1.40000 | 1.00 | 4
 
 Bin (A, Mx, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 4.84127 | 1.00 | 6
+JSON: 4.91935 | 1.00 | 6
 Tor: 2.26087 | 1.00 | 6
 CBOR: 1.51064 | 1.00 | 6
 
 Bin (A, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.87973 | 1.00 | 364
-Tor: 1.52198 | 1.00 | 364
-CBOR: 1.49312 | 1.00 | 364
+JSON: 2.87347 | 1.00 | 364
+Tor: 1.52036 | 1.00 | 364
+CBOR: 1.49124 | 1.00 | 364
 
 Bin (A, Onion)
 Format: Size ratio | Record coverage | Record count
@@ -346,9 +346,9 @@ CBOR: 1.14932 | 1.00 | 2
 
 Bin (A, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 4.00201 | 1.00 | 20
-Tor: 1.35824 | 1.00 | 20
-CBOR: 1.23955 | 1.00 | 20
+JSON: 3.97772 | 1.00 | 20
+Tor: 1.34824 | 1.00 | 20
+CBOR: 1.24584 | 1.00 | 20
 
 Bin (A, map)
 Format: Size ratio | Record coverage | Record count
@@ -364,9 +364,9 @@ CBOR: 1.41396 | 1.00 | 23
 
 Bin (AAAA, Cname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.51284 | 1.00 | 16
-Tor: 1.73105 | 1.00 | 16
-CBOR: 1.23349 | 1.00 | 16
+JSON: 2.52997 | 1.00 | 16
+Tor: 1.73817 | 1.00 | 16
+CBOR: 1.23841 | 1.00 | 16
 
 Bin (AAAA, I2p, map)
 Format: Size ratio | Record coverage | Record count
@@ -376,9 +376,9 @@ CBOR: 1.22807 | 1.00 | 5
 
 Bin (AAAA, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.42647 | 1.00 | 34
+JSON: 3.42826 | 1.00 | 34
 Tor: 2.25339 | 1.00 | 34
-CBOR: 1.66992 | 1.00 | 34
+CBOR: 1.67651 | 1.00 | 34
 
 Bin (AAAA, map)
 Format: Size ratio | Record coverage | Record count
@@ -400,7 +400,7 @@ CBOR: 1.25787 | 1.00 | 4
 
 Bin (Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.73333 | 1.00 | 4
+JSON: 3.67213 | 1.00 | 4
 Tor: 1.16949 | 1.00 | 4
 CBOR: 1.33333 | 1.00 | 4
 
@@ -412,15 +412,15 @@ CBOR: 1.38095 | 1.00 | 4
 
 Bin (Cname, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.19115 | 1.00 | 204
-Tor: 1.20530 | 1.00 | 204
-CBOR: 1.37817 | 1.00 | 204
+JSON: 3.19094 | 1.00 | 204
+Tor: 1.20466 | 1.00 | 204
+CBOR: 1.37889 | 1.00 | 204
 
 Bin (Cname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.72329 | 1.00 | 5266
+JSON: 2.72333 | 1.00 | 5266
 Tor: 1.21618 | 1.00 | 5266
-CBOR: 1.16489 | 1.00 | 5266
+CBOR: 1.16488 | 1.00 | 5266
 
 Bin (Dname)
 Format: Size ratio | Record coverage | Record count
@@ -491,13 +491,13 @@ CBOR: 1.50425 | 1.00 | 38333
 Bin (Ns, Srv, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.75397 | 1.00 | 6
-Tor: 1.25743 | 1.00 | 6
+Tor: 1.24510 | 1.00 | 6
 CBOR: 1.35294 | 1.00 | 6
 
 Bin (Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.03165 | 1.00 | 113
-Tor: 2.41016 | 1.00 | 113
+JSON: 5.03092 | 1.00 | 113
+Tor: 2.41109 | 1.00 | 113
 CBOR: 2.12498 | 1.00 | 113
 
 Bin (Onion)
@@ -508,9 +508,9 @@ CBOR: 1.14286 | 1.00 | 2
 
 Bin (Onion, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.70455 | 1.00 | 2
-Tor: 1.40230 | 1.00 | 2
-CBOR: 1.14943 | 1.00 | 2
+JSON: 1.72414 | 1.00 | 2
+Tor: 1.41860 | 1.00 | 2
+CBOR: 1.13636 | 1.00 | 2
 
 Bin (Onion, map)
 Format: Size ratio | Record coverage | Record count
@@ -520,9 +520,9 @@ CBOR: 1.02098 | 1.00 | 22
 
 Bin (Txt)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.46697 | 1.00 | 17
-Tor: 1.18039 | 1.00 | 17
-CBOR: 1.14999 | 1.00 | 17
+JSON: 1.43560 | 1.00 | 19
+Tor: 1.18245 | 1.00 | 19
+CBOR: 1.15347 | 1.00 | 19
 
 Bin (Txt, map)
 Format: Size ratio | Record coverage | Record count
@@ -550,7 +550,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 4.01624 | 1.00 | 43
 Tor: 7.98514 | 1.00 | 43
 CBOR: 5.64084 | 1.00 | 43
-APER: 1.00789 | 1.00 | 43
+APER: 1.00742 | 1.00 | 43
 
 Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
@@ -564,7 +564,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 1.50968 | 1.00 | 5
 Tor: 1.35556 | 0.80 | 4
 CBOR: 0.52258 | 1.00 | 5
-APER: 1.02581 | 1.00 | 5
+APER: 1.03226 | 1.00 | 5
 
 Bin (A, AAAA, Cname, Generic-TLSA, Onion, map)
 Format: Size ratio | Record coverage | Record count
@@ -578,21 +578,21 @@ Format: Size ratio | Record coverage | Record count
 JSON: 3.96500 | 1.00 | 19
 Tor: 1.55713 | 1.00 | 19
 CBOR: 1.22661 | 1.00 | 19
-APER: 1.01952 | 1.00 | 19
+APER: 1.01735 | 1.00 | 19
 
 Bin (A, AAAA, Cname, Import, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 2.23869 | 1.00 | 75
 Tor: 1.70588 | 0.68 | 51
 CBOR: 1.37203 | 1.00 | 75
-APER: 1.03500 | 1.00 | 75
+APER: 1.03200 | 1.00 | 75
 
 Bin (A, AAAA, Cname, Loc, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 3.24583 | 1.00 | 16
 Tor: 2.33000 | 1.00 | 16
 CBOR: 1.37255 | 1.00 | 16
-APER: 1.05000 | 1.00 | 16
+APER: 1.04167 | 1.00 | 16
 
 Bin (A, AAAA, Cname, Mx, Ns, Srv, Txt, map)
 Format: Size ratio | Record coverage | Record count
@@ -606,7 +606,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 4.51613 | 1.00 | 8
 Tor: 1.76667 | 1.00 | 8
 CBOR: 1.83607 | 1.00 | 8
-APER: 1.03226 | 1.00 | 8
+APER: 1.04839 | 1.00 | 8
 
 Bin (A, AAAA, Cname, Mx, Srv, map)
 Format: Size ratio | Record coverage | Record count
@@ -641,7 +641,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 3.58149 | 1.00 | 682
 Tor: 1.99734 | 1.00 | 682
 CBOR: 1.66526 | 1.00 | 682
-APER: 1.03551 | 1.00 | 682
+APER: 1.03605 | 1.00 | 682
 
 Bin (A, AAAA, Generic-SSHFP, Onion, Txt, map)
 Format: Size ratio | Record coverage | Record count
@@ -669,7 +669,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 1.28701 | 1.00 | 6
 Tor: 1.31264 | 1.00 | 6
 CBOR: 0.28492 | 1.00 | 6
-APER: 1.01156 | 1.00 | 6
+APER: 1.01734 | 1.00 | 6
 
 Bin (A, AAAA, Hyphanet, I2p, Onion, map)
 Format: Size ratio | Record coverage | Record count
@@ -725,7 +725,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 2.74986 | 1.00 | 31
 Tor: 2.17354 | 1.00 | 31
 CBOR: 1.53625 | 1.00 | 31
-APER: 1.02767 | 1.00 | 31
+APER: 1.02372 | 1.00 | 31
 
 Bin (A, AAAA, Onion, map)
 Format: Size ratio | Record coverage | Record count
@@ -753,7 +753,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 1.87584 | 1.00 | 16
 Tor: 1.22481 | 0.75 | 12
 CBOR: 0.39597 | 1.00 | 16
-APER: 1.01174 | 1.00 | 16
+APER: 1.01342 | 1.00 | 16
 
 Bin (A, Cname, Hyphanet, map)
 Format: Size ratio | Record coverage | Record count
@@ -774,14 +774,14 @@ Format: Size ratio | Record coverage | Record count
 JSON: 3.49175 | 1.00 | 30
 Tor: 1.52704 | 1.00 | 30
 CBOR: 1.50197 | 1.00 | 30
-APER: 1.02921 | 1.00 | 30
+APER: 1.03146 | 1.00 | 30
 
 Bin (A, Cname, Mx, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 5.77085 | 1.00 | 18
 Tor: 1.57329 | 1.00 | 18
 CBOR: 1.46067 | 1.00 | 18
-APER: 1.04206 | 1.00 | 18
+APER: 1.03738 | 1.00 | 18
 
 Bin (A, Cname, Ns, map)
 Format: Size ratio | Record coverage | Record count
@@ -802,21 +802,21 @@ Format: Size ratio | Record coverage | Record count
 JSON: 2.36842 | 1.00 | 7
 Tor: 1.77660 | 1.00 | 7
 CBOR: 1.38947 | 1.00 | 7
-APER: 1.03158 | 1.00 | 7
+APER: 1.02105 | 1.00 | 7
 
 Bin (A, Cname, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 4.09178 | 1.00 | 627
 Tor: 1.72049 | 1.00 | 627
 CBOR: 1.53461 | 1.00 | 627
-APER: 1.05125 | 1.00 | 627
+APER: 1.05295 | 1.00 | 627
 
 Bin (A, Dname, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 4.23982 | 1.00 | 24
 Tor: 1.40271 | 1.00 | 24
 CBOR: 1.40403 | 1.00 | 24
-APER: 1.06728 | 1.00 | 24
+APER: 1.06422 | 1.00 | 24
 
 Bin (A, Generic-TLSA, Import, map)
 Format: Size ratio | Record coverage | Record count
@@ -830,14 +830,14 @@ Format: Size ratio | Record coverage | Record count
 JSON: 2.10345 | 1.00 | 26
 Tor: 1.41410 | 1.00 | 26
 CBOR: 0.43863 | 1.00 | 26
-APER: 1.01296 | 1.00 | 26
+APER: 1.01469 | 1.00 | 26
 
 Bin (A, Generic-TLSA, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.32234 | 1.00 | 26
 Tor: 1.17704 | 1.00 | 26
 CBOR: 0.27538 | 1.00 | 26
-APER: 1.01136 | 1.00 | 26
+APER: 1.01199 | 1.00 | 26
 
 Bin (A, I2p)
 Format: Size ratio | Record coverage | Record count
@@ -872,7 +872,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 7.85713 | 1.00 | 12
 Tor: 1.48872 | 0.50 | 6
 CBOR: 1.35359 | 1.00 | 12
-APER: 1.04000 | 1.00 | 12
+APER: 1.03636 | 1.00 | 12
 
 Bin (A, Mx)
 Format: Size ratio | Record coverage | Record count
@@ -886,14 +886,14 @@ Format: Size ratio | Record coverage | Record count
 JSON: 5.16949 | 1.00 | 6
 Tor: 2.41860 | 1.00 | 6
 CBOR: 1.61364 | 1.00 | 6
-APER: 1.06780 | 1.00 | 6
+APER: 1.05085 | 1.00 | 6
 
 Bin (A, Ns, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 2.99388 | 1.00 | 364
 Tor: 1.58695 | 1.00 | 364
 CBOR: 1.55586 | 1.00 | 364
-APER: 1.03919 | 1.00 | 364
+APER: 1.04124 | 1.00 | 364
 
 Bin (A, Onion)
 Format: Size ratio | Record coverage | Record count
@@ -956,7 +956,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 2.56944 | 1.00 | 16
 Tor: 1.82759 | 1.00 | 16
 CBOR: 1.30000 | 1.00 | 16
-APER: 1.02257 | 1.00 | 16
+APER: 1.01562 | 1.00 | 16
 
 Bin (AAAA, I2p, map)
 Format: Size ratio | Record coverage | Record count
@@ -970,7 +970,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 3.53484 | 1.00 | 34
 Tor: 2.33499 | 1.00 | 34
 CBOR: 1.72731 | 1.00 | 34
-APER: 1.03220 | 1.00 | 34
+APER: 1.03030 | 1.00 | 34
 
 Bin (AAAA, map)
 Format: Size ratio | Record coverage | Record count
@@ -998,7 +998,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 3.86207 | 1.00 | 4
 Tor: 1.21053 | 1.00 | 4
 CBOR: 1.37931 | 1.00 | 4
-APER: 1.03448 | 1.00 | 4
+APER: 1.05172 | 1.00 | 4
 
 Bin (Cname, Mx, map)
 Format: Size ratio | Record coverage | Record count
@@ -1019,7 +1019,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 2.86672 | 1.00 | 5266
 Tor: 1.30392 | 1.00 | 5266
 CBOR: 1.24388 | 1.00 | 5266
-APER: 1.05147 | 1.00 | 5266
+APER: 1.05145 | 1.00 | 5266
 
 Bin (Dname)
 Format: Size ratio | Record coverage | Record count
@@ -1124,7 +1124,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 1.74419 | 1.00 | 2
 Tor: 1.43529 | 1.00 | 2
 CBOR: 1.16279 | 1.00 | 2
-APER: 1.02326 | 1.00 | 2
+APER: 1.01163 | 1.00 | 2
 
 Bin (Onion, map)
 Format: Size ratio | Record coverage | Record count
@@ -1135,10 +1135,10 @@ APER: 1.02371 | 1.00 | 22
 
 Bin (Txt)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.48791 | 1.00 | 17
-Tor: 1.20153 | 1.00 | 17
-CBOR: 1.16933 | 1.00 | 17
-APER: 1.00625 | 1.00 | 17
+JSON: 1.45610 | 1.00 | 19
+Tor: 1.20320 | 1.00 | 19
+CBOR: 1.17256 | 1.00 | 19
+APER: 1.00666 | 1.00 | 19
 
 Bin (Txt, map)
 Format: Size ratio | Record coverage | Record count
@@ -1169,24 +1169,24 @@ Format: Size ratio | Record coverage | Record count
 JSON: 4.37785 | 1.00 | 43
 Tor: 8.70445 | 1.00 | 43
 CBOR: 6.14871 | 1.00 | 43
-APER: 1.09863 | 1.00 | 43
+APER: 1.09813 | 1.00 | 43
 UPER: 1.09004 | 1.00 | 43
 
 Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.74972 | 1.00 | 42
 Tor: 2.63923 | 1.00 | 42
-CBOR: 2.61803 | 1.00 | 42
+CBOR: 2.61950 | 1.00 | 42
 APER: 1.09357 | 1.00 | 42
 UPER: 1.08286 | 1.00 | 42
 
 Bin (A, AAAA, Cname, Generic-TLSA, Import, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.56000 | 1.00 | 5
-Tor: 1.35556 | 0.80 | 4
+JSON: 1.57047 | 1.00 | 5
+Tor: 1.36567 | 0.80 | 4
 CBOR: 0.54000 | 1.00 | 5
-APER: 1.06000 | 1.00 | 5
-UPER: 1.03333 | 1.00 | 5
+APER: 1.07383 | 1.00 | 5
+UPER: 1.04027 | 1.00 | 5
 
 Bin (A, AAAA, Cname, Generic-TLSA, Onion, map)
 Format: Size ratio | Record coverage | Record count
@@ -1201,7 +1201,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 4.31167 | 1.00 | 19
 Tor: 1.70290 | 1.00 | 19
 CBOR: 1.34035 | 1.00 | 19
-APER: 1.10849 | 1.00 | 19
+APER: 1.10613 | 1.00 | 19
 UPER: 1.08726 | 1.00 | 19
 
 Bin (A, AAAA, Cname, Import, map)
@@ -1209,16 +1209,16 @@ Format: Size ratio | Record coverage | Record count
 JSON: 2.53845 | 1.00 | 75
 Tor: 1.75758 | 0.68 | 51
 CBOR: 1.55826 | 1.00 | 75
-APER: 1.17614 | 1.00 | 75
+APER: 1.17273 | 1.00 | 75
 UPER: 1.13636 | 1.00 | 75
 
 Bin (A, AAAA, Cname, Loc, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.32905 | 1.00 | 16
-Tor: 2.38977 | 1.00 | 16
-CBOR: 1.40714 | 1.00 | 16
-APER: 1.07692 | 1.00 | 16
-UPER: 1.02564 | 1.00 | 16
+JSON: 3.30085 | 1.00 | 16
+Tor: 2.41422 | 1.00 | 16
+CBOR: 1.42857 | 1.00 | 16
+APER: 1.05932 | 1.00 | 16
+UPER: 1.01695 | 1.00 | 16
 
 Bin (A, AAAA, Cname, Mx, Ns, Srv, Txt, map)
 Format: Size ratio | Record coverage | Record count
@@ -1232,8 +1232,8 @@ Bin (A, AAAA, Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 5.00000 | 1.00 | 8
 Tor: 1.96296 | 1.00 | 8
-CBOR: 2.03636 | 1.00 | 8
-APER: 1.14286 | 1.00 | 8
+CBOR: 2.07407 | 1.00 | 8
+APER: 1.16071 | 1.00 | 8
 UPER: 1.10714 | 1.00 | 8
 
 Bin (A, AAAA, Cname, Mx, Srv, map)
@@ -1247,7 +1247,7 @@ UPER: 1.16312 | 1.00 | 23
 Bin (A, AAAA, Cname, Mx, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 4.15435 | 1.00 | 20
-Tor: 2.04520 | 1.00 | 20
+Tor: 2.02222 | 1.00 | 20
 CBOR: 1.73647 | 1.00 | 20
 APER: 1.12088 | 1.00 | 20
 UPER: 1.07692 | 1.00 | 20
@@ -1270,11 +1270,11 @@ UPER: 1.02262 | 1.00 | 8
 
 Bin (A, AAAA, Cname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.67738 | 1.00 | 682
-Tor: 2.06066 | 1.00 | 682
-CBOR: 1.71796 | 1.00 | 682
-APER: 1.05957 | 1.00 | 682
-UPER: 1.02324 | 1.00 | 682
+JSON: 3.67620 | 1.00 | 682
+Tor: 2.05870 | 1.00 | 682
+CBOR: 1.71539 | 1.00 | 682
+APER: 1.06001 | 1.00 | 682
+UPER: 1.02312 | 1.00 | 682
 
 Bin (A, AAAA, Generic-SSHFP, Onion, Txt, map)
 Format: Size ratio | Record coverage | Record count
@@ -1305,22 +1305,22 @@ Format: Size ratio | Record coverage | Record count
 JSON: 1.28701 | 1.00 | 6
 Tor: 1.31264 | 1.00 | 6
 CBOR: 0.28492 | 1.00 | 6
-APER: 1.01156 | 1.00 | 6
+APER: 1.01734 | 1.00 | 6
 UPER: 1.00000 | 1.00 | 6
 
 Bin (A, AAAA, Hyphanet, I2p, Onion, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 2.46038 | 1.00 | 35
-Tor: 1.91769 | 1.00 | 35
-CBOR: 1.29340 | 1.00 | 35
+Tor: 1.91982 | 1.00 | 35
+CBOR: 1.29484 | 1.00 | 35
 APER: 1.09416 | 1.00 | 35
 UPER: 1.05195 | 1.00 | 35
 
 Bin (A, AAAA, Hyphanet, Onion, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.95321 | 1.00 | 18
-Tor: 1.85166 | 1.00 | 18
-CBOR: 1.29337 | 1.00 | 18
+JSON: 2.95182 | 1.00 | 18
+Tor: 1.85562 | 1.00 | 18
+CBOR: 1.29614 | 1.00 | 18
 APER: 1.08137 | 1.00 | 18
 UPER: 1.06210 | 1.00 | 18
 
@@ -1369,7 +1369,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 2.81717 | 1.00 | 31
 Tor: 2.25055 | 1.00 | 31
 CBOR: 1.59027 | 1.00 | 31
-APER: 1.05263 | 1.00 | 31
+APER: 1.04858 | 1.00 | 31
 UPER: 1.02429 | 1.00 | 31
 
 Bin (A, AAAA, Onion, map)
@@ -1383,66 +1383,66 @@ UPER: 1.00000 | 1.00 | 6
 Bin (A, AAAA, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 1.85714 | 1.00 | 5
-Tor: 1.39286 | 1.00 | 5
-CBOR: 1.68235 | 1.00 | 5
+Tor: 1.40964 | 1.00 | 5
+CBOR: 1.70238 | 1.00 | 5
 APER: 1.04762 | 1.00 | 5
 UPER: 1.02381 | 1.00 | 5
 
 Bin (A, AAAA, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.51405 | 1.00 | 1267
-Tor: 2.22209 | 1.00 | 1267
-CBOR: 1.48269 | 1.00 | 1267
+JSON: 5.51400 | 1.00 | 1267
+Tor: 2.22239 | 1.00 | 1267
+CBOR: 1.48254 | 1.00 | 1267
 APER: 1.06694 | 1.00 | 1267
 UPER: 1.01770 | 1.00 | 1267
 
 Bin (A, Cname, Generic-TLSA, Import, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.94097 | 1.00 | 16
-Tor: 1.22481 | 0.75 | 12
-CBOR: 0.40831 | 1.00 | 16
-APER: 1.04688 | 1.00 | 16
-UPER: 1.03472 | 1.00 | 16
+JSON: 1.93602 | 1.00 | 16
+Tor: 1.22720 | 0.75 | 12
+CBOR: 0.40690 | 1.00 | 16
+APER: 1.04498 | 1.00 | 16
+UPER: 1.03114 | 1.00 | 16
 
 Bin (A, Cname, Hyphanet, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.07368 | 1.00 | 4
-Tor: 1.61053 | 1.00 | 4
-CBOR: 1.26042 | 1.00 | 4
-APER: 1.11579 | 1.00 | 4
-UPER: 1.09474 | 1.00 | 4
+JSON: 4.96907 | 1.00 | 4
+Tor: 1.56122 | 1.00 | 4
+CBOR: 1.22222 | 1.00 | 4
+APER: 1.09278 | 1.00 | 4
+UPER: 1.07216 | 1.00 | 4
 
 Bin (A, Cname, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 0.93373 | 1.00 | 21
 Tor: 1.35143 | 1.00 | 21
-CBOR: 1.36446 | 1.00 | 21
+CBOR: 1.36241 | 1.00 | 21
 APER: 1.11145 | 1.00 | 21
 UPER: 1.09789 | 1.00 | 21
 
 Bin (A, Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.97102 | 1.00 | 30
-Tor: 1.80714 | 1.00 | 30
-CBOR: 1.76543 | 1.00 | 30
-APER: 1.17136 | 1.00 | 30
-UPER: 1.13811 | 1.00 | 30
+JSON: 3.98112 | 1.00 | 30
+Tor: 1.80113 | 1.00 | 30
+CBOR: 1.77910 | 1.00 | 30
+APER: 1.17692 | 1.00 | 30
+UPER: 1.14103 | 1.00 | 30
 
 Bin (A, Cname, Mx, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 6.36428 | 1.00 | 18
-Tor: 1.78329 | 1.00 | 18
-CBOR: 1.65093 | 1.00 | 18
-APER: 1.17368 | 1.00 | 18
-UPER: 1.12632 | 1.00 | 18
+JSON: 6.24246 | 1.00 | 18
+Tor: 1.76465 | 1.00 | 18
+CBOR: 1.64163 | 1.00 | 18
+APER: 1.14433 | 1.00 | 18
+UPER: 1.10309 | 1.00 | 18
 
 Bin (A, Cname, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.31702 | 1.00 | 15
-Tor: 2.15926 | 1.00 | 15
-CBOR: 1.97690 | 1.00 | 15
-APER: 1.19847 | 1.00 | 15
-UPER: 1.14504 | 1.00 | 15
+JSON: 5.24852 | 1.00 | 15
+Tor: 2.14475 | 1.00 | 15
+CBOR: 2.00083 | 1.00 | 15
+APER: 1.18939 | 1.00 | 15
+UPER: 1.13636 | 1.00 | 15
 
 Bin (A, Cname, Onion, map)
 Format: Size ratio | Record coverage | Record count
@@ -1456,24 +1456,24 @@ Bin (A, Cname, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 2.36842 | 1.00 | 7
 Tor: 1.79570 | 1.00 | 7
-CBOR: 1.38947 | 1.00 | 7
-APER: 1.03158 | 1.00 | 7
+CBOR: 1.40426 | 1.00 | 7
+APER: 1.02105 | 1.00 | 7
 UPER: 1.00000 | 1.00 | 7
 
 Bin (A, Cname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 4.23459 | 1.00 | 627
-Tor: 1.79910 | 1.00 | 627
-CBOR: 1.60612 | 1.00 | 627
-APER: 1.09431 | 1.00 | 627
-UPER: 1.04096 | 1.00 | 627
+JSON: 4.24087 | 1.00 | 627
+Tor: 1.79752 | 1.00 | 627
+CBOR: 1.60430 | 1.00 | 627
+APER: 1.09677 | 1.00 | 627
+UPER: 1.04162 | 1.00 | 627
 
 Bin (A, Dname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 4.63793 | 1.00 | 24
-Tor: 1.55425 | 1.00 | 24
-CBOR: 1.54307 | 1.00 | 24
-APER: 1.17508 | 1.00 | 24
+JSON: 4.65358 | 1.00 | 24
+Tor: 1.55358 | 1.00 | 24
+CBOR: 1.54358 | 1.00 | 24
+APER: 1.17172 | 1.00 | 24
 UPER: 1.10101 | 1.00 | 24
 
 Bin (A, Generic-TLSA, Import, map)
@@ -1489,15 +1489,15 @@ Format: Size ratio | Record coverage | Record count
 JSON: 2.11419 | 1.00 | 26
 Tor: 1.42076 | 1.00 | 26
 CBOR: 0.44071 | 1.00 | 26
-APER: 1.01736 | 1.00 | 26
+APER: 1.01910 | 1.00 | 26
 UPER: 1.00434 | 1.00 | 26
 
 Bin (A, Generic-TLSA, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.33461 | 1.00 | 26
-Tor: 1.18448 | 1.00 | 26
-CBOR: 0.27963 | 1.00 | 26
-APER: 1.01328 | 1.00 | 26
+JSON: 1.33429 | 1.00 | 26
+Tor: 1.18299 | 1.00 | 26
+CBOR: 0.27915 | 1.00 | 26
+APER: 1.01392 | 1.00 | 26
 UPER: 1.00190 | 1.00 | 26
 
 Bin (A, I2p)
@@ -1537,7 +1537,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 8.64613 | 1.00 | 12
 Tor: 1.48872 | 0.50 | 6
 CBOR: 1.54949 | 1.00 | 12
-APER: 1.13944 | 1.00 | 12
+APER: 1.13546 | 1.00 | 12
 UPER: 1.09562 | 1.00 | 12
 
 Bin (A, Mx)
@@ -1553,15 +1553,15 @@ Format: Size ratio | Record coverage | Record count
 JSON: 5.25862 | 1.00 | 6
 Tor: 2.53659 | 1.00 | 6
 CBOR: 1.69048 | 1.00 | 6
-APER: 1.08621 | 1.00 | 6
+APER: 1.06897 | 1.00 | 6
 UPER: 1.01724 | 1.00 | 6
 
 Bin (A, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.42624 | 1.00 | 364
-Tor: 1.81863 | 1.00 | 364
-CBOR: 1.79243 | 1.00 | 364
-APER: 1.22100 | 1.00 | 364
+JSON: 3.42479 | 1.00 | 364
+Tor: 1.82159 | 1.00 | 364
+CBOR: 1.79139 | 1.00 | 364
+APER: 1.22342 | 1.00 | 364
 UPER: 1.17496 | 1.00 | 364
 
 Bin (A, Onion)
@@ -1590,11 +1590,11 @@ UPER: 1.00000 | 1.00 | 2
 
 Bin (A, Tlsa, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 4.45856 | 1.00 | 9
-Tor: 1.98568 | 1.00 | 9
-CBOR: 1.30179 | 1.00 | 9
-APER: 1.04040 | 1.00 | 9
-UPER: 1.01515 | 1.00 | 9
+JSON: 4.44883 | 1.00 | 9
+Tor: 1.97681 | 1.00 | 9
+CBOR: 1.29594 | 1.00 | 9
+APER: 1.03518 | 1.00 | 9
+UPER: 1.01005 | 1.00 | 9
 
 Bin (A, Txt)
 Format: Size ratio | Record coverage | Record count
@@ -1606,16 +1606,16 @@ UPER: 1.00000 | 1.00 | 2
 
 Bin (A, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 4.18544 | 1.00 | 20
+JSON: 4.21370 | 1.00 | 20
 Tor: 1.45115 | 1.00 | 20
 CBOR: 1.32898 | 1.00 | 20
-APER: 1.04098 | 1.00 | 20
-UPER: 1.00546 | 1.00 | 20
+APER: 1.04670 | 1.00 | 20
+UPER: 1.01099 | 1.00 | 20
 
 Bin (A, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 4.60426 | 1.00 | 65934
-Tor: 1.84031 | 1.00 | 65934
+JSON: 4.60430 | 1.00 | 65934
+Tor: 1.84032 | 1.00 | 65934
 CBOR: 1.46569 | 1.00 | 65934
 APER: 1.09238 | 1.00 | 65934
 UPER: 1.01161 | 1.00 | 65934
@@ -1630,11 +1630,11 @@ UPER: 1.01467 | 1.00 | 23
 
 Bin (AAAA, Cname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.62425 | 1.00 | 16
-Tor: 1.86022 | 1.00 | 16
-CBOR: 1.32241 | 1.00 | 16
-APER: 1.04433 | 1.00 | 16
-UPER: 1.02128 | 1.00 | 16
+JSON: 2.63355 | 1.00 | 16
+Tor: 1.85206 | 1.00 | 16
+CBOR: 1.31681 | 1.00 | 16
+APER: 1.04093 | 1.00 | 16
+UPER: 1.02491 | 1.00 | 16
 
 Bin (AAAA, I2p, map)
 Format: Size ratio | Record coverage | Record count
@@ -1649,16 +1649,16 @@ Format: Size ratio | Record coverage | Record count
 JSON: 3.72176 | 1.00 | 34
 Tor: 2.46242 | 1.00 | 34
 CBOR: 1.82201 | 1.00 | 34
-APER: 1.09000 | 1.00 | 34
+APER: 1.08800 | 1.00 | 34
 UPER: 1.05600 | 1.00 | 34
 
 Bin (AAAA, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.85975 | 1.00 | 178
-Tor: 2.03810 | 1.00 | 178
-CBOR: 1.22544 | 1.00 | 178
-APER: 1.06569 | 1.00 | 178
-UPER: 1.02122 | 1.00 | 178
+JSON: 2.85820 | 1.00 | 178
+Tor: 2.03712 | 1.00 | 178
+CBOR: 1.22506 | 1.00 | 178
+APER: 1.06515 | 1.00 | 178
+UPER: 1.02071 | 1.00 | 178
 
 Bin (Cname)
 Format: Size ratio | Record coverage | Record count
@@ -1680,33 +1680,33 @@ Bin (Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 4.66667 | 1.00 | 4
 Tor: 1.46809 | 1.00 | 4
-CBOR: 1.66667 | 1.00 | 4
-APER: 1.25000 | 1.00 | 4
+CBOR: 1.70213 | 1.00 | 4
+APER: 1.27083 | 1.00 | 4
 UPER: 1.20833 | 1.00 | 4
 
 Bin (Cname, Mx, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 7.63421 | 1.00 | 4
-Tor: 1.25817 | 1.00 | 4
+JSON: 7.84211 | 1.00 | 4
+Tor: 1.29412 | 1.00 | 4
 CBOR: 1.56871 | 1.00 | 4
-APER: 1.12821 | 1.00 | 4
-UPER: 1.07692 | 1.00 | 4
+APER: 1.15789 | 1.00 | 4
+UPER: 1.10526 | 1.00 | 4
 
 Bin (Cname, Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.95121 | 1.00 | 204
-Tor: 1.50109 | 1.00 | 204
-CBOR: 1.71448 | 1.00 | 204
-APER: 1.24248 | 1.00 | 204
-UPER: 1.19592 | 1.00 | 204
+JSON: 3.94953 | 1.00 | 204
+Tor: 1.50052 | 1.00 | 204
+CBOR: 1.71202 | 1.00 | 204
+APER: 1.24159 | 1.00 | 204
+UPER: 1.19506 | 1.00 | 204
 
 Bin (Cname, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 3.51481 | 1.00 | 5266
+JSON: 3.51466 | 1.00 | 5266
 Tor: 1.65725 | 1.00 | 5266
-CBOR: 1.55749 | 1.00 | 5266
-APER: 1.29553 | 1.00 | 5266
-UPER: 1.23212 | 1.00 | 5266
+CBOR: 1.55753 | 1.00 | 5266
+APER: 1.29547 | 1.00 | 5266
+UPER: 1.23209 | 1.00 | 5266
 
 Bin (Dname)
 Format: Size ratio | Record coverage | Record count
@@ -1806,11 +1806,11 @@ UPER: 1.17308 | 1.00 | 6
 
 Bin (Ns, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 5.46209 | 1.00 | 113
+JSON: 5.46045 | 1.00 | 113
 Tor: 2.61878 | 1.00 | 113
-CBOR: 2.32067 | 1.00 | 113
-APER: 1.14154 | 1.00 | 113
-UPER: 1.10138 | 1.00 | 113
+CBOR: 2.32201 | 1.00 | 113
+APER: 1.14079 | 1.00 | 113
+UPER: 1.10066 | 1.00 | 113
 
 Bin (Onion)
 Format: Size ratio | Record coverage | Record count
@@ -1825,7 +1825,7 @@ Format: Size ratio | Record coverage | Record count
 JSON: 1.74419 | 1.00 | 2
 Tor: 1.43529 | 1.00 | 2
 CBOR: 1.16279 | 1.00 | 2
-APER: 1.02326 | 1.00 | 2
+APER: 1.01163 | 1.00 | 2
 UPER: 1.00000 | 1.00 | 2
 
 Bin (Onion, map)
@@ -1838,11 +1838,11 @@ UPER: 1.01891 | 1.00 | 22
 
 Bin (Txt)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.49734 | 1.00 | 17
-Tor: 1.20983 | 1.00 | 17
-CBOR: 1.17738 | 1.00 | 17
-APER: 1.01098 | 1.00 | 17
-UPER: 1.00471 | 1.00 | 17
+JSON: 1.46454 | 1.00 | 19
+Tor: 1.21062 | 1.00 | 19
+CBOR: 1.17976 | 1.00 | 19
+APER: 1.01115 | 1.00 | 19
+UPER: 1.00446 | 1.00 | 19
 
 Bin (Txt, map)
 Format: Size ratio | Record coverage | Record count

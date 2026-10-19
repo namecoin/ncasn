@@ -427,82 +427,84 @@ func parseTxtString(value string) (*string, error) {
 }
 
 func parseTxt(name string, value any) ([]util.GenericNameRecord, error) {
-	var ret []util.GenericNameRecord
-
-	typeOf := reflect.TypeOf(value)
-	if typeOf == nil {
+	if value == nil {
 		return nil, errors.New("Nil value")
 	}
 
-	kind := typeOf.Kind()
-	switch kind {
-	case reflect.String:
-		parsed, err := parseTxtString(value.(string))
+	str, ok := value.(string)
+	if ok {
+		parsed, err := parseTxtString(str)
 		if err != nil {
 			return nil, err
 		}
-		ret = append(ret, util.GenericNameRecord{
+
+		return []util.GenericNameRecord{{
 			Name: name,
 			RecordData: ncasn.RecordUnion{
 				Txt: &ncasn.TXT{
 					Content: *parsed,
 				},
 			},
-		})
-	case reflect.Slice:
-		elemType := typeOf.Elem()
-		elemKind := elemType.Kind()
-		for _, elem := range value.([]any) {
-			switch elemKind {
-			case reflect.String:
-				parsed, err := parseTxtString(elem.(string))
-				if err != nil {
-					return nil, err
-				}
-				ret = append(ret, util.GenericNameRecord{
-					Name: name,
-					RecordData: ncasn.RecordUnion{
-						Txt: &ncasn.TXT{
-							Content: *parsed,
-						},
+		}}, nil
+	}
+
+	slice, ok := value.([]any)
+	if !ok {
+		return nil, errors.New("Invalid TXT record type")
+	}
+
+	ret := []util.GenericNameRecord{}
+	for _, elem := range slice {
+		str, ok = elem.(string)
+		if ok {
+			parsed, err := parseTxtString(str)
+			if err != nil {
+				return nil, err
+			}
+			ret = append(ret, util.GenericNameRecord{
+				Name: name,
+				RecordData: ncasn.RecordUnion{
+					Txt: &ncasn.TXT{
+						Content: *parsed,
 					},
-				})
-			case reflect.Slice:
-				var str string
-				for _, item := range elem.([]any) {
-					itemStr, ok := item.(string)
-					if !ok {
-						return nil, errors.New("Non-string TXT part")
-					}
+				},
+			})
+			continue
+		}
 
-					length := len(itemStr)
-					if length > 255 {
-						return nil, fmt.Errorf("TXT part length %d > 255", length)
-					}
+		nested, ok := elem.([]any)
+		if !ok {
+			return nil, errors.New("Invalid TXT element type")
+		}
 
-					str += "\"" + itemStr + "\"" + " "
-					length = len(str)
-					// + 1 due to the trailing space
-					if length > 4097 {
-						return nil, errors.New("TXT record too large")
-					}
-				}
+		for _, item := range nested {
+			itemStr, ok := item.(string)
+			if !ok {
+				return nil, errors.New("Non-string TXT part")
+			}
 
-				str = str[:len(str)-1]
-				ret = append(ret, util.GenericNameRecord{
-					Name: name,
-					RecordData: ncasn.RecordUnion{
-						Txt: &ncasn.TXT{
-							Content: str,
-						},
-					},
-				})
-			default:
-				return nil, fmt.Errorf("Invalid TXT element type: %s", elemType.String())
+			length := len(itemStr)
+			if length > 255 {
+				return nil, fmt.Errorf("TXT part length %d > 255", length)
+			}
+
+			str += "\"" + itemStr + "\"" + " "
+			length = len(str)
+			// + 1 due to the trailing space
+			if length > 4097 {
+				return nil, errors.New("TXT record too large")
 			}
 		}
-	default:
-		return nil, fmt.Errorf("Invalid TXT record type: %s", typeOf.String())
+
+		str = str[:len(str)-1]
+		ret = append(ret, util.GenericNameRecord{
+			Name: name,
+			RecordData: ncasn.RecordUnion{
+				Txt: &ncasn.TXT{
+					Content: str,
+				},
+			},
+		})
 	}
 
 	return ret, nil
