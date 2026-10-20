@@ -320,8 +320,14 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 		ret = append(ret, parsed...)
 	case "txt":
-		switch name {
+		labels := strings.Split(name, ".")
+		switch labels[0] {
 		case "_dnslink":
+			var sub string
+			if len(labels) != 1 {
+				sub = strings.TrimPrefix(name, "_dnslink.")
+			}
+
 			str, ok := value.(string)
 			if !ok {
 				return nil, errors.New("dnslink TXT record is not a string")
@@ -342,12 +348,17 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			}
 
 			ret = append(ret, util.GenericNameRecord{
-				Name: name,
+				Name: sub,
 				RecordData: ncasn.RecordUnion{
 					Ipns: ipns,
 				},
 			})
 		case "_tor":
+			var sub string
+			if len(labels) != 1 {
+				sub = strings.TrimPrefix(name, "_tor.")
+			}
+
 			str, ok := value.(string)
 			if !ok {
 				return nil, errors.New("Tor TXT record is not a string")
@@ -359,7 +370,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			}
 
 			ret = append(ret, util.GenericNameRecord{
-				Name: name,
+				Name: sub,
 				RecordData: ncasn.RecordUnion{
 					Onion: record,
 				},
