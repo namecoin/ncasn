@@ -42,6 +42,8 @@ type DS struct {
 }
 
 type TXT struct {
+	// Whether the record's domain should be prefixed by _token._dnswl
+	DnsWl bool
 	// May contain quoted strings up to 255 characters each.
 	Content string `asn1:"ia5string,size:0..4096"`
 }
