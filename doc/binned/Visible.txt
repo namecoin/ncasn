@@ -16,15 +16,15 @@ CBOR: 2.93684 | 1.00 | 586
 
 Bin (A, AAAA, Cname, Generic-DS, Generic-HTTPS, Generic-SSHFP, Mx, Ns, Sshfp, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.15547 | 1.00 | 334
-Tor: 1.32532 | 1.00 | 334
-CBOR: 1.01255 | 1.00 | 334
+JSON: 1.15621 | 1.00 | 334
+Tor: 1.32624 | 1.00 | 334
+CBOR: 1.01326 | 1.00 | 334
 
 Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.23374 | 1.00 | 73
-Tor: 1.17468 | 1.00 | 73
-CBOR: 1.19228 | 1.00 | 73
+JSON: 1.23674 | 1.00 | 73
+Tor: 1.17776 | 1.00 | 73
+CBOR: 1.19540 | 1.00 | 73
 
 Bin (A, AAAA, Cname, Generic-TLSA, Import, map)
 Format: Size ratio | Record coverage | Record count
@@ -202,9 +202,9 @@ CBOR: 1.13333 | 1.00 | 4
 
 Bin (A, Cname, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.05416 | 1.00 | 21
-Tor: 1.17150 | 1.00 | 21
-CBOR: 1.21662 | 1.00 | 21
+JSON: 1.05283 | 1.00 | 21
+Tor: 1.17003 | 1.00 | 21
+CBOR: 1.21509 | 1.00 | 21
 
 Bin (A, Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
@@ -535,17 +535,17 @@ APER: 1.00475 | 1.00 | 586
 
 Bin (A, AAAA, Cname, Generic-DS, Generic-HTTPS, Generic-SSHFP, Mx, Ns, Sshfp, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.17502 | 1.00 | 334
-Tor: 1.34603 | 1.00 | 334
-CBOR: 1.02837 | 1.00 | 334
-APER: 1.01692 | 1.00 | 334
+JSON: 1.17570 | 1.00 | 334
+Tor: 1.34688 | 1.00 | 334
+CBOR: 1.02903 | 1.00 | 334
+APER: 1.01686 | 1.00 | 334
 
 Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.24833 | 1.00 | 73
-Tor: 1.18857 | 1.00 | 73
-CBOR: 1.20638 | 1.00 | 73
-APER: 1.01183 | 1.00 | 73
+JSON: 1.25084 | 1.00 | 73
+Tor: 1.19119 | 1.00 | 73
+CBOR: 1.20903 | 1.00 | 73
+APER: 1.01140 | 1.00 | 73
 
 Bin (A, AAAA, Cname, Generic-TLSA, Import, map)
 Format: Size ratio | Record coverage | Record count
@@ -584,10 +584,10 @@ APER: 1.07273 | 1.00 | 16
 
 Bin (A, AAAA, Cname, Mx, Ns, Srv, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.36510 | 1.00 | 22
-Tor: 1.23522 | 1.00 | 22
-CBOR: 1.26443 | 1.00 | 22
-APER: 1.02148 | 1.00 | 22
+JSON: 1.36327 | 1.00 | 22
+Tor: 1.23356 | 1.00 | 22
+CBOR: 1.26273 | 1.00 | 22
+APER: 1.02011 | 1.00 | 22
 
 Bin (A, AAAA, Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
@@ -752,10 +752,10 @@ APER: 1.02913 | 1.00 | 4
 
 Bin (A, Cname, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.07033 | 1.00 | 21
-Tor: 1.18950 | 1.00 | 21
-CBOR: 1.23529 | 1.00 | 21
-APER: 1.01535 | 1.00 | 21
+JSON: 1.06897 | 1.00 | 21
+Tor: 1.18798 | 1.00 | 21
+CBOR: 1.23372 | 1.00 | 21
+APER: 1.01533 | 1.00 | 21
 
 Bin (A, Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
@@ -1109,17 +1109,17 @@ APER: 1.02451 | 1.00 | 4
 
 Bin (Txt)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.45610 | 1.00 | 19
-Tor: 1.17126 | 1.00 | 19
-CBOR: 1.17256 | 1.00 | 19
-APER: 1.00666 | 1.00 | 19
+JSON: 1.44597 | 1.00 | 19
+Tor: 1.16135 | 1.00 | 19
+CBOR: 1.16318 | 1.00 | 19
+APER: 1.00369 | 1.00 | 19
 
 Bin (Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.23577 | 1.00 | 6
+JSON: 2.21774 | 1.00 | 6
 Tor: 1.16667 | 1.00 | 6
 CBOR: 1.19130 | 1.00 | 6
-APER: 1.02439 | 1.00 | 6
+APER: 1.01613 | 1.00 | 6
 
 Mixed radix benchmark results:
 Bin (A)
@@ -1140,19 +1140,19 @@ UPER: 1.08190 | 1.00 | 586
 
 Bin (A, AAAA, Cname, Generic-DS, Generic-HTTPS, Generic-SSHFP, Mx, Ns, Sshfp, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.27697 | 1.00 | 334
-Tor: 1.46283 | 1.00 | 334
-CBOR: 1.11760 | 1.00 | 334
-APER: 1.10516 | 1.00 | 334
-UPER: 1.08677 | 1.00 | 334
+JSON: 1.27747 | 1.00 | 334
+Tor: 1.46348 | 1.00 | 334
+CBOR: 1.11811 | 1.00 | 334
+APER: 1.10488 | 1.00 | 334
+UPER: 1.08657 | 1.00 | 334
 
 Bin (A, AAAA, Cname, Generic-HTTPS, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.38627 | 1.00 | 73
-Tor: 1.31995 | 1.00 | 73
-CBOR: 1.33969 | 1.00 | 73
-APER: 1.12364 | 1.00 | 73
-UPER: 1.11051 | 1.00 | 73
+JSON: 1.38868 | 1.00 | 73
+Tor: 1.32249 | 1.00 | 73
+CBOR: 1.34227 | 1.00 | 73
+APER: 1.12286 | 1.00 | 73
+UPER: 1.11020 | 1.00 | 73
 
 Bin (A, AAAA, Cname, Generic-TLSA, Import, map)
 Format: Size ratio | Record coverage | Record count
@@ -1200,7 +1200,7 @@ JSON: 1.66721 | 1.00 | 22
 Tor: 1.50903 | 1.00 | 22
 CBOR: 1.54426 | 1.00 | 22
 APER: 1.24754 | 1.00 | 22
-UPER: 1.22131 | 1.00 | 22
+UPER: 1.22295 | 1.00 | 22
 
 Bin (A, AAAA, Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
@@ -1388,11 +1388,11 @@ UPER: 1.11957 | 1.00 | 4
 
 Bin (A, Cname, Mx, Ns, Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.19061 | 1.00 | 21
-Tor: 1.32336 | 1.00 | 21
-CBOR: 1.37411 | 1.00 | 21
-APER: 1.12945 | 1.00 | 21
-UPER: 1.11238 | 1.00 | 21
+JSON: 1.18892 | 1.00 | 21
+Tor: 1.32148 | 1.00 | 21
+CBOR: 1.37216 | 1.00 | 21
+APER: 1.12926 | 1.00 | 21
+UPER: 1.11222 | 1.00 | 21
 
 Bin (A, Cname, Mx, Ns, map)
 Format: Size ratio | Record coverage | Record count
@@ -1573,8 +1573,8 @@ UPER: 1.00000 | 1.00 | 2
 Bin (A, Txt, map)
 Format: Size ratio | Record coverage | Record count
 JSON: 4.58909 | 1.00 | 18
-Tor: 1.68124 | 1.00 | 18
-CBOR: 1.39686 | 1.00 | 18
+Tor: 1.67373 | 1.00 | 18
+CBOR: 1.39070 | 1.00 | 18
 APER: 1.05976 | 1.00 | 18
 UPER: 1.02390 | 1.00 | 18
 
@@ -1796,16 +1796,16 @@ UPER: 1.01493 | 1.00 | 4
 
 Bin (Txt)
 Format: Size ratio | Record coverage | Record count
-JSON: 1.46454 | 1.00 | 19
-Tor: 1.17854 | 1.00 | 19
-CBOR: 1.17976 | 1.00 | 19
-APER: 1.01115 | 1.00 | 19
-UPER: 1.00446 | 1.00 | 19
+JSON: 1.45982 | 1.00 | 19
+Tor: 1.17389 | 1.00 | 19
+CBOR: 1.17515 | 1.00 | 19
+APER: 1.00890 | 1.00 | 19
+UPER: 1.00519 | 1.00 | 19
 
 Bin (Txt, map)
 Format: Size ratio | Record coverage | Record count
-JSON: 2.29167 | 1.00 | 6
-Tor: 1.19820 | 1.00 | 6
-CBOR: 1.22321 | 1.00 | 6
-APER: 1.05000 | 1.00 | 6
-UPER: 1.02500 | 1.00 | 6
+JSON: 2.27273 | 1.00 | 6
+Tor: 1.18750 | 1.00 | 6
+CBOR: 1.21239 | 1.00 | 6
+APER: 1.04132 | 1.00 | 6
+UPER: 1.02479 | 1.00 | 6

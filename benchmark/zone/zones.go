@@ -102,8 +102,15 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 			return nil, nil
 		}
 
+		var dnswl bool
+		subdomain, dnswl = strings.CutPrefix(subdomain, "_token._dnswl")
+		if dnswl {
+			subdomain = strings.TrimPrefix(subdomain, ".")
+		}
+
 		union = &ncasn.RecordUnion{Txt: &ncasn.TXT{
 			Content: data,
+			DnsWl:   dnswl,
 		}}
 	case "MX":
 		if len(fields) < 6 {
@@ -348,6 +355,12 @@ func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool)
 		switch {
 		case hidden:
 			record.Name = "0"
+		case record.RecordData.Txt != nil && record.RecordData.Txt.DnsWl:
+			if len(record.Name) == 0 {
+				record.Name = "_token._dnswl"
+			} else {
+				record.Name = "_token._dnswl." + record.Name
+			}
 		case len(record.Name) == 0:
 			addRecord(&record.RecordData, obj)
 			continue

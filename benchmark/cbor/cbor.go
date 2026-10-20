@@ -104,16 +104,26 @@ func recordDataToCbor(record *ncasn.RecordUnion, nsIdx int) ([]byte, []any) {
 
 func recordToCbor(record *util.GenericNameRecord, lastName *string, nsIdx int, hidden bool) ([]any, *string) {
 	var ret []any
-	if lastName == nil || *lastName != record.Name {
-		lastName = &record.Name
+	name := record.Name
+
+	if record.RecordData.Txt != nil && record.RecordData.Txt.DnsWl {
+		if len(name) == 0 {
+			name = "_token._dnswl"
+		} else {
+			name = "_token._dnswl." + name
+		}
+	}
+
+	if lastName == nil || *lastName != name {
+		lastName = &name
 
 		switch {
 		case hidden:
 			ret = append(ret, uint8(0))
-		case strings.Contains(record.Name, "."):
-			ret = append(ret, strings.Split(record.Name, "."))
+		case strings.Contains(name, "."):
+			ret = append(ret, strings.Split(name, "."))
 		default:
-			ret = append(ret, record.Name)
+			ret = append(ret, name)
 		}
 	}
 

@@ -43,12 +43,21 @@ func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecor
 		if encoded == nil {
 			ignored = append(ignored, &records[i])
 		} else {
+			name := records[i].Name
+			if records[i].RecordData.Txt != nil && records[i].RecordData.Txt.DnsWl {
+				if len(name) == 0 {
+					name = "_token._dnswl"
+				} else {
+					name = "_token._dnswl." + name
+				}
+			}
+
 			var prefix string
 			switch {
 			case hidden:
 				prefix = "0 "
-			case lastName == nil || *lastName != records[i].Name:
-				prefix = records[i].Name + " "
+			case lastName == nil || *lastName != name:
+				prefix = name + " "
 			}
 
 			ns := records[i].RecordData.Ns
@@ -66,7 +75,7 @@ func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecor
 			}
 
 			ret = append(ret, prefix+*encoded)
-			lastName = &records[i].Name
+			lastName = &name
 		}
 	}
 
