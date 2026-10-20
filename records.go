@@ -17,6 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package ncasn
 
+import (
+	"strings"
+)
+
 type A struct {
 	Target []byte `asn1:"size:4"`
 }
@@ -27,7 +31,106 @@ type AAAA struct {
 	Bytes      []byte `asn1:"size:0..16"`
 }
 
+type SRVService uint8
+
+const (
+	Dccp SRVService = iota
+	Http
+	Ipv6
+	Ldap
+	Ocsp
+	Sctp
+	Sip
+	Stun
+	Turn
+	Xmpp
+	SipFederationTls
+	XmppClient
+	XmppServer
+)
+
+type SRVProto uint8
+
+const (
+	Tcp SRVProto = iota
+	Udp
+	Tls
+)
+
+type SRVMeta struct {
+	Service SRVService `asn1:"size:0..12"`
+	Proto   SRVProto   `asn1:"size:0..2"`
+}
+
+var SrvLabelToService = map[string]SRVService{
+	"_dccp":             Dccp,
+	"_http":             Http,
+	"_ipv6":             Ldap,
+	"_ocsp":             Ocsp,
+	"_sctp":             Sctp,
+	"_sip":              Sip,
+	"_stun":             Stun,
+	"_stuns":            Stun,
+	"_turn":             Turn,
+	"_turns":            Turn,
+	"_xmpp":             Xmpp,
+	"_sipfederationtls": SipFederationTls,
+	"_xmpp-client":      XmppClient,
+	"_xmpp-server":      XmppServer,
+}
+
+var SrvLabelToProto = map[string]SRVProto{
+	"_tcp": Tcp,
+	"_udp": Udp,
+	"_tls": Tls,
+}
+
+func SrvNameToMeta(name string) *SRVMeta {
+	labels := strings.Split(name, ".")
+	if len(labels) < 2 {
+		return nil
+	}
+
+	service, found := SrvLabelToService[labels[0]]
+	if !found {
+		return nil
+	}
+
+	proto, found := SrvLabelToProto[labels[1]]
+
+	if !found {
+		return nil
+	}
+
+	return &SRVMeta{Service: SRVService(service), Proto: SRVProto(proto)}
+}
+
+func (meta SRVMeta) ToPrefix() string {
+	var service string
+	for k, v := range SrvLabelToService {
+		if v == meta.Service {
+			service = k
+			break
+		}
+	}
+
+	var proto string
+	for k, v := range SrvLabelToProto {
+		if v == meta.Proto {
+			proto = k
+			break
+		}
+	}
+
+	return service + "." + proto
+}
+
 type SRV struct {
+	Meta *SRVMeta `asn1:"optional"`
+	Data SRVData
+}
+
+type SRVData struct {
 	Priority uint16  `asn1:"size:0..65535"`
 	Weight   *uint16 `asn1:"optional,size:0..65535"`
 	Port     uint16  `asn1:"size:0..65535"`
