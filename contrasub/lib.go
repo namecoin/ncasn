@@ -148,10 +148,30 @@ func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan struct{
 	}
 }
 
+func dedup(zone *ncasn.Zone) {
+	copy := []ncasn.HiddenDomainRecord{}
+	for _, record := range zone.Records.Hidden {
+		skip := false
+		for _, copied := range copy {
+			if reflect.DeepEqual(record.RecordData, copied.RecordData) {
+				skip = true
+				break
+			}
+		}
+		if !skip {
+			copy = append(copy, record)
+		}
+	}
+
+	zone.Records.Hidden = copy
+}
+
 func PreProcess(zone *ncasn.Zone) error {
 	if zone.Records.Hidden == nil {
 		return errors.New("Not a hidden domain records zone")
 	}
+
+	dedup(zone)
 
 	subCount := GetUniqueSubNames(zone.Records.Hidden)
 	maxSubs, err := getMaxSubs()
