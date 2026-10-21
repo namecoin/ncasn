@@ -184,17 +184,17 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 
 		return binary.BigEndian.AppendUint64(data, *(*uint64)(editionBits))
 	case record.Srv != nil:
-		ret := binary.BigEndian.AppendUint16(nil, record.Srv.Priority)
+		ret := binary.BigEndian.AppendUint16(nil, record.Srv.Data.Priority)
 
 		weight := uint16(0)
-		if record.Srv.Weight != nil {
-			weight = *record.Srv.Weight
+		if record.Srv.Data.Weight != nil {
+			weight = *record.Srv.Data.Weight
 		}
 		ret = binary.BigEndian.AppendUint16(ret, weight)
 
-		ret = binary.BigEndian.AppendUint16(ret, record.Srv.Port)
+		ret = binary.BigEndian.AppendUint16(ret, record.Srv.Data.Port)
 
-		return append(ret, DomainToWire(record.Srv.Target)...)
+		return append(ret, DomainToWire(record.Srv.Data.Target)...)
 	case record.Mx != nil:
 		return append(binary.BigEndian.AppendUint16(nil, record.Mx.Priority), DomainToWire(record.Mx.Target)...)
 	case record.Ns != nil:

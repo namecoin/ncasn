@@ -35,7 +35,8 @@ func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecor
 	nsIdx := 0
 	var lastName *string
 	for i := range records {
-		encoded, err := toTor(&records[i].RecordData, nsIdx)
+		data := records[i].RecordData
+		encoded, err := toTor(&data, nsIdx)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert record to Tor format: %s", err.Error())
 		}
@@ -44,11 +45,19 @@ func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecor
 			ignored = append(ignored, &records[i])
 		} else {
 			name := records[i].Name
-			if records[i].RecordData.Txt != nil && records[i].RecordData.Txt.DnsWl {
+			switch {
+			case data.Txt != nil && data.Txt.DnsWl:
 				if len(name) == 0 {
 					name = "_token._dnswl"
 				} else {
 					name = "_token._dnswl." + name
+				}
+			case data.Srv != nil && data.Srv.Meta != nil:
+				prefix := data.Srv.Meta.ToPrefix()
+				if len(name) == 0 {
+					name = prefix
+				} else {
+					name = prefix + "." + name
 				}
 			}
 
@@ -60,7 +69,7 @@ func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecor
 				prefix = name + " "
 			}
 
-			ns := records[i].RecordData.Ns
+			ns := data.Ns
 			if ns != nil && ns.String == nil {
 				var str string
 				if ns.Ip.A != nil {

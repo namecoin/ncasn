@@ -80,14 +80,27 @@ func parseSrv(name string, elem []any) (*util.GenericNameRecord, error) {
 		weight = nil
 	}
 
+	meta := ncasn.SrvNameToMeta(name)
+	if meta != nil {
+		labels := strings.Split(name, ".")
+		if len(labels) == 2 {
+			name = ""
+		} else {
+			name = strings.Join(labels[2:], ".")
+		}
+	}
+
 	return &util.GenericNameRecord{
 		Name: name,
 		RecordData: ncasn.RecordUnion{
 			Srv: &ncasn.SRV{
-				Priority: *priority,
-				Weight:   weight,
-				Port:     *port,
-				Target:   target,
+				Meta: meta,
+				Data: ncasn.SRVData{
+					Priority: *priority,
+					Weight:   weight,
+					Port:     *port,
+					Target:   target,
+				},
 			},
 		},
 	}, nil
@@ -282,14 +295,15 @@ func parseService(name string, value any) ([]util.GenericNameRecord, error) {
 			}
 		}
 
+		thisName := name
 		prefix := spdf(serviceStr, protocolStr)
-		if name == "" {
-			name = strings.TrimSuffix(prefix, ".")
+		if len(thisName) == 0 {
+			thisName = strings.TrimSuffix(prefix, ".")
 		} else {
-			name = prefix + name
+			thisName = prefix + thisName
 		}
 
-		parsed, err := parseSrv(name, record[2:])
+		parsed, err := parseSrv(thisName, record[2:])
 		if err != nil {
 			return nil, err
 		}

@@ -78,6 +78,18 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 		if err != nil {
 			return nil, err
 		}
+
+		meta := ncasn.SrvNameToMeta(subdomain)
+		if meta != nil {
+			split := strings.Split(subdomain, ".")
+			if len(split) < 3 {
+				subdomain = ""
+			} else {
+				subdomain = strings.Join(split[2:], ".")
+			}
+
+			union.Srv.Meta = meta
+		}
 	case "DS":
 		var err error
 		union, err = parseDs(fields)
@@ -206,13 +218,13 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		}
 
 		var weight uint16
-		if record.Srv.Weight == nil {
+		if record.Srv.Data.Weight == nil {
 			weight = 0
 		} else {
-			weight = *record.Srv.Weight
+			weight = *record.Srv.Data.Weight
 		}
 
-		obj["srv"] = append(srvCast, []any{record.Srv.Priority, weight, record.Srv.Port, record.Srv.Target})
+		obj["srv"] = append(srvCast, []any{record.Srv.Data.Priority, weight, record.Srv.Data.Port, record.Srv.Data.Target})
 	case record.Ds != nil:
 		ds, found := obj["ds"]
 		var dsCast [][]any
@@ -360,6 +372,13 @@ func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool)
 				record.Name = "_token._dnswl"
 			} else {
 				record.Name = "_token._dnswl." + record.Name
+			}
+		case record.RecordData.Srv != nil && record.RecordData.Srv.Meta != nil:
+			prefix := record.RecordData.Srv.Meta.ToPrefix()
+			if len(record.Name) == 0 {
+				record.Name = prefix
+			} else {
+				record.Name = prefix + "." + record.Name
 			}
 		case len(record.Name) == 0:
 			addRecord(&record.RecordData, obj)

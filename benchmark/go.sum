@@ -27,8 +27,8 @@ github.com/multiformats/go-varint v0.1.0 h1:i2wqFp4sdl3IcIxfAonHQV9qU5OsZ4Ts9IOo
 github.com/multiformats/go-varint v0.1.0/go.mod h1:5KVAVXegtfmNQQm/lCY+ATvDzvJJhSkUlGQV9wgObdI=
 github.com/namecoin/go-asn v0.0.0-20260916224240-e0605e6620b1 h1:qrqCPPQwBRw4kUXcMHW2PK3cAZ2iitOwBwZ1nYhF7mo=
 github.com/namecoin/go-asn v0.0.0-20260916224240-e0605e6620b1/go.mod h1:cDU2gmroCLdYUU77YAyM2SvTj+V19uCxybwt/8U8GHw=
-github.com/namecoin/ncasn v0.0.0-20261020012756-83abad5b6921 h1:bg5OClNu+xtbsQR7zraDYTSfys0/yPDepi50i5tm3hg=
-github.com/namecoin/ncasn v0.0.0-20261020012756-83abad5b6921/go.mod h1:RxhAI/QYMGkwymrPFoGKzORxByHEKsr80e5BISbAgcY=
+github.com/namecoin/ncasn v0.0.0-20261020124553-c8979c19eaa2 h1:J6WDdPyo4Hs2IIqOC99zskpSxKFs2XEfk4GgsHwjsLw=
+github.com/namecoin/ncasn v0.0.0-20261020124553-c8979c19eaa2/go.mod h1:RxhAI/QYMGkwymrPFoGKzORxByHEKsr80e5BISbAgcY=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=

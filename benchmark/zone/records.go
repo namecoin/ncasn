@@ -54,10 +54,12 @@ func parseSrv(fields []string) (*ncasn.RecordUnion, error) {
 	}
 
 	return &ncasn.RecordUnion{Srv: &ncasn.SRV{
-		Priority: uint16(priority),
-		Weight:   weight,
-		Port:     uint16(port),
-		Target:   fields[7],
+		Data: ncasn.SRVData{
+			Priority: uint16(priority),
+			Weight:   weight,
+			Port:     uint16(port),
+			Target:   fields[7],
+		},
 	}}, nil
 }
 

@@ -81,11 +81,11 @@ func RecordsToCbor(records []util.GenericNameRecord, hidden bool) (*util.CborRec
 func recordDataToCbor(record *ncasn.RecordUnion, nsIdx int) ([]byte, []any) {
 	switch {
 	case record.Srv != nil:
-		ret := []any{record.Srv.Priority}
-		if record.Srv.Weight != nil {
-			ret = append(ret, *record.Srv.Weight)
+		ret := []any{record.Srv.Data.Priority}
+		if record.Srv.Data.Weight != nil {
+			ret = append(ret, *record.Srv.Data.Weight)
 		}
-		return nil, append(ret, record.Srv.Port, record.Srv.Target)
+		return nil, append(ret, record.Srv.Data.Port, record.Srv.Data.Target)
 	case record.Mx != nil:
 		return nil, []any{record.Mx.Priority, strings.Split(record.Mx.Target, ".")}
 	case record.Import != nil:
@@ -106,11 +106,19 @@ func recordToCbor(record *util.GenericNameRecord, lastName *string, nsIdx int, h
 	var ret []any
 	name := record.Name
 
-	if record.RecordData.Txt != nil && record.RecordData.Txt.DnsWl {
+	switch {
+	case record.RecordData.Txt != nil && record.RecordData.Txt.DnsWl:
 		if len(name) == 0 {
 			name = "_token._dnswl"
 		} else {
 			name = "_token._dnswl." + name
+		}
+	case record.RecordData.Srv != nil && record.RecordData.Srv.Meta != nil:
+		prefix := record.RecordData.Srv.Meta.ToPrefix()
+		if len(name) == 0 {
+			name = prefix
+		} else {
+			name = prefix + "." + name
 		}
 	}
 
