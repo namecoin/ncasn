@@ -561,7 +561,13 @@ func timer() {
 
 	var records []ncasn.HiddenDomainRecord
 	for i := uint64(0); i < recordCount; i++ {
-		record := ncasn.HiddenDomainRecord{}
+		record := ncasn.HiddenDomainRecord{
+			RecordData: ncasn.RecordUnion{
+				A: &ncasn.A{
+					Target: []byte{0, 0, 0, byte(i)},
+				},
+			},
+		}
 		record.SetName(strconv.Itoa(int(i)))
 		records = append(records, record)
 	}
