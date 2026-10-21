@@ -54,24 +54,24 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.87737 | 1.00 | 200719
-Tor: 1.73295 | 0.87 | 174248
-CBOR: 1.42905 | 1.00 | 200719
+JSON: 4.47388 | 1.00 | 200719
+Tor: 2.04898 | 0.87 | 174248
+CBOR: 1.62922 | 1.00 | 200719
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.99083 | 1.00 | 200719
-Tor: 1.81284 | 0.87 | 174248
-CBOR: 1.48488 | 1.00 | 200719
-APER: 1.03462 | 1.00 | 200719
+JSON: 4.56341 | 1.00 | 200719
+Tor: 2.13418 | 0.87 | 174248
+CBOR: 1.68780 | 1.00 | 200719
+APER: 1.02407 | 1.00 | 200719
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.51702 | 1.00 | 200719
-Tor: 2.02146 | 0.87 | 174248
-CBOR: 1.68624 | 1.00 | 200719
-APER: 1.19657 | 1.00 | 200719
-UPER: 1.15653 | 1.00 | 200719
+JSON: 5.11138 | 1.00 | 200719
+Tor: 2.35423 | 0.87 | 174248
+CBOR: 1.89750 | 1.00 | 200719
+APER: 1.20012 | 1.00 | 200719
+UPER: 1.17191 | 1.00 | 200719
 ```
 With elision:  
 Standard benchmark results:
@@ -107,24 +107,24 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.87699 | 1.00 | 200722
-Tor: 1.73271 | 0.87 | 174251
-CBOR: 1.42860 | 1.00 | 200722
+JSON: 4.47334 | 1.00 | 200722
+Tor: 2.04838 | 0.87 | 174251
+CBOR: 1.62851 | 1.00 | 200722
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 3.99046 | 1.00 | 200722
-Tor: 1.81260 | 0.87 | 174251
-CBOR: 1.48443 | 1.00 | 200722
-APER: 1.03465 | 1.00 | 200722
+JSON: 4.56286 | 1.00 | 200722
+Tor: 2.13359 | 0.87 | 174251
+CBOR: 1.68712 | 1.00 | 200722
+APER: 1.02409 | 1.00 | 200722
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.51658 | 1.00 | 200722
-Tor: 2.02117 | 0.87 | 174251
-CBOR: 1.68574 | 1.00 | 200722
-APER: 1.19665 | 1.00 | 200722
-UPER: 1.15658 | 1.00 | 200722
+JSON: 5.11081 | 1.00 | 200722
+Tor: 2.35366 | 0.87 | 174251
+CBOR: 1.89682 | 1.00 | 200722
+APER: 1.20022 | 1.00 | 200722
+UPER: 1.17198 | 1.00 | 200722
 ```
 
 Results binned based on the record types in a given zone are available in doc/binned/Visible.txt and doc/binned/Hidden.txt.
