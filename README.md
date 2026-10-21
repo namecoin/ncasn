@@ -127,7 +127,7 @@ APER: 1.20022 | 1.00 | 200722
 UPER: 1.17198 | 1.00 | 200722
 ```
 
-Results binned based on the record types in a given zone are available in doc/binned/Visible.txt and doc/binned/Hidden.txt.
+Results binned based on the record types in a given zone are available in doc/binned.
 
 ## Copyright
 
