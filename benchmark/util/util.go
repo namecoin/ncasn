@@ -185,9 +185,10 @@ type CborRecords struct {
 }
 
 type Zone struct {
-	Zone     *ncasn.Zone
-	Json     string
-	Cbor     *CborRecords
-	Tor      *TorRecords
-	Coverage float64
+	Zone        *ncasn.Zone
+	Json        string
+	Cbor        *CborRecords
+	Tor         *TorRecords
+	Coverage    float64
+	UnknownJson []string
 }

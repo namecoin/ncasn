@@ -72,7 +72,7 @@ func parseTypeOrSlice[E any](value any) ([]E, error) {
 	}
 }
 
-func handleField(key string, value any, name string, skipped *int, parent map[string]any) ([]ncasn.Record, error) {
+func handleField(key string, value any, name string, skipped *int, parent map[string]any, unknown *[]string) ([]ncasn.Record, error) {
 	ret := []ncasn.Record{}
 	switch key {
 	case "map":
@@ -139,7 +139,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 					} else {
 						relName = kMap + "." + name
 					}
-					nested, err := handleField(kNested, vNested, relName, skipped, cast)
+					nested, err := handleField(kNested, vNested, relName, skipped, cast, unknown)
 					if err == nil {
 						ret = append(ret, nested...)
 					} else {
@@ -710,6 +710,10 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				ret = append(ret, *decoded)
 			}
 		}
+	default:
+		if !slices.Contains(*unknown, key) {
+			*unknown = append(*unknown, key)
+		}
 	}
 
 	return ret, nil
@@ -789,6 +793,7 @@ type zoneWithCoverage struct {
 	Zone    *ncasn.Zone
 	Total   int
 	Skipped int
+	Unknown []string
 }
 
 func fixNs(index int, record *ncasn.NSIP, obj map[string]any) {
@@ -867,7 +872,7 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 			continue
 		}
 
-		record, err := handleField(key, value, "", &coverage.Skipped, parsed)
+		record, err := handleField(key, value, "", &coverage.Skipped, parsed, &coverage.Unknown)
 		if err != nil {
 			fmt.Printf("Error while parsing %s for %s: %s\n", key, data.Name, err.Error())
 			continue
@@ -903,7 +908,7 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 	return &coverage, nil
 }
 
-func combine(zone *ncasn.Zone, json *Name) (*util.Zone, error) {
+func combine(zone *ncasn.Zone, json *Name, unknown []string) (*util.Zone, error) {
 	slices.SortFunc(zone.Records, util.CmpRecords)
 	cborEncoded, err := cbor.RecordsToCbor(zone.Records)
 	if err != nil {
@@ -915,7 +920,13 @@ func combine(zone *ncasn.Zone, json *Name) (*util.Zone, error) {
 		return nil, fmt.Errorf("Failed to convert blockchain records to Tor format: %s", err.Error())
 	}
 
-	return &util.Zone{Zone: zone, Json: json.Value, Cbor: cborEncoded, Tor: torEncoded}, nil
+	return &util.Zone{
+		Zone:        zone,
+		Json:        json.Value,
+		Cbor:        cborEncoded,
+		Tor:         torEncoded,
+		UnknownJson: unknown,
+	}, nil
 }
 
 func JsonFileToZones(file string) ([]util.Zone, error) {
@@ -950,7 +961,7 @@ func JsonFileToZones(file string) ([]util.Zone, error) {
 		}
 
 		if zone != nil {
-			merged, err := combine(zone.Zone, &name)
+			merged, err := combine(zone.Zone, &name, zone.Unknown)
 			if err != nil {
 				return nil, err
 			}

@@ -300,9 +300,10 @@ func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper i
 	return final.TypeLen
 }
 
-func typesFromRecords(records []ncasn.Record) []string {
+func typesFromZone(zone *util.Zone) []string {
 	var ret []string
 
+	records := zone.Zone.Records
 	for _, record := range records {
 		ref := reflect.ValueOf(record.RecordData)
 		choice := ncasn.GetChoice(ref)
@@ -320,7 +321,13 @@ func typesFromRecords(records []ncasn.Record) []string {
 	}
 
 	slices.Sort(ret)
-	return slices.Compact(ret)
+	ret = slices.Compact(ret)
+
+	for _, unknown := range zone.UnknownJson {
+		ret = append(ret, "JSON-"+unknown)
+	}
+
+	return ret
 }
 
 func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, aper []int, uper []int) []int {
@@ -341,7 +348,7 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, a
 	bins := map[string][]util.Zone{}
 
 	for _, zone := range zones {
-		types := "(" + strings.Join(typesFromRecords(zone.Zone.Records), ", ") + ")"
+		types := "(" + strings.Join(typesFromZone(&zone), ", ") + ")"
 		bins[types] = append(bins[types], zone)
 	}
 
