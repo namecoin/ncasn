@@ -123,10 +123,11 @@ func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan struct{
 			if pollDone(quit) {
 				return
 			}
-			sub := zone.Records.Hidden[i].GetName()
+			record := &zone.Records.Hidden[i]
+			sub := record.GetName()
 			existing, found := mapped[sub]
 			if found {
-				zone.Records.Hidden[i].Index = &existing
+				record.Index = &existing
 				continue
 			}
 
@@ -134,9 +135,23 @@ func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan struct{
 			if slices.Contains(indices, *index) {
 				break
 			}
+
+			skip := false
+			for _, alias := range record.GetAliases() {
+				aliasIdx, _ := CalculateIndexWithCount(&zone, alias, subCount)
+				if *aliasIdx != *index {
+					skip = true
+					break
+				}
+			}
+
+			if skip {
+				break
+			}
+
 			indices = append(indices, *index)
 			mapped[sub] = *index
-			zone.Records.Hidden[i].Index = index
+			record.Index = index
 		}
 
 		invalid = len(indices) != subCount
@@ -166,12 +181,49 @@ func dedup(zone *ncasn.Zone) {
 	zone.Records.Hidden = copy
 }
 
-func PreProcess(zone *ncasn.Zone) error {
+func deref(zone *ncasn.Zone, base *string) {
+	aliases := []string{}
+	for i := range zone.Records.Hidden {
+		record := &zone.Records.Hidden[i]
+		name := record.GetName()
+		for _, reference := range zone.Records.Hidden {
+			data := reference.RecordData
+			var target *string
+			switch {
+			case data.Alias != nil:
+				target = data.Alias
+			case data.Cname != nil:
+				target = data.Cname
+			default:
+				continue
+			}
+
+			if *target == name || (base != nil && *target == name+"."+*base) {
+				record.AddAlias(reference.GetName())
+				aliases = append(aliases, reference.GetName())
+			}
+		}
+	}
+
+	zone.Records.Hidden = slices.DeleteFunc(zone.Records.Hidden, func(elem ncasn.HiddenDomainRecord) bool {
+		if elem.RecordData.Alias == nil && elem.RecordData.Cname == nil {
+			return false
+		}
+
+		return slices.Contains(aliases, elem.GetName())
+	})
+}
+
+func PreProcess(zone *ncasn.Zone, derefCnames bool, base *string) error {
 	if zone.Records.Hidden == nil {
 		return errors.New("Not a hidden domain records zone")
 	}
 
 	dedup(zone)
+
+	if derefCnames {
+		deref(zone, base)
+	}
 
 	subCount := GetUniqueSubNames(zone.Records.Hidden)
 	maxSubs, err := getMaxSubs()
@@ -200,9 +252,9 @@ func PreProcess(zone *ncasn.Zone) error {
 	return nil
 }
 
-// Calls PreProcess(&zone) immediately before ncasn.MarshalRecords(zone, encoding)
-func MarshalRecords(zone ncasn.Zone, encoding ncasn.EncodingType) ([]byte, error) {
-	if err := PreProcess(&zone); err != nil {
+// Calls PreProcess(&zone, derefCnames, base) immediately before ncasn.MarshalRecords(zone, encoding)
+func MarshalRecords(zone ncasn.Zone, encoding ncasn.EncodingType, derefCnames bool, base *string) ([]byte, error) {
+	if err := PreProcess(&zone, derefCnames, base); err != nil {
 		return nil, err
 	}
 
@@ -233,12 +285,12 @@ func NewHiddenDomainRecord(name string, data *ncasn.RecordUnion) ncasn.HiddenDom
 }
 
 // Adds the record to a zone that must not contain any visible domain records, and regenerates its indices
-func AddRecord(zone *ncasn.Zone, record *ncasn.HiddenDomainRecord) error {
+func AddRecord(zone *ncasn.Zone, record *ncasn.HiddenDomainRecord, derefCnames bool, base *string) error {
 	if zone.Records.Visible != nil {
 		return errors.New("Zone contains visible domain records")
 	}
 
 	zone.Records.Hidden = append(zone.Records.Hidden, *record)
 
-	return PreProcess(zone)
+	return PreProcess(zone, derefCnames, base)
 }

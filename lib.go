@@ -71,7 +71,8 @@ type Record interface {
 type HiddenDomainRecord struct {
 	Index      *uint16 `asn1:"optional,size:0..29"`
 	RecordData RecordUnion
-	name       string // Only used for seed grinding, not stored, must be private to prevent marshalling
+	name       string   // Only used for seed grinding, not stored, must be private to prevent marshalling
+	aliases    []string // Used for contrasub optimizations
 }
 
 func (record *HiddenDomainRecord) GetName() string {
@@ -80,6 +81,14 @@ func (record *HiddenDomainRecord) GetName() string {
 
 func (record *HiddenDomainRecord) SetName(name string) {
 	record.name = name
+}
+
+func (record *HiddenDomainRecord) AddAlias(alias string) {
+	record.aliases = append(record.aliases, alias)
+}
+
+func (record *HiddenDomainRecord) GetAliases() []string {
+	return record.aliases
 }
 
 func (record HiddenDomainRecord) NameString() *string {
