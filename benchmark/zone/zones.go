@@ -419,7 +419,7 @@ func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool)
 		return nil, err
 	}
 
-	ret := util.Zone{Json: string(str)}
+	ret := util.Zone{Json: string(str), Base: base}
 	slices.SortFunc(records, util.CmpRecords)
 	ret.Cbor, err = cbor.RecordsToCbor(records, hidden)
 	if err != nil {

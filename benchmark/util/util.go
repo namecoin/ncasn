@@ -212,4 +212,5 @@ type Zone struct {
 	Cbor     *CborRecords
 	Tor      *TorRecords
 	Coverage float64
+	Base     string
 }

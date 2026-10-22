@@ -290,7 +290,7 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 
 	total := len(jsonCopy)
 
-	jsonEncoded, err := contrasub.MarshalRecords(jsonZone, encoding)
+	jsonEncoded, err := contrasub.MarshalRecords(jsonZone, encoding, true, &zone.Base)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +310,7 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 	torResult := cborResult
 
 	if len(cborCopy) != 0 {
-		cborEncoded, err := contrasub.MarshalRecords(cborZone, encoding)
+		cborEncoded, err := contrasub.MarshalRecords(cborZone, encoding, true, &zone.Base)
 		if err != nil {
 			return nil, err
 		}
@@ -324,7 +324,7 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 	}
 
 	if len(torCopy) != 0 {
-		torEncoded, err := contrasub.MarshalRecords(torZone, encoding)
+		torEncoded, err := contrasub.MarshalRecords(torZone, encoding, true, &zone.Base)
 		if err != nil {
 			return nil, err
 		}
@@ -575,7 +575,7 @@ func timer() {
 
 	start := time.Now()
 	for i := uint64(0); i < iter; i++ {
-		err = contrasub.PreProcess(&zone)
+		err = contrasub.PreProcess(&zone, false, nil)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)

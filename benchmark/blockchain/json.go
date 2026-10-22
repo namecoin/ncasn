@@ -933,7 +933,13 @@ func combine(zone *util.GenericZone, json *Name, hidden bool) (*util.Zone, error
 		return nil, fmt.Errorf("Failed to convert blockchain records to Tor format: %s", err.Error())
 	}
 
-	return &util.Zone{Zone: zone, Json: json.Value, Cbor: cborEncoded, Tor: torEncoded}, nil
+	return &util.Zone{
+		Zone: zone,
+		Json: json.Value,
+		Cbor: cborEncoded,
+		Tor:  torEncoded,
+		Base: strings.TrimPrefix(json.Name, "d/") + ".bit",
+	}, nil
 }
 
 func JsonFileToZones(file string, hidden bool) ([]util.Zone, error) {
