@@ -130,6 +130,12 @@ UPER: 1.17203 | 1.00 | 200722
 
 Results binned based on the record types in a given zone are available in doc/binned.
 
+Contrasub time complexity benchmark results, running on an i5 11400H with 20 subdomains and 300 iterations:
+```
+Elapsed: 3820.527521s
+Per iteration: 12.735092s
+```
+
 ## Copyright
 
 Copyright (C) Namecoin developers
