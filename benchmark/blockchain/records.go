@@ -497,7 +497,7 @@ func parseTlsaRecord(name *string, value []any, skipped *int) (*ncasn.Record, er
 		return nil, fmt.Errorf("TLSA selector is not a uint8: %s", err.Error())
 	}
 
-	if *selector > 1 {
+	if *selector > 2 {
 		*skipped++
 		return nil, fmt.Errorf("Unsupported TLSA selector: %d", *selector)
 	}
