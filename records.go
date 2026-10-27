@@ -48,7 +48,8 @@ type TXT struct {
 
 // Always assumed to be DANE-TA
 type TLSA struct {
-	Selector        uint8 `asn1:"size:0..1"`
+	// 2 = https://datatracker.ietf.org/doc/html/draft-ietf-cose-cbor-encoded-cert-21, see https://www.iana.org/assignments/dane-parameters#selectors
+	Selector        uint8 `asn1:"size:0..2"`
 	AssociationData TlsaUnion
 }
 
