@@ -82,7 +82,7 @@ func unmarshalPackedHidden(reader *asn1.BitReader, encoding EncodingType) (*Reco
 				}
 
 				if remaining != 0 {
-					return nil, fmt.Errorf("Unaccounted for bits: %x", remaining)
+					return nil, fmt.Errorf("unaccounted for bits: %x", remaining)
 				}
 
 				// Cannot be a meaningful record, so it must just be the zero padding of the last byte.
@@ -117,7 +117,7 @@ func unmarshalPackedVisible(reader *asn1.BitReader, encoding EncodingType) (*Rec
 				}
 
 				if remaining != 0 {
-					return nil, fmt.Errorf("Unaccounted for bits: %x", remaining)
+					return nil, fmt.Errorf("unaccounted for bits: %x", remaining)
 				}
 
 				// Cannot be a meaningful record, so it must just be the zero padding of the last byte.

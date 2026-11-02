@@ -31,7 +31,7 @@ var I2P_ENCODING = base32.StdEncoding.WithPadding(base32.NoPadding)
 func I2pRecordFromDomain(domain string) (*I2PB32, *I2PEB32, error) {
 	b32, found := strings.CutSuffix(domain, ".b32.i2p")
 	if !found {
-		return nil, nil, errors.New("Only .b32.i2p domains are supported.")
+		return nil, nil, errors.New("only .b32.i2p domains are supported")
 	}
 
 	b32 = strings.ToUpper(b32)
@@ -48,13 +48,13 @@ func I2pRecordFromDomain(domain string) (*I2PB32, *I2PEB32, error) {
 	}
 
 	if length != 35 {
-		return nil, nil, fmt.Errorf("Unsupported I2P byte length %d.", length)
+		return nil, nil, fmt.Errorf("unsupported I2P byte length %d", length)
 	}
 
 	csum := crc32.ChecksumIEEE(bytes[3:])
 	flags := bytes[0] ^ byte(csum)
 	if flags&1 != 0 {
-		return nil, nil, errors.New("Two byte sigtypes are not supported.")
+		return nil, nil, errors.New("two byte sigtypes are not supported")
 	}
 
 	return nil, &I2PEB32{

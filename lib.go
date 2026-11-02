@@ -300,11 +300,7 @@ func PreProcessIpv6(records []*AAAA) {
 		longestZeroLength := uint8(0)
 
 		i := uint8(0)
-		for {
-			if i >= oldLength-2 || oldLength-i <= longestZeroLength {
-				break
-			}
-
+		for i < oldLength-2 && oldLength-i > longestZeroLength {
 			intermediate := countConsecutiveZeroBytes(oldBytes[i:])
 			if intermediate > longestZeroLength {
 				longestZeroLength = intermediate
@@ -359,7 +355,7 @@ func validateRecord(record Record) error {
 	}
 
 	if !validateChoice(reflect.ValueOf(record.Data())) {
-		return fmt.Errorf("Empty CHOICE for %s", *name)
+		return fmt.Errorf("empty CHOICE for %s", *name)
 	}
 
 	return nil

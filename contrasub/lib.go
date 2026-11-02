@@ -54,7 +54,7 @@ func GetUniqueSubIndices(records []ncasn.HiddenDomainRecord) int {
 
 func CalculateIndex(zone *ncasn.Zone, sub string) (*uint16, error) {
 	if zone.Nonce == nil {
-		return nil, errors.New("Not a hidden domain records zone")
+		return nil, errors.New("not a hidden domain records zone")
 	}
 
 	return CalculateIndexWithCount(zone, sub, GetUniqueSubIndices(zone.Records.Hidden))
@@ -65,7 +65,7 @@ var prefixBytes = []byte("Contrasub-NMC:")
 // Allows the caller to provide the number of unique subdomains to avoid redundantly calculating it in a loop
 func CalculateIndexWithCount(zone *ncasn.Zone, sub string, count int) (*uint16, error) {
 	if zone.Nonce == nil {
-		return nil, errors.New("Not a hidden domain records zone")
+		return nil, errors.New("not a hidden domain records zone")
 	}
 
 	concat := slices.Concat(prefixBytes, zone.Nonce, []byte(sub))
@@ -86,7 +86,7 @@ func getMaxSubs() (*int64, error) {
 	typeFor := reflect.TypeFor[ncasn.HiddenDomainRecord]()
 	field, ok := typeFor.FieldByName("Index")
 	if !ok {
-		return nil, errors.New("Index field not found")
+		return nil, errors.New("index field not found")
 	}
 
 	tag := field.Tag.Get("asn1")
@@ -216,7 +216,7 @@ func deref(zone *ncasn.Zone, base *string) {
 
 func PreProcess(zone *ncasn.Zone, derefCnames bool, base *string) error {
 	if zone.Records.Hidden == nil {
-		return errors.New("Not a hidden domain records zone")
+		return errors.New("not a hidden domain records zone")
 	}
 
 	dedup(zone)
@@ -232,7 +232,7 @@ func PreProcess(zone *ncasn.Zone, derefCnames bool, base *string) error {
 	}
 
 	if int64(subCount) > *maxSubs {
-		return fmt.Errorf("Subdomain count %d > %d", subCount, *maxSubs)
+		return fmt.Errorf("subdomain count %d > %d", subCount, *maxSubs)
 	}
 
 	channel := make(chan ncasn.Zone)
@@ -287,7 +287,7 @@ func NewHiddenDomainRecord(name string, data *ncasn.RecordUnion) ncasn.HiddenDom
 // Adds the record to a zone that must not contain any visible domain records, and regenerates its indices
 func AddRecord(zone *ncasn.Zone, record *ncasn.HiddenDomainRecord, derefCnames bool, base *string) error {
 	if zone.Records.Visible != nil {
-		return errors.New("Zone contains visible domain records")
+		return errors.New("zone contains visible domain records")
 	}
 
 	zone.Records.Hidden = append(zone.Records.Hidden, *record)

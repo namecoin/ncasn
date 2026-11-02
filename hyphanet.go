@@ -41,19 +41,19 @@ func (record *HyphanetUSK) ToKey() string {
 func USKRecordFromKey(key string) (*HyphanetUSK, error) {
 	key, found := strings.CutPrefix(key, "USK@")
 	if !found {
-		return nil, errors.New("Hyphanet key must be a USK.")
+		return nil, errors.New("hyphanet key must be a USK")
 	}
 
 	slashSeparated := strings.Split(key, "/")
 
 	// Trailing slash
 	if len(slashSeparated) != 4 {
-		return nil, errors.New("Hyphanet key must have 3 slash-separated sections.")
+		return nil, errors.New("hyphanet key must have 3 slash-separated sections")
 	}
 
 	commaSeparated := strings.Split(slashSeparated[0], ",")
 	if len(commaSeparated) != 3 {
-		return nil, errors.New("Hyphanet key must have 3 comma-separated sections.")
+		return nil, errors.New("hyphanet key must have 3 comma-separated sections")
 	}
 
 	hash := commaSeparated[0]

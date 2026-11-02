@@ -146,7 +146,7 @@ func TestNameOmission(t *testing.T) {
 			t.Errorf("Different nullability at %d: %t vs %t", i, lhsNil, rhsNil)
 		}
 
-		if !(lhsNil || rhsNil) && *record.Name != *names[i] {
+		if !lhsNil && !rhsNil && *record.Name != *names[i] {
 			t.Errorf("Name %d != sample: %s != %s", i, *record.Name, *names[i])
 		}
 	}

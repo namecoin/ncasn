@@ -49,11 +49,11 @@ func parseCoordinate(fields []string, offset int) (*coordinate, error) {
 	deg, err := strconv.ParseUint(fields[offset], 10, 7)
 	offset++
 	if err != nil {
-		return nil, fmt.Errorf("Invalid degrees: %s", err.Error())
+		return nil, fmt.Errorf("invalid degrees: %s", err.Error())
 	}
 
 	if deg > max {
-		return nil, fmt.Errorf("Invalid degrees: %d", deg)
+		return nil, fmt.Errorf("invalid degrees: %d", deg)
 	}
 
 	var signedDeg *int16
@@ -68,11 +68,11 @@ func parseCoordinate(fields []string, offset int) (*coordinate, error) {
 	default:
 		tmp, err := strconv.ParseUint(fields[offset], 10, 6)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid minutes: %s", err.Error())
+			return nil, fmt.Errorf("invalid minutes: %s", err.Error())
 		}
 
 		if tmp > 60 {
-			return nil, fmt.Errorf("Invalid minutes: %d", tmp)
+			return nil, fmt.Errorf("invalid minutes: %d", tmp)
 		}
 
 		tmp8 := uint8(tmp)
@@ -92,11 +92,11 @@ func parseCoordinate(fields []string, offset int) (*coordinate, error) {
 		default:
 			tmp, err := strconv.ParseFloat(fields[offset], 64)
 			if err != nil {
-				return nil, fmt.Errorf("Invalid seconds: %s", err.Error())
+				return nil, fmt.Errorf("invalid seconds: %s", err.Error())
 			}
 
 			if tmp < 0 || tmp > 59.999 {
-				return nil, fmt.Errorf("Invalid seconds: %f", tmp)
+				return nil, fmt.Errorf("invalid seconds: %f", tmp)
 			}
 
 			secs = &tmp
@@ -113,7 +113,7 @@ func parseCoordinate(fields []string, offset int) (*coordinate, error) {
 			tmp := -int16(deg)
 			signedDeg = &tmp
 		default:
-			return nil, fmt.Errorf("Invalid sign: %s", fields[offset])
+			return nil, fmt.Errorf("invalid sign: %s", fields[offset])
 		}
 		offset++
 	}
@@ -211,7 +211,7 @@ func readExp(field string) (*LOCExponent, error) {
 	value *= 100 // To centimeters
 
 	if value > 9e9 {
-		return nil, fmt.Errorf("Value too large: %f", value)
+		return nil, fmt.Errorf("value too large: %f", value)
 	}
 
 	ret := LOCExponent{}
@@ -227,17 +227,17 @@ func StringToLoc(value string) (*LOC, error) {
 	length := len(fields)
 
 	if length < 5 {
-		return nil, errors.New("Invalid LOC record")
+		return nil, errors.New("invalid LOC record")
 	}
 
 	latCoord, err := parseCoordinate(fields, 0)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse latitude: %s", err.Error())
+		return nil, fmt.Errorf("failed to parse latitude: %s", err.Error())
 	}
 
 	longCoord, err := parseCoordinate(fields, latCoord.Offset)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse longitude: %s", err.Error())
+		return nil, fmt.Errorf("failed to parse longitude: %s", err.Error())
 	}
 
 	ret := LOC{}
@@ -247,17 +247,17 @@ func StringToLoc(value string) (*LOC, error) {
 
 	offset := longCoord.Offset
 	if offset == length {
-		return nil, errors.New("Missing altitude")
+		return nil, errors.New("missing altitude")
 	}
 
 	alt, err := strconv.ParseFloat(strings.TrimSuffix(fields[offset], "m"), 64)
 	offset += 1
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse altitude: %s", err.Error())
+		return nil, fmt.Errorf("failed to parse altitude: %s", err.Error())
 	}
 
 	if alt < -100000 || alt > math.MaxUint32-100000 {
-		return nil, fmt.Errorf("Invalid altitude: %f", alt)
+		return nil, fmt.Errorf("invalid altitude: %f", alt)
 	}
 	ret.Altitude = uint32(alt)*100 + 10000000
 
@@ -267,7 +267,7 @@ func StringToLoc(value string) (*LOC, error) {
 	ret.Size, err = readExp(fields[offset])
 	offset += 1
 	if err != nil {
-		return nil, fmt.Errorf("Invalid size: %s", err.Error())
+		return nil, fmt.Errorf("invalid size: %s", err.Error())
 	}
 
 	if offset == length {
@@ -276,7 +276,7 @@ func StringToLoc(value string) (*LOC, error) {
 	ret.HorizontalPrecision, err = readExp(fields[offset])
 	offset += 1
 	if err != nil {
-		return nil, fmt.Errorf("Invalid horizontal precision: %s", err.Error())
+		return nil, fmt.Errorf("invalid horizontal precision: %s", err.Error())
 	}
 
 	if offset == length {
@@ -284,7 +284,7 @@ func StringToLoc(value string) (*LOC, error) {
 	}
 	ret.VerticalPrecision, err = readExp(fields[offset])
 	if err != nil {
-		return nil, fmt.Errorf("Invalid vertical precision: %s", err.Error())
+		return nil, fmt.Errorf("invalid vertical precision: %s", err.Error())
 	}
 
 	return &ret, nil
