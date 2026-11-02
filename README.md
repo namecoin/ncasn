@@ -130,10 +130,15 @@ UPER: 1.17203 | 1.00 | 200722
 
 Results binned based on the record types in a given zone are available in doc/binned.
 
-Contrasub time complexity benchmark results, running on an i5 11400H with 20 subdomains and 300 iterations:
+Contrasub time complexity benchmark results (`cd benchmark && go test -bench=. -benchtime=300x -args -count=20`):
 ```
-Elapsed: 3820.527521s
-Per iteration: 12.735092s
+goos: linux
+goarch: amd64
+pkg: github.com/namecoin/ncasn/benchmark
+cpu: 11th Gen Intel(R) Core(TM) i5-11400H @ 2.70GHz
+Benchmark_time-12            300        13932216914 ns/op
+PASS
+ok      github.com/namecoin/ncasn/benchmark     4179.694s
 ```
 
 ## Copyright

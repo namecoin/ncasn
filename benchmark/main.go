@@ -25,7 +25,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/miekg/dns"
 	"github.com/namecoin/ncasn"
@@ -52,8 +51,6 @@ func main() {
 		benchmark(false)
 	case "hidden":
 		benchmark(true)
-	case "time":
-		timer()
 	default:
 		fmt.Fprintln(os.Stderr, "Invalid operation")
 		os.Exit(1)
@@ -539,51 +536,4 @@ func benchmark(hidden bool) {
 	uper := compareEncoding(aggregated, ncasn.UPER, bin, aper, nil, hidden)
 	fmt.Println()
 	compareEncoding(aggregated, ncasn.MixedRadix, bin, aper, uper, hidden)
-}
-
-func timer() {
-	if len(os.Args) < 4 {
-		fmt.Fprintln(os.Stderr, "Must provide a number of records and iterations")
-		os.Exit(1)
-	}
-
-	recordCount, err := strconv.ParseUint(os.Args[2], 10, 8)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
-	iter, err := strconv.ParseUint(os.Args[3], 10, 16)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
-	var records []ncasn.HiddenDomainRecord
-	for i := uint64(0); i < recordCount; i++ {
-		record := ncasn.HiddenDomainRecord{
-			RecordData: ncasn.RecordUnion{
-				A: &ncasn.A{
-					Target: []byte{0, 0, 0, byte(i)},
-				},
-			},
-		}
-		record.SetName(strconv.Itoa(int(i)))
-		records = append(records, record)
-	}
-	zone := ncasn.Zone{Records: ncasn.RecordsUnion{Hidden: records}}
-
-	start := time.Now()
-	for i := uint64(0); i < iter; i++ {
-		err = contrasub.PreProcess(&zone, false, nil)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			os.Exit(1)
-		}
-	}
-
-	duration := time.Now().Sub(start).Seconds()
-	perIter := duration / float64(iter)
-
-	fmt.Printf("Elapsed: %fs\nPer iteration: %fs\n", duration, perIter)
 }
