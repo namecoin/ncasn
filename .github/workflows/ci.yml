@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  GOTOOLCHAIN: local
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint:
+    name: Go Lint ${{ matrix.goos }} ${{ matrix.lint.name }}
+    runs-on: ubuntu-24.04
+    container: golang:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        goos:
+          - linux
+          - windows
+        lint:
+          - name: New
+            args: >-
+              --new-from-rev=HEAD~
+              --enable=cyclop,dupword,embeddedstructfieldcheck,err113,errcheck,exhaustive,forcetypeassert,funlen,gocognit,goconst,gocritic,godoclint,godot,gosec,govet,ineffassign,mnd,modernize,nakedret,nlreturn,staticcheck,unconvert,unparam,unused,wastedassign,wsl_v5
+          - name: Mandatory
+            args: >-
+              --enable=asasalint,asciicheck,bidichk,bodyclose,canonicalheader,decorder,dupl,durationcheck,errchkjson,errname,exptostd,gocheckcompilerdirectives,goprintffuncname,misspell,predeclared,usestdlibvars
+              --disable=errcheck,govet,ineffassign,staticcheck,unused
+          - name: Full
+            args: >-
+              --issues-exit-code=0
+              --enable=cyclop,dupword,embeddedstructfieldcheck,err113,errcheck,exhaustive,forcetypeassert,funlen,gocognit,goconst,gocritic,godoclint,godot,gosec,govet,ineffassign,mnd,modernize,nakedret,nlreturn,staticcheck,unconvert,unparam,unused,wastedassign,wsl_v5
+    env:
+      GOOS: ${{ matrix.goos }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: latest
+          args: ${{ matrix.lint.args }} -v --timeout=5m --output.json.path=lint-report.json
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lint-${{ matrix.goos }}-${{ matrix.lint.name }}
+          path: lint-report.json
+          if-no-files-found: error
+
+  unit-tests:
+    name: Unit Tests ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Go latest
+            image: golang:latest
+            package_manager: apt
+            install_go_package: false
+          - name: Debian testing
+            image: debian:testing
+            package_manager: apt
+            install_go_package: true
+          - name: Debian unstable
+            image: debian:unstable
+            package_manager: apt
+            install_go_package: true
+          - name: Fedora latest
+            image: fedora:latest
+            package_manager: dnf
+            install_go_package: true
+          - name: Fedora rawhide
+            image: fedora:rawhide
+            package_manager: dnf
+            install_go_package: true
+    container: ${{ matrix.image }}
+    steps:
+      - name: Install Go compiler
+        if: matrix.package_manager == 'apt' && matrix.install_go_package
+        run: |
+          apt-get update
+          apt-get install -y build-essential git golang
+      - name: Install Go compiler
+        if: matrix.package_manager == 'dnf' && matrix.install_go_package
+        run: dnf install -y git golang
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Test
+        run: |
+          gopath="$(go env GOPATH)"
+          export GOPATH="$gopath"
+          go install -v ./...
+          go test -v ./...
