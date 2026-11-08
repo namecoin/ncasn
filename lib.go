@@ -21,6 +21,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 	"reflect"
 	"slices"
@@ -56,7 +57,7 @@ type RecordUnion struct {
 	Dname    *string      `asn1:"choice:19,dnsname,size:0..255"`
 }
 
-// This is used in order to avoid manually handling data before Zone.Records, Zone cannot be (un)marshalled directly due to relying on consuming all data to determine the length of Zone.Records, which go-asn cannot do.
+// ParsingPlaceholder is used in order to avoid manually handling data before Zone.Records, Zone cannot be (un)marshalled directly due to relying on consuming all data to determine the length of Zone.Records, which go-asn cannot do.
 type ParsingPlaceholder struct {
 	Info *Whois `asn1:"optional"`
 	// Used for hidden subdomains
@@ -97,6 +98,7 @@ func (record HiddenDomainRecord) NameString() *string {
 	}
 
 	tmp := strconv.Itoa(int(*record.Index))
+
 	return &tmp
 }
 
@@ -445,5 +447,5 @@ func GetChoice(ref reflect.Value) uint8 {
 	}
 
 	// Invalid
-	return 255
+	return math.MaxUint8
 }

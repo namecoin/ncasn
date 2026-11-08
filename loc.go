@@ -224,7 +224,7 @@ func readExp(field string) (*LOCExponent, error) {
 var ErrLocRecordTooShort = errors.New("invalid LOC record")
 var ErrNoAltitude = errors.New("missing altitude")
 
-// Formatted as in a zone file
+// StringToLoc formats the record as in a zone file
 func StringToLoc(value string) (*LOC, error) {
 	fields := strings.Fields(value)
 	length := len(fields)
@@ -235,12 +235,12 @@ func StringToLoc(value string) (*LOC, error) {
 
 	latCoord, err := parseCoordinate(fields, 0)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse latitude: %s", err.Error())
+		return nil, fmt.Errorf("failed to parse latitude: %w", err)
 	}
 
 	longCoord, err := parseCoordinate(fields, latCoord.Offset)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse longitude: %s", err.Error())
+		return nil, fmt.Errorf("failed to parse longitude: %w", err)
 	}
 
 	ret := LOC{}
@@ -256,7 +256,7 @@ func StringToLoc(value string) (*LOC, error) {
 	alt, err := strconv.ParseFloat(strings.TrimSuffix(fields[offset], "m"), 64)
 	offset += 1
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse altitude: %s", err.Error())
+		return nil, fmt.Errorf("failed to parse altitude: %w", err)
 	}
 
 	if alt < -100000 || alt > math.MaxUint32-100000 {
@@ -270,7 +270,7 @@ func StringToLoc(value string) (*LOC, error) {
 	ret.Size, err = readExp(fields[offset])
 	offset += 1
 	if err != nil {
-		return nil, fmt.Errorf("invalid size: %s", err.Error())
+		return nil, fmt.Errorf("invalid size: %w", err)
 	}
 
 	if offset == length {
@@ -279,7 +279,7 @@ func StringToLoc(value string) (*LOC, error) {
 	ret.HorizontalPrecision, err = readExp(fields[offset])
 	offset += 1
 	if err != nil {
-		return nil, fmt.Errorf("invalid horizontal precision: %s", err.Error())
+		return nil, fmt.Errorf("invalid horizontal precision: %w", err)
 	}
 
 	if offset == length {
@@ -287,7 +287,7 @@ func StringToLoc(value string) (*LOC, error) {
 	}
 	ret.VerticalPrecision, err = readExp(fields[offset])
 	if err != nil {
-		return nil, fmt.Errorf("invalid vertical precision: %s", err.Error())
+		return nil, fmt.Errorf("invalid vertical precision: %w", err)
 	}
 
 	return &ret, nil

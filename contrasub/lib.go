@@ -62,7 +62,7 @@ func CalculateIndex(zone *ncasn.Zone, sub string) (*uint16, error) {
 
 var prefixBytes = []byte("Contrasub-NMC:")
 
-// Allows the caller to provide the number of unique subdomains to avoid redundantly calculating it in a loop
+// CalculateIndexWithCount allows the caller to provide the number of unique subdomains to avoid redundantly calculating it in a loop
 func CalculateIndexWithCount(zone *ncasn.Zone, sub string, count int) (*uint16, error) {
 	if zone.Nonce == nil {
 		return nil, ErrNotHidden
@@ -77,7 +77,7 @@ func CalculateIndexWithCount(zone *ncasn.Zone, sub string, count int) (*uint16, 
 
 var maxSubsCache *int64
 
-// Should not be public, as this can only occur through breaking ncasn.HiddenDomainRecord
+// Should not be public, as this can only occur through breaking ncasn.HiddenDomainRecord.
 var errNoIndex = errors.New("index field not found")
 var errNoMax = errors.New("opts.SizeMax == nil")
 
@@ -132,6 +132,7 @@ func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan struct{
 			existing, found := mapped[sub]
 			if found {
 				record.Index = &existing
+
 				continue
 			}
 
@@ -145,6 +146,7 @@ func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan struct{
 				aliasIdx, _ := CalculateIndexWithCount(&zone, alias, subCount)
 				if *aliasIdx != *index {
 					skip = true
+
 					break
 				}
 			}
@@ -168,21 +170,21 @@ func grind(zone ncasn.Zone, subCount int, ret chan ncasn.Zone, quit chan struct{
 }
 
 func dedup(zone *ncasn.Zone) {
-	copy := []ncasn.HiddenDomainRecord{}
+	copied := []ncasn.HiddenDomainRecord{}
 	for _, record := range zone.Records.Hidden {
 		skip := false
-		for _, copied := range copy {
+		for _, copied := range copied {
 			if reflect.DeepEqual(record.RecordData, copied.RecordData) {
 				skip = true
 				break
 			}
 		}
 		if !skip {
-			copy = append(copy, record)
+			copied = append(copied, record)
 		}
 	}
 
-	zone.Records.Hidden = copy
+	zone.Records.Hidden = copied
 }
 
 func deref(zone *ncasn.Zone, base *string) {
@@ -241,7 +243,7 @@ func PreProcess(zone *ncasn.Zone, derefCnames bool, base *string) error {
 
 	channel := make(chan ncasn.Zone)
 	done := make(chan struct{})
-	for i := 0; i < 8; i++ {
+	for _ = range 8 {
 		copied := *zone
 		copied.Nonce = make([]byte, 8)
 		records := make([]ncasn.HiddenDomainRecord, len(copied.Records.Hidden))
@@ -256,7 +258,7 @@ func PreProcess(zone *ncasn.Zone, derefCnames bool, base *string) error {
 	return nil
 }
 
-// Calls PreProcess(&zone, derefCnames, base) immediately before ncasn.MarshalRecords(zone, encoding)
+// MarshalRecords calls PreProcess(&zone, derefCnames, base) immediately before ncasn.MarshalRecords(zone, encoding)
 func MarshalRecords(zone ncasn.Zone, encoding ncasn.EncodingType, derefCnames bool, base *string) ([]byte, error) {
 	if err := PreProcess(&zone, derefCnames, base); err != nil {
 		return nil, err
@@ -288,7 +290,7 @@ func NewHiddenDomainRecord(name string, data *ncasn.RecordUnion) ncasn.HiddenDom
 	return ret
 }
 
-// Adds the record to a zone that must not contain any visible domain records, and regenerates its indices
+// AddRecord adds the record to a zone that must not contain any visible domain records, and regenerates its indices
 func AddRecord(zone *ncasn.Zone, record *ncasn.HiddenDomainRecord, derefCnames bool, base *string) error {
 	if zone.Records.Visible != nil {
 		return ErrVisibleRecordsPresent

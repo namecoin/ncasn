@@ -56,6 +56,7 @@ func unmarshalMixedRadixVisible(num *big.Int) (*RecordsUnion, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		if tmp.Name == nil {
 			tmp.Name = lastName
 		}
@@ -129,6 +130,7 @@ func unmarshalPackedVisible(reader *asn1.BitReader, encoding EncodingType) (*Rec
 
 			return nil, err
 		}
+
 		if tmp.Name == nil {
 			tmp.Name = lastName
 		}
@@ -199,6 +201,7 @@ func marshalMixedRadixVisible(num *asn1.MixedRadixNumber, records *RecordsUnion)
 			lastName = elem.Name
 		}
 		err := mixedradix.MarshalValue(num, reflect.ValueOf(elem), asn1.FieldOptions{})
+
 		if err != nil {
 			return nil, err
 		}
