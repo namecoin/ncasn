@@ -332,13 +332,13 @@ func validateChoice(val reflect.Value) bool {
 	return false
 }
 
-var EmptyRecordsError = errors.New("len(records) == 0")
+var ErrEmptyRecords = errors.New("len(records) == 0")
 
 func preValidate(records RecordsUnion) error {
 	cast := records.GetRecords()
 
 	if len(cast) == 0 {
-		return EmptyRecordsError
+		return ErrEmptyRecords
 	}
 
 	for _, record := range cast {
@@ -351,12 +351,12 @@ func preValidate(records RecordsUnion) error {
 	return nil
 }
 
-var NamelessRecordError = errors.New("record.NameString() == nil")
+var ErrNamelessRecord = errors.New("record.NameString() == nil")
 
 func validateRecord(record Record) error {
 	name := record.NameString()
 	if name == nil {
-		return NamelessRecordError
+		return ErrNamelessRecord
 	}
 
 	if !validateChoice(reflect.ValueOf(record.Data())) {

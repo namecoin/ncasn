@@ -54,7 +54,7 @@ func GetUniqueSubIndices(records []ncasn.HiddenDomainRecord) int {
 
 func CalculateIndex(zone *ncasn.Zone, sub string) (*uint16, error) {
 	if zone.Nonce == nil {
-		return nil, NotHiddenError
+		return nil, ErrNotHidden
 	}
 
 	return CalculateIndexWithCount(zone, sub, GetUniqueSubIndices(zone.Records.Hidden))
@@ -65,7 +65,7 @@ var prefixBytes = []byte("Contrasub-NMC:")
 // Allows the caller to provide the number of unique subdomains to avoid redundantly calculating it in a loop
 func CalculateIndexWithCount(zone *ncasn.Zone, sub string, count int) (*uint16, error) {
 	if zone.Nonce == nil {
-		return nil, NotHiddenError
+		return nil, ErrNotHidden
 	}
 
 	concat := slices.Concat(prefixBytes, zone.Nonce, []byte(sub))
@@ -78,8 +78,8 @@ func CalculateIndexWithCount(zone *ncasn.Zone, sub string, count int) (*uint16, 
 var maxSubsCache *int64
 
 // Should not be public, as this can only occur through breaking ncasn.HiddenDomainRecord
-var noIndexError = errors.New("index field not found")
-var noMaxError = errors.New("opts.SizeMax == nil")
+var errNoIndex = errors.New("index field not found")
+var errNoMax = errors.New("opts.SizeMax == nil")
 
 func getMaxSubs() (*int64, error) {
 	// Reflection is expensive and this is static, so cache it
@@ -90,7 +90,7 @@ func getMaxSubs() (*int64, error) {
 	typeFor := reflect.TypeFor[ncasn.HiddenDomainRecord]()
 	field, ok := typeFor.FieldByName("Index")
 	if !ok {
-		return nil, noIndexError
+		return nil, errNoIndex
 	}
 
 	tag := field.Tag.Get("asn1")
@@ -100,7 +100,7 @@ func getMaxSubs() (*int64, error) {
 	}
 
 	if opts.SizeMax == nil {
-		return nil, noMaxError
+		return nil, errNoMax
 	}
 
 	maxSubsCache = opts.SizeMax
@@ -220,7 +220,7 @@ func deref(zone *ncasn.Zone, base *string) {
 
 func PreProcess(zone *ncasn.Zone, derefCnames bool, base *string) error {
 	if zone.Records.Hidden == nil {
-		return NotHiddenError
+		return ErrNotHidden
 	}
 
 	dedup(zone)
@@ -291,7 +291,7 @@ func NewHiddenDomainRecord(name string, data *ncasn.RecordUnion) ncasn.HiddenDom
 // Adds the record to a zone that must not contain any visible domain records, and regenerates its indices
 func AddRecord(zone *ncasn.Zone, record *ncasn.HiddenDomainRecord, derefCnames bool, base *string) error {
 	if zone.Records.Visible != nil {
-		return VisibleRecordsPresentError
+		return ErrVisibleRecordsPresent
 	}
 
 	zone.Records.Hidden = append(zone.Records.Hidden, *record)
