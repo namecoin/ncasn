@@ -28,10 +28,13 @@ import (
 
 var I2P_ENCODING = base32.StdEncoding.WithPadding(base32.NoPadding)
 
+var NonB32DomainError = errors.New("only .b32.i2p domains are supported")
+var TwoByteSigtypeError = errors.New("two byte sigtypes are not supported")
+
 func I2pRecordFromDomain(domain string) (*I2PB32, *I2PEB32, error) {
 	b32, found := strings.CutSuffix(domain, ".b32.i2p")
 	if !found {
-		return nil, nil, errors.New("only .b32.i2p domains are supported")
+		return nil, nil, NonB32DomainError
 	}
 
 	b32 = strings.ToUpper(b32)
@@ -54,7 +57,7 @@ func I2pRecordFromDomain(domain string) (*I2PB32, *I2PEB32, error) {
 	csum := crc32.ChecksumIEEE(bytes[3:])
 	flags := bytes[0] ^ byte(csum)
 	if flags&1 != 0 {
-		return nil, nil, errors.New("two byte sigtypes are not supported")
+		return nil, nil, TwoByteSigtypeError
 	}
 
 	return nil, &I2PEB32{

@@ -221,13 +221,16 @@ func readExp(field string) (*LOCExponent, error) {
 	return &ret, nil
 }
 
+var LocRecordTooShortError = errors.New("invalid LOC record")
+var NoAltitudeError = errors.New("missing altitude")
+
 // Formatted as in a zone file
 func StringToLoc(value string) (*LOC, error) {
 	fields := strings.Fields(value)
 	length := len(fields)
 
 	if length < 5 {
-		return nil, errors.New("invalid LOC record")
+		return nil, LocRecordTooShortError
 	}
 
 	latCoord, err := parseCoordinate(fields, 0)
@@ -247,7 +250,7 @@ func StringToLoc(value string) (*LOC, error) {
 
 	offset := longCoord.Offset
 	if offset == length {
-		return nil, errors.New("missing altitude")
+		return nil, NoAltitudeError
 	}
 
 	alt, err := strconv.ParseFloat(strings.TrimSuffix(fields[offset], "m"), 64)

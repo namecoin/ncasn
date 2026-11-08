@@ -69,6 +69,7 @@ func unmarshalMixedRadixVisible(num *big.Int) (*RecordsUnion, error) {
 func unmarshalPackedHidden(reader *asn1.BitReader, encoding EncodingType) (*RecordsUnion, error) {
 	ret := []HiddenDomainRecord{}
 	var lastName *uint16
+
 	for reader.RemainingBits() > 0 {
 		var tmp HiddenDomainRecord
 		readerCopy := *reader
@@ -91,6 +92,7 @@ func unmarshalPackedHidden(reader *asn1.BitReader, encoding EncodingType) (*Reco
 
 			return nil, err
 		}
+
 		if tmp.Index == nil {
 			tmp.Index = lastName
 		}
@@ -104,6 +106,7 @@ func unmarshalPackedHidden(reader *asn1.BitReader, encoding EncodingType) (*Reco
 func unmarshalPackedVisible(reader *asn1.BitReader, encoding EncodingType) (*RecordsUnion, error) {
 	ret := []VisibleDomainRecord{}
 	var lastName *string
+
 	for reader.RemainingBits() > 0 {
 		var tmp VisibleDomainRecord
 		readerCopy := *reader

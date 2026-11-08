@@ -110,6 +110,7 @@ func (meta SRVMeta) ToPrefix() string {
 	for k, v := range SrvLabelToService {
 		if v == meta.Service {
 			service = k
+
 			break
 		}
 	}
@@ -118,6 +119,7 @@ func (meta SRVMeta) ToPrefix() string {
 	for k, v := range SrvLabelToProto {
 		if v == meta.Proto {
 			proto = k
+
 			break
 		}
 	}

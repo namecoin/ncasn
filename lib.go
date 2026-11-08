@@ -248,6 +248,7 @@ func unmarshalPacked(data []byte, encoding EncodingType) (*Zone, error) {
 	}
 
 	PostProcessIpv6(getIpv6(union.GetRecords()))
+
 	return &Zone{Info: extraData.Info, Records: *union, Nonce: nonce}, nil
 }
 
@@ -331,11 +332,13 @@ func validateChoice(val reflect.Value) bool {
 	return false
 }
 
+var EmptyRecordsError = errors.New("len(records) == 0")
+
 func preValidate(records RecordsUnion) error {
 	cast := records.GetRecords()
 
 	if len(cast) == 0 {
-		return errors.New("len(records) == 0")
+		return EmptyRecordsError
 	}
 
 	for _, record := range cast {
@@ -348,10 +351,12 @@ func preValidate(records RecordsUnion) error {
 	return nil
 }
 
+var NamelessRecordError = errors.New("record.NameString() == nil")
+
 func validateRecord(record Record) error {
 	name := record.NameString()
 	if name == nil {
-		return errors.New("record.NameString() == nil")
+		return NamelessRecordError
 	}
 
 	if !validateChoice(reflect.ValueOf(record.Data())) {
@@ -404,6 +409,7 @@ func marshalPacked(zone Zone, encoding EncodingType) ([]byte, error) {
 	if zone.Nonce == nil {
 		return marshalPackedVisible(writer, encoding, &zone.Records)
 	}
+
 	return marshalPackedHidden(writer, encoding, &zone.Records)
 }
 
