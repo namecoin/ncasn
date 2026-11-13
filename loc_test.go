@@ -84,6 +84,7 @@ func TestDefaultsToLoc(t *testing.T) {
 	}
 }
 
+// nolint: cyclop
 func TestCompleteToLoc(t *testing.T) {
 	val, err := ncasn.StringToLoc(LOC_COMPLETE)
 	if err != nil {

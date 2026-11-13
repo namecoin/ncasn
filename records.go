@@ -25,8 +25,8 @@ type A struct {
 	Target []byte `asn1:"size:4"`
 }
 
-// Use Bytes, the offset must be exported for go-asn to handle it but it is useless after processing.
 type AAAA struct {
+	// ZeroOffset should be ignored, it is used internally but must be exported for go-asn to handle it.
 	ZeroOffset *uint8 `asn1:"optional,size:0..13"`
 	Bytes      []byte `asn1:"size:0..16"`
 }
@@ -87,7 +87,9 @@ var SrvLabelToProto = map[string]SRVProto{
 
 func SrvNameToMeta(name string) *SRVMeta {
 	labels := strings.Split(name, ".")
-	if len(labels) < 2 {
+
+	srvLabelCount := 2
+	if len(labels) < srvLabelCount {
 		return nil
 	}
 
@@ -102,11 +104,12 @@ func SrvNameToMeta(name string) *SRVMeta {
 		return nil
 	}
 
-	return &SRVMeta{Service: SRVService(service), Proto: SRVProto(proto)}
+	return &SRVMeta{Service: service, Proto: proto}
 }
 
 func (meta SRVMeta) ToPrefix() string {
 	var service string
+
 	for k, v := range SrvLabelToService {
 		if v == meta.Service {
 			service = k
@@ -116,6 +119,7 @@ func (meta SRVMeta) ToPrefix() string {
 	}
 
 	var proto string
+
 	for k, v := range SrvLabelToProto {
 		if v == meta.Proto {
 			proto = k
@@ -147,19 +151,19 @@ type DS struct {
 }
 
 type TXT struct {
-	// Whether the record's domain should be prefixed by _token._dnswl
+	// Whether the record's domain should be prefixed by _token._dnswl.
 	DnsWl bool
 	// May contain quoted strings up to 255 characters each.
 	Content string `asn1:"ia5string,size:0..4096"`
 }
 
-// Always assumed to be DANE-TA
+// TLSA records are always assumed to be DANE-TA.
 type TLSA struct {
 	Selector        uint8 `asn1:"size:0..1"`
 	AssociationData TlsaUnion
 }
 
-// Lat and Long are expressed as milliarcseconds, this matches the DNS wire format and should be more efficient than
+// LOC Lat and Long are expressed as milliarcseconds, this matches the DNS wire format and should be more efficient than
 // encoding degrees/minutes/seconds individually when seconds are included.
 type LOC struct {
 	Lat  uint32 `asn1:"size:0..4294967295"`
@@ -187,7 +191,9 @@ type SSHFP struct {
 }
 
 func (record *SSHFP) GetKeyAlgo() uint8 {
-	return record.KeyAlgoIndex + 4
+	var offset uint8 = 4
+
+	return record.KeyAlgoIndex + offset
 }
 
 type OnionV3 struct {
@@ -199,7 +205,7 @@ type I2PB32 struct {
 	Bytes []byte `asn1:"size:32"`
 }
 
-// https://i2p.net/en/docs/overview/naming/#extended-base32-names
+// I2PEB32 stores an I2P address following https://i2p.net/en/docs/overview/naming/#extended-base32-names.
 type I2PEB32 struct {
 	PublicSigType  uint8 `asn1:"size:0..31"` // "Don't expect 2-byte sigtypes to ever happen, we're only up to 13. No need to implement now."
 	BlindedSigType uint8 `asn1:"size:0..31"`

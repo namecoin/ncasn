@@ -60,6 +60,7 @@ func TestToIpnsRecord(t *testing.T) {
 
 func TestFromIpnsRecord(t *testing.T) {
 	record := ncasn.IPNS{Key: SAMPLE_IPNS_BYTES}
+
 	key := record.ToString()
 	if key != SAMPLE_IPNS_PREFIXED {
 		t.Errorf("String != sample: %s != %s", key, SAMPLE_IPNS)

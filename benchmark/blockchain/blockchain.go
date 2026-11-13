@@ -92,7 +92,7 @@ func ScanNames(prev *string, cookie string) ([]byte, error) {
 }
 
 func expandNames(names []Name, cookie string, minHeight *uint64, maxHeight *uint64) ([]Name, error) {
-	copy := []Name{}
+	copied := []Name{}
 	for _, name := range names {
 		body, err := runHttp("name_history", []any{name.Name}, cookie, "2.0")
 		if err != nil {
@@ -125,10 +125,10 @@ func expandNames(names []Name, cookie string, minHeight *uint64, maxHeight *uint
 		slices.SortFunc(resp.Result, func(a Name, b Name) int { return cmp.Compare(a.Value, b.Value) })
 		dedup := slices.Compact(resp.Result)
 
-		copy = append(copy, dedup...)
+		copied = append(copied, dedup...)
 	}
 
-	return copy, nil
+	return copied, nil
 }
 
 func ProcessBody(body []byte, out *os.File, cookie string, first bool, minHeight *uint64, maxHeight *uint64) (*string, error) {

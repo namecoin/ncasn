@@ -51,12 +51,16 @@ func USKRecordFromKey(key string) (*HyphanetUSK, error) {
 	slashSeparated := strings.Split(key, "/")
 
 	// Trailing slash
-	if len(slashSeparated) != 4 {
+	slashSections := 4
+
+	if len(slashSeparated) != slashSections {
 		return nil, ErrIncorrectSlashNumber
 	}
 
 	commaSeparated := strings.Split(slashSeparated[0], ",")
-	if len(commaSeparated) != 3 {
+
+	commaSections := 3
+	if len(commaSeparated) != commaSections {
 		return nil, ErrIncorrectCommaNumber
 	}
 

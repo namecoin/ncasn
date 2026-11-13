@@ -30,6 +30,7 @@ var I2P_ENCODING = base32.StdEncoding.WithPadding(base32.NoPadding)
 
 var ErrNonB32Domain = errors.New("only .b32.i2p domains are supported")
 var ErrTwoByteSigtype = errors.New("two byte sigtypes are not supported")
+var ErrWrongByteLength = errors.New("unsupported I2P byte length")
 
 func I2pRecordFromDomain(domain string) (*I2PB32, *I2PEB32, error) {
 	b32, found := strings.CutSuffix(domain, ".b32.i2p")
@@ -46,27 +47,48 @@ func I2pRecordFromDomain(domain string) (*I2PB32, *I2PEB32, error) {
 
 	length := len(bytes)
 
-	if length == 32 {
+	expectedLen := 32
+	if length == expectedLen {
 		return &I2PB32{Bytes: bytes}, nil, nil
 	}
 
-	if length != 35 {
-		return nil, nil, fmt.Errorf("unsupported I2P byte length %d", length)
+	expectedLen = 35
+	if length != expectedLen {
+		return nil, nil, fmt.Errorf("%w: %d", ErrWrongByteLength, length)
 	}
 
 	csum := crc32.ChecksumIEEE(bytes[3:])
-	flags := bytes[0] ^ byte(csum)
+	// Intentionally truncated
+	trunc := byte(csum) // nolint: gosec
+
+	flags := bytes[0] ^ trunc
 	if flags&1 != 0 {
 		return nil, nil, ErrTwoByteSigtype
 	}
 
-	return nil, &I2PEB32{
-		PublicSigType:  bytes[1] ^ byte(csum>>8),
-		BlindedSigType: bytes[2] ^ byte(csum>>16),
-		Secret:         flags&2 == 1,
-		ClientAuth:     flags&4 == 1,
-		Key:            bytes[3:],
-	}, nil
+	var ret I2PEB32
+
+	var offset uint32 = 8
+
+	// Intentionally truncated
+	trunc = byte(csum >> offset) // nolint: gosec
+	ret.PublicSigType = bytes[1] ^ trunc
+
+	offset = 16
+	// Intentionally truncated
+	trunc = byte(csum >> offset) // nolint: gosec
+	ret.BlindedSigType = bytes[2] ^ trunc
+
+	var pos byte = 2
+
+	ret.Secret = flags&pos == 1
+
+	pos = 4
+	ret.ClientAuth = flags&pos == 1
+
+	ret.Key = bytes[3:]
+
+	return nil, &ret, nil
 }
 
 func (record *I2PB32) ToDomain() string {
@@ -75,19 +97,27 @@ func (record *I2PB32) ToDomain() string {
 
 func (record *I2PEB32) ToDomain() string {
 	var flags byte
+
+	secretPos := 2
 	if record.Secret {
-		flags |= 1 << 2
+		flags |= 1 << secretPos
 	}
 
+	authPos := 4
 	if record.ClientAuth {
-		flags |= 1 << 4
+		flags |= 1 << authPos
 	}
 
 	data := slices.Concat([]byte{flags, record.PublicSigType, record.BlindedSigType}, record.Key)
 	csum := crc32.ChecksumIEEE(record.Key)
-	data[0] ^= byte(csum)
-	data[1] ^= byte(csum >> 8)
-	data[2] ^= byte(csum >> 16)
+
+	var offset uint32 = 8
+	// Intentionally truncated
+	data[0] ^= byte(csum)           // nolint: gosec
+	data[1] ^= byte(csum >> offset) // nolint: gosec
+
+	offset = 16
+	data[2] ^= byte(csum >> offset) // nolint: gosec
 
 	return strings.ToLower(I2P_ENCODING.EncodeToString(data)) + ".b32.i2p"
 }
