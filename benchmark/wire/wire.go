@@ -48,7 +48,7 @@ func DomainToWire(domain string) []byte {
 	return ret
 }
 
-// This also provides a binary representation of non-DNS records
+// ToWire also provides a binary representation of non-DNS records.
 func ToWire(record *ncasn.RecordUnion) []byte {
 	switch {
 	case record.A != nil:
@@ -60,6 +60,7 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 		bytes = append(bytes, record.Ds.GetKeyAlgorithm(), record.Ds.Digest.GetType())
 
 		var digest []byte
+
 		switch {
 		case record.Ds.Digest.Sha256 != nil:
 			digest = *record.Ds.Digest.Sha256
@@ -85,7 +86,9 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 	case record.Tlsa != nil:
 		dataUnion := record.Tlsa.AssociationData
 		bytes := []byte{2, record.Tlsa.Selector, dataUnion.GetMatchingType()} // 2 = DANE-TA
+
 		var data []byte
+
 		switch {
 		case dataUnion.Sha256 != nil:
 			data = *dataUnion.Sha256
@@ -99,31 +102,45 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 	case record.Loc != nil:
 		size := record.Loc.Size
 		if size == nil {
+			var defaultMantissa uint8 = 1
+
+			var defaultExp uint8 = 2
+
 			size = &ncasn.LOCExponent{
-				Mantissa: 1,
-				Exp:      2,
+				Mantissa: defaultMantissa,
+				Exp:      defaultExp,
 			}
 		}
 
 		hp := record.Loc.HorizontalPrecision
 		if hp == nil {
+			var defaultMantissa uint8 = 1
+
+			var defaultExp uint8 = 6
+
 			hp = &ncasn.LOCExponent{
-				Mantissa: 1,
-				Exp:      6,
+				Mantissa: defaultMantissa,
+				Exp:      defaultExp,
 			}
 		}
 
 		vp := record.Loc.VerticalPrecision
 		if vp == nil {
+			var defaultMantissa uint8 = 1
+
+			var defaultExp uint8 = 2
+
 			vp = &ncasn.LOCExponent{
-				Mantissa: 1,
-				Exp:      3,
+				Mantissa: defaultMantissa,
+				Exp:      defaultExp,
 			}
 		}
 
-		sizeByte := size.Mantissa | (size.Exp << 4)
-		hpByte := hp.Mantissa | (hp.Exp << 4)
-		vpByte := vp.Mantissa | (hp.Exp << 4)
+		var offset uint8 = 4
+
+		sizeByte := size.Mantissa | (size.Exp << offset)
+		hpByte := hp.Mantissa | (hp.Exp << offset)
+		vpByte := vp.Mantissa | (vp.Exp << offset)
 
 		// 0 = version
 		bytes := []byte{0, sizeByte, hpByte, vpByte}
@@ -135,6 +152,7 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 	case record.Sshfp != nil:
 		// 2 = SHA-256
 		bytes := []byte{record.Sshfp.GetKeyAlgo(), 2}
+
 		return append(bytes, record.Sshfp.Fingerprint...)
 	case record.Generic != nil:
 		data := record.Generic.Target
@@ -148,8 +166,14 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 			return nil
 		}
 
-		packed := make([]byte, 12+rr.Header().Rdlength)
-		dns.PackRR(rr, packed, 0, nil, false)
+		var headerLen uint16 = 12
+
+		packed := make([]byte, headerLen+rr.Header().Rdlength)
+
+		_, err := dns.PackRR(rr, packed, 0, nil, false)
+		if err != nil {
+			return nil
+		}
 
 		return packed[12:]
 	case record.Alias != nil:
@@ -160,6 +184,7 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 		return record.I2p.Bytes
 	case record.I2pLs2 != nil:
 		data := record.I2pLs2
+
 		secret := uint8(0)
 		if data.Secret {
 			secret = 1
@@ -174,7 +199,8 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 	case record.Ipns != nil:
 		return record.Ipns.Key
 	case record.Hyphanet != nil:
-		editionBits := unsafe.Pointer(&record.Hyphanet.Edition)
+		// Never accessed out of range, see below.
+		editionBits := unsafe.Pointer(&record.Hyphanet.Edition) // nolint: gosec
 		data := slices.Concat(
 			record.Hyphanet.KeyHash,
 			record.Hyphanet.Key,
@@ -190,6 +216,7 @@ func ToWire(record *ncasn.RecordUnion) []byte {
 		if record.Srv.Data.Weight != nil {
 			weight = *record.Srv.Data.Weight
 		}
+
 		ret = binary.BigEndian.AppendUint16(ret, weight)
 
 		ret = binary.BigEndian.AppendUint16(ret, record.Srv.Data.Port)

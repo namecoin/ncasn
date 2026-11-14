@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package zone
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -29,9 +30,11 @@ import (
 )
 
 func parseSrv(fields []string) (*ncasn.RecordUnion, error) {
-	if len(fields) < 8 {
+	validSize := 8
+	if len(fields) < validSize {
 		return nil, errors.New("Invalid SRV record")
 	}
+
 	priority, err := strconv.ParseUint(fields[4], 10, 16)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid SRV priority: %s", err.Error())
@@ -43,6 +46,7 @@ func parseSrv(fields []string) (*ncasn.RecordUnion, error) {
 	}
 	// Reduce storage usage by assuming most weights will be 0
 	var weight *uint16
+
 	if weightNum != 0 {
 		weight16 := uint16(weightNum)
 		weight = &weight16
@@ -64,7 +68,8 @@ func parseSrv(fields []string) (*ncasn.RecordUnion, error) {
 }
 
 func parseDs(fields []string) (*ncasn.RecordUnion, error) {
-	if len(fields) < 8 {
+	validSize := 8
+	if len(fields) < validSize {
 		return nil, fmt.Errorf("Invalid DS record: %s", strings.Join(fields[4:], " "))
 	}
 
@@ -80,6 +85,7 @@ func parseDs(fields []string) (*ncasn.RecordUnion, error) {
 
 	if !slices.Contains(ncasn.DS_KEY_ALGOS, uint8(algorithm)) {
 		fmt.Println("Unsupported DS algorithm:", algorithm)
+
 		return nil, nil
 	}
 
@@ -90,6 +96,7 @@ func parseDs(fields []string) (*ncasn.RecordUnion, error) {
 
 	if !slices.Contains(ncasn.DS_DIGEST_TYPES, uint8(digestType)) {
 		fmt.Println("Unsupported DS digest type:", digestType)
+
 		return nil, nil
 	}
 
@@ -97,31 +104,42 @@ func parseDs(fields []string) (*ncasn.RecordUnion, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	length := len(bytes)
 
+	var (
+		sha256Id   uint64 = 2
+		sha384Id   uint64 = 4
+		unassigned uint64 = 7
+	)
+
 	switch digestType {
-	case 2:
-		if length != 32 {
+	case sha256Id:
+		if length != sha256.Size {
 			return nil, fmt.Errorf("Invalid digest length %d for SHA-256", length)
 		}
+
 		return &ncasn.RecordUnion{Ds: &ncasn.DS{
 			KeyTag:         uint16(keyTag),
 			AlgorithmIndex: uint8(ncasn.GetKeyAlgorithmIndex(uint8(algorithm))),
 			Digest:         ncasn.DsDigestUnion{Sha256: &bytes},
 		}}, nil
-	case 4:
-		if length != 48 {
+	case sha384Id:
+		sha384Len := 48
+		if length != sha384Len {
 			return nil, fmt.Errorf("Invalid digest length %d for SHA-384", length)
 		}
+
 		return &ncasn.RecordUnion{Ds: &ncasn.DS{
 			KeyTag:         uint16(keyTag),
 			AlgorithmIndex: uint8(ncasn.GetKeyAlgorithmIndex(uint8(algorithm))),
 			Digest:         ncasn.DsDigestUnion{Sha384: &bytes},
 		}}, nil
-	case 7:
+	case unassigned:
 		if length < 32 || length > 64 {
 			return nil, fmt.Errorf("Invalid digest length %d for type 7", length)
 		}
+
 		return &ncasn.RecordUnion{Ds: &ncasn.DS{
 			KeyTag:         uint16(keyTag),
 			AlgorithmIndex: uint8(ncasn.GetKeyAlgorithmIndex(uint8(algorithm))),
@@ -130,6 +148,7 @@ func parseDs(fields []string) (*ncasn.RecordUnion, error) {
 	}
 
 	fmt.Println("Unsupported digest type:", digestType)
+
 	return nil, nil
 }
 
@@ -138,10 +157,14 @@ func parseSshfp(fields []string) (*ncasn.RecordUnion, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse SSHFP key algo: %s", err.Error())
 	}
-	if keyAlgo < 4 {
+
+	maxAlgo := 4
+	if keyAlgo < uint64(maxAlgo) {
 		fmt.Println("Unsupported SSHFP key algo:", keyAlgo)
+
 		return nil, nil
 	}
+
 	keyAlgo -= 4
 
 	hashAlgo, err := strconv.ParseUint(fields[1], 10, 2)
@@ -149,8 +172,10 @@ func parseSshfp(fields []string) (*ncasn.RecordUnion, error) {
 		return nil, fmt.Errorf("Failed to parse SSHFP hash algo: %s", err.Error())
 	}
 
-	if hashAlgo != 2 {
+	var sha256Id uint64 = 2
+	if hashAlgo != sha256Id {
 		fmt.Println("Unsupported SSHFP hash algo:", hashAlgo)
+
 		return nil, nil
 	}
 
@@ -160,7 +185,8 @@ func parseSshfp(fields []string) (*ncasn.RecordUnion, error) {
 	}
 
 	length := len(bytes)
-	if length != 32 {
+
+	if length != sha256.Size {
 		return nil, fmt.Errorf("Invalid SSHFP fingerprint length %d", length)
 	}
 

@@ -50,6 +50,7 @@ func higherLevel(record *util.GenericNameRecord, records []util.GenericNameRecor
 
 func suppressNs(records []util.GenericNameRecord) []util.GenericNameRecord {
 	var ret []util.GenericNameRecord
+
 	ns := []util.GenericNameRecord{}
 
 	for _, record := range records {
@@ -76,6 +77,7 @@ func suppressNs(records []util.GenericNameRecord) []util.GenericNameRecord {
 
 func suppressDname(records []util.GenericNameRecord) []util.GenericNameRecord {
 	dname := []util.GenericNameRecord{}
+
 	var ret []util.GenericNameRecord
 
 	for _, record := range records {
@@ -100,6 +102,7 @@ func suppressDname(records []util.GenericNameRecord) []util.GenericNameRecord {
 
 func suppressCname(records []util.GenericNameRecord) []util.GenericNameRecord {
 	cname := []util.GenericNameRecord{}
+
 	var ret []util.GenericNameRecord
 
 	for _, record := range records {
@@ -125,5 +128,6 @@ func suppressCname(records []util.GenericNameRecord) []util.GenericNameRecord {
 func applySuppression(records []util.GenericNameRecord) []util.GenericNameRecord {
 	ret := suppressNs(records)
 	ret = suppressDname(ret)
+
 	return suppressCname(ret)
 }

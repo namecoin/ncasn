@@ -65,6 +65,7 @@ func isNsGlue(record *GenericNameRecord, ns []GenericNameRecord, base string) *s
 		}
 
 		target := strings.TrimSuffix(*elem.RecordData.Ns.String, ".")
+
 		target = strings.TrimSuffix(target, "."+base)
 		if target == record.Name {
 			return elem.RecordData.Ns.String
@@ -88,6 +89,7 @@ func CollapseNsGlues(records []GenericNameRecord, base string) []GenericNameReco
 	}
 
 	ret := []GenericNameRecord{}
+
 	for _, record := range records {
 		if record.RecordData.Ns != nil {
 			continue
@@ -96,6 +98,7 @@ func CollapseNsGlues(records []GenericNameRecord, base string) []GenericNameReco
 		target := isNsGlue(&record, ns, base)
 		if target == nil {
 			ret = append(ret, record)
+
 			continue
 		}
 
@@ -138,6 +141,7 @@ func SplitTxt(record string) []string {
 
 	started := false
 	startedAt := 0
+
 	for i, c := range record {
 		if !started && c == ' ' {
 			continue
@@ -161,8 +165,10 @@ func CmpRecords(a GenericNameRecord, b GenericNameRecord) int {
 	return cmp.Compare(a.Name, b.Name)
 }
 
+// nolint: cyclop, godoclint
 func TypeFromUnion(union *ncasn.RecordUnion) uint16 {
 	var ret uint16
+
 	switch {
 	case union.A != nil:
 		ret = dns.TypeA

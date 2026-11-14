@@ -36,7 +36,7 @@ import (
 	"github.com/namecoin/ncasn/benchmark/wire"
 )
 
-// Both may be nil if the record is ignored
+// ParseRecord's returns may both be nil if the record is ignored.
 func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord, error) {
 	fields := strings.Fields(line)
 
@@ -45,10 +45,15 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 	}
 
 	parts := strings.Split(fields[0], ".")
+
 	subdomain := strings.Join(parts[:len(parts)-3], ".")
-	if len(fields) < 5 {
+
+	metaLen := 5
+
+	if len(fields) < metaLen {
 		return nil, errors.New("Invalid record: no type/data")
 	}
+
 	typeName := fields[3]
 
 	var union *ncasn.RecordUnion
@@ -71,9 +76,11 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 		if ip == nil {
 			return nil, fmt.Errorf("Invalid AAAA record: %s", fields[4])
 		}
+
 		union = &ncasn.RecordUnion{AAAA: &ncasn.AAAA{Bytes: ip}}
 	case "SRV":
 		var err error
+
 		union, err = parseSrv(fields)
 		if err != nil {
 			return nil, err
@@ -82,7 +89,9 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 		meta := ncasn.SrvNameToMeta(subdomain)
 		if meta != nil {
 			split := strings.Split(subdomain, ".")
-			if len(split) < 3 {
+
+			baseLabels := 2
+			if len(split) <= baseLabels {
 				subdomain = ""
 			} else {
 				subdomain = strings.Join(split[2:], ".")
@@ -92,6 +101,7 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 		}
 	case "DS":
 		var err error
+
 		union, err = parseDs(fields)
 		if err != nil {
 			return nil, err
@@ -110,11 +120,13 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 	case "TXT":
 		data := strings.Join(fields[4:], " ")
 
-		if len(data) > 4096 {
+		maxLen := 4096
+		if len(data) > maxLen {
 			return nil, nil
 		}
 
 		var dnswl bool
+
 		subdomain, dnswl = strings.CutPrefix(subdomain, "_token._dnswl")
 		if dnswl {
 			subdomain = strings.TrimPrefix(subdomain, ".")
@@ -125,7 +137,8 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 			DnsWl:   dnswl,
 		}}
 	case "MX":
-		if len(fields) < 6 {
+		recLen := 6
+		if len(fields) < recLen {
 			return nil, errors.New("Missing MX record priority/target")
 		}
 
@@ -138,11 +151,13 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 			Mx: &ncasn.MX{Priority: uint16(priority), Target: fields[5]},
 		}
 	case "SSHFP":
-		if len(fields) < 7 {
+		recLen := 7
+		if len(fields) < recLen {
 			return nil, errors.New("Missing SSHFP fields")
 		}
 
 		var err error
+
 		union, err = parseSshfp(fields[4:])
 		if err != nil {
 			return nil, err
@@ -175,6 +190,7 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 	case "SOA", "NSEC3", "NSEC3PARAM", "DNSKEY", "RRSIG", "CDS", "CDNSKEY", "CAA":
 		if zone {
 			*skipped++
+
 			return nil, nil
 		}
 
@@ -185,7 +201,9 @@ func ParseRecord(line string, zone bool, skipped *int) (*util.GenericNameRecord,
 
 	if union == nil {
 		*skipped++
+
 		fmt.Println("Unsupported record:", strings.Join(fields, " "))
+
 		return nil, nil
 	}
 
@@ -196,6 +214,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 	switch {
 	case record.A != nil:
 		ip, found := obj["ip"]
+
 		var ipCast []string
 		if found {
 			ipCast = ip.([]string)
@@ -204,6 +223,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["ip"] = append(ipCast, net.IP(record.A.Target).String())
 	case record.AAAA != nil:
 		ip6, found := obj["ip6"]
+
 		var ip6Cast []string
 		if found {
 			ip6Cast = ip6.([]string)
@@ -212,6 +232,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["ip6"] = append(ip6Cast, net.IP(record.AAAA.Bytes).String())
 	case record.Srv != nil:
 		srv, found := obj["srv"]
+
 		var srvCast [][]any
 		if found {
 			srvCast = srv.([][]any)
@@ -227,13 +248,16 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["srv"] = append(srvCast, []any{record.Srv.Data.Priority, weight, record.Srv.Data.Port, record.Srv.Data.Target})
 	case record.Ds != nil:
 		ds, found := obj["ds"]
+
 		var dsCast [][]any
 		if found {
 			dsCast = ds.([][]any)
 		}
 
 		digestUnion := record.Ds.Digest
+
 		var digest []byte
+
 		switch {
 		case digestUnion.Sha256 != nil:
 			digest = *digestUnion.Sha256
@@ -253,6 +277,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		)
 	case record.Txt != nil:
 		txt, found := obj["txt"]
+
 		var txtCast [][]string
 		if found {
 			txtCast = txt.([][]string)
@@ -262,13 +287,16 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["txt"] = append(txtCast, parts)
 	case record.Tlsa != nil:
 		tls, found := obj["tls"]
+
 		var tlsCast [][]any
 		if found {
 			tlsCast = tls.([][]any)
 		}
 
 		data := record.Tlsa.AssociationData
+
 		var bytes []byte
+
 		switch {
 		case data.Sha256 != nil:
 			bytes = *data.Sha256
@@ -278,10 +306,12 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 			bytes = *data.Unassigned0
 		}
 
-		// 2 = DANE-TA
-		obj["tls"] = append(tlsCast, []any{uint8(2), record.Tlsa.Selector, data.GetMatchingType(), base64.StdEncoding.EncodeToString(bytes)})
+		var daneTa uint8 = 2
+
+		obj["tls"] = append(tlsCast, []any{daneTa, record.Tlsa.Selector, data.GetMatchingType(), base64.StdEncoding.EncodeToString(bytes)})
 	case record.Loc != nil:
 		loc, found := obj["loc"]
+
 		var locCast []string
 		if found {
 			locCast = loc.([]string)
@@ -290,19 +320,22 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["loc"] = append(locCast, record.Loc.String())
 	case record.Sshfp != nil:
 		sshfp, found := obj["sshfp"]
+
 		var cast [][]any
 		if found {
 			cast = sshfp.([][]any)
 		}
 
-		// 2 = SHA-256
+		var sha256 uint8 = 2
+
 		obj["sshfp"] = append(cast, []any{
 			record.Sshfp.GetKeyAlgo(),
-			uint8(2),
+			sha256,
 			base64.StdEncoding.EncodeToString(record.Sshfp.Fingerprint),
 		})
 	case record.Onion != nil:
 		tor, found := obj["tor"]
+
 		var cast []string
 		if found {
 			cast = tor.([]string)
@@ -311,6 +344,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["tor"] = append(cast, record.Onion.ToDomain())
 	case record.I2p != nil:
 		i2p, found := obj["i2p"]
+
 		var cast []string
 		if found {
 			cast = i2p.([]string)
@@ -319,6 +353,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["i2p"] = append(cast, record.I2p.ToDomain())
 	case record.I2pLs2 != nil:
 		i2p, found := obj["i2p"]
+
 		var cast []string
 		if found {
 			cast = i2p.([]string)
@@ -327,6 +362,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 		obj["i2p"] = append(cast, record.I2pLs2.ToDomain())
 	case record.Import != nil:
 		imports, found := obj["import"]
+
 		var cast [][]string
 		if found {
 			cast = imports.([][]string)
@@ -349,6 +385,7 @@ func addRecord(record *ncasn.RecordUnion, obj map[string]any) {
 	case record.Generic != nil:
 		// Unsure if anything in the sample actually reaches this, but it's semantically nice
 		generic, found := obj["o"]
+
 		var cast [][]any
 		if found {
 			cast = generic.([][]any)
@@ -382,6 +419,7 @@ func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool)
 			}
 		case len(record.Name) == 0:
 			addRecord(&record.RecordData, obj)
+
 			continue
 		}
 
@@ -391,6 +429,7 @@ func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool)
 		last := obj
 		for _, part := range parts {
 			mapField, found := last["map"]
+
 			var mapCast map[string]any
 			if found {
 				mapCast = mapField.(map[string]any)
@@ -400,6 +439,7 @@ func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool)
 			}
 
 			subField, found := mapCast[part]
+
 			var sub map[string]any
 			if found {
 				sub = subField.(map[string]any)
@@ -420,7 +460,9 @@ func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool)
 	}
 
 	ret := util.Zone{Json: string(str), Base: base}
+
 	slices.SortFunc(records, util.CmpRecords)
+
 	ret.Cbor, err = cbor.RecordsToCbor(records, hidden)
 	if err != nil {
 		return nil, err
@@ -437,11 +479,14 @@ func zoneFromRecords(records []util.GenericNameRecord, base string, hidden bool)
 }
 
 func readZone(filePath string, hidden bool) (*util.Zone, error) {
-	fd, err := os.Open(filePath)
+	// Passing untrusted arguments to a benchmark would be problematic anyway.
+	fd, err := os.Open(filePath) // nolint: gosec
 	if err != nil {
 		return nil, err
 	}
-	defer fd.Close()
+
+	// Handling Close() failures is surely out of scope?
+	defer fd.Close() // nolint: errcheck
 
 	var records []util.GenericNameRecord
 
@@ -450,8 +495,10 @@ func readZone(filePath string, hidden bool) (*util.Zone, error) {
 	record, ok := parser.Next()
 	n := 0
 	skipped := 0
+
 	for ok {
 		raw := record.String()
+
 		parsed, err := ParseRecord(raw, true, &skipped)
 		if err != nil {
 			return nil, err
@@ -479,6 +526,7 @@ func readZone(filePath string, hidden bool) (*util.Zone, error) {
 	}
 
 	ret.Coverage = float64(n-skipped) / float64(n)
+
 	return ret, nil
 }
 
@@ -489,6 +537,7 @@ func ReadZones(dir string, hidden bool) ([]util.Zone, error) {
 	}
 
 	var ret []util.Zone
+
 	for _, file := range files {
 		fileType := file.Type()
 		if !fileType.IsRegular() && fileType != os.ModeSymlink {

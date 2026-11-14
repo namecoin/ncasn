@@ -33,9 +33,12 @@ func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecor
 	ignored := []*util.GenericNameRecord{}
 
 	nsIdx := 0
+
 	var lastName *string
+
 	for i := range records {
 		data := records[i].RecordData
+
 		encoded, err := toTor(&data, nsIdx)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert record to Tor format: %s", err.Error())
@@ -45,6 +48,7 @@ func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecor
 			ignored = append(ignored, &records[i])
 		} else {
 			name := records[i].Name
+
 			switch {
 			case data.Txt != nil && data.Txt.DnsWl:
 				if len(name) == 0 {
@@ -62,6 +66,7 @@ func RecordsToTor(records []util.GenericNameRecord, hidden bool) (*util.TorRecor
 			}
 
 			var prefix string
+
 			switch {
 			case hidden:
 				prefix = "0 "
@@ -98,21 +103,27 @@ func toTor(record *ncasn.RecordUnion, nsIdx int) (*string, error) {
 	case record.Generic != nil:
 		data := record.Generic.Target
 		ret := strings.ToLower(dns.TypeToString[record.Generic.Type]) + " " + data
+
 		return &ret, nil
 	case record.Onion != nil:
 		ret := "onion " + record.Onion.ToDomain()
+
 		return &ret, nil
 	case record.I2p != nil:
 		ret := "i2p " + record.I2p.ToDomain()
+
 		return &ret, nil
 	case record.I2pLs2 != nil:
 		ret := "i2pls2 " + record.I2pLs2.ToDomain()
+
 		return &ret, nil
 	case record.Ipns != nil:
 		ret := "ipns " + record.Ipns.ToString()
+
 		return &ret, nil
 	case record.Hyphanet != nil:
 		ret := "hypha " + record.Hyphanet.ToKey()
+
 		return &ret, nil
 	case record.Ns != nil:
 		// Any non-string records at this point in the stack must come from malformed IP-based NS records replaced with domains with the form nsN, so follow that here
@@ -151,11 +162,12 @@ func toTor(record *ncasn.RecordUnion, nsIdx int) (*string, error) {
 		wire := wire.ToWire(record)
 		typeOf := util.TypeFromUnion(record)
 		dummy := dns.RR_Header{
-			Name:     "example.com.",
-			Rrtype:   typeOf,
-			Class:    dns.ClassINET,
-			Ttl:      0,
-			Rdlength: uint16(len(wire)),
+			Name:   "example.com.",
+			Rrtype: typeOf,
+			Class:  dns.ClassINET,
+			Ttl:    0,
+			// DNS data must fit in a uint16.
+			Rdlength: uint16(len(wire)), // nolint: gosec
 		}
 
 		encoded, _, err := dns.UnpackRRWithHeader(dummy, wire, 0)
@@ -165,8 +177,9 @@ func toTor(record *ncasn.RecordUnion, nsIdx int) (*string, error) {
 
 		fields := strings.Fields(encoded.String())
 
+		metaLen := 4
 		// Blank data
-		if len(fields) < 5 {
+		if len(fields) <= metaLen {
 			return nil, nil
 		}
 
