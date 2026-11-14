@@ -22,25 +22,42 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - .
-          - ./benchmark
         goos:
           - linux
           - windows
         lint:
           - name: New
+            module: .
             args: >-
               --new-from-rev=HEAD~
               --enable=cyclop,dupword,embeddedstructfieldcheck,err113,errcheck,exhaustive,forcetypeassert,funlen,gocognit,goconst,gocritic,godoclint,godot,gosec,govet,ineffassign,mnd,modernize,nakedret,nlreturn,staticcheck,unconvert,unparam,unused,wastedassign,wsl_v5
           - name: Mandatory
+            module: .
             args: >-
               --enable=asasalint,asciicheck,bidichk,bodyclose,canonicalheader,decorder,dupl,durationcheck,errchkjson,errname,exptostd,gocheckcompilerdirectives,goprintffuncname,misspell,predeclared,usestdlibvars
               --disable=errcheck,govet,ineffassign,staticcheck,unused
           - name: Full
+            module: .
             args: >-
               --issues-exit-code=0
               --enable=cyclop,dupword,embeddedstructfieldcheck,err113,errcheck,exhaustive,forcetypeassert,funlen,gocognit,goconst,gocritic,godoclint,godot,gosec,govet,ineffassign,mnd,modernize,nakedret,nlreturn,staticcheck,unconvert,unparam,unused,wastedassign,wsl_v5
+
+          - name: New Benchmark
+            module: ./benchmark
+            args: >-
+              --new-from-rev=HEAD~
+              --enable=cyclop,dupword,embeddedstructfieldcheck,errcheck,exhaustive,forcetypeassert,funlen,gocognit,goconst,gocritic,godoclint,godot,gosec,govet,ineffassign,mnd,modernize,nakedret,nlreturn,staticcheck,unconvert,unparam,unused,wastedassign,wsl_v5
+          - name: Mandatory Benchmark
+            module: ./benchmark
+            args: >-
+              --enable=asasalint,asciicheck,bidichk,bodyclose,canonicalheader,decorder,dupl,durationcheck,errchkjson,errname,exptostd,gocheckcompilerdirectives,goprintffuncname,misspell,predeclared,usestdlibvars
+              --disable=errcheck,govet,ineffassign,staticcheck,unused
+          - name: Full Benchmark
+            module: ./benchmark
+            args: >-
+              --issues-exit-code=0
+              --enable=cyclop,dupword,embeddedstructfieldcheck,errcheck,exhaustive,forcetypeassert,funlen,gocognit,goconst,gocritic,godoclint,godot,gosec,govet,ineffassign,mnd,modernize,nakedret,nlreturn,staticcheck,unconvert,unparam,unused,wastedassign,wsl_v5
+
     env:
       GOOS: ${{ matrix.goos }}
     steps:
@@ -52,13 +69,13 @@ jobs:
         with:
           version: latest
           args: ${{ matrix.lint.args }} -v --timeout=5m --output.json.path=lint-report.json
-          working-directory: ${{ matrix.module }}
+          working-directory: ${{ matrix.lint.module }}
       - name: Upload lint report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: lint-${{ matrix.goos }}-${{ matrix.lint.name }}
-          path: ${{ matrix.module }}/lint-report.json
+          path: ${{ matrix.lint.module }}/lint-report.json
           if-no-files-found: error
 
   unit-tests:
