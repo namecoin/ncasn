@@ -28,22 +28,22 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.18175 | 1.00 | 201038
+JSON: 4.18207 | 1.00 | 201038
 Tor: 1.89430 | 0.87 | 174567
-CBOR: 1.48108 | 1.00 | 201038
+CBOR: 1.48155 | 1.00 | 201036
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.31470 | 1.00 | 201038
+JSON: 4.31502 | 1.00 | 201038
 Tor: 1.97200 | 0.87 | 174567
-CBOR: 1.52726 | 1.00 | 201038
+CBOR: 1.52774 | 1.00 | 201036
 APER: 1.02907 | 1.00 | 201038
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.89117 | 1.00 | 201038
+JSON: 4.89152 | 1.00 | 201038
 Tor: 2.20158 | 0.87 | 174567
-CBOR: 1.74862 | 1.00 | 201038
+CBOR: 1.74913 | 1.00 | 201036
 APER: 1.21086 | 1.00 | 201038
 UPER: 1.17665 | 1.00 | 201038
 ```
@@ -54,25 +54,24 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-Format: Size ratio | Record coverage | Record count
-JSON: 4.47632 | 1.00 | 200719
-Tor: 2.05076 | 0.87 | 174248
-CBOR: 1.63051 | 1.00 | 200719
+JSON: 3.88018 | 1.00 | 200719
+Tor: 1.73474 | 0.87 | 174248
+CBOR: 1.43079 | 1.00 | 200717
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.56572 | 1.00 | 200719
-Tor: 2.13585 | 0.87 | 174248
-CBOR: 1.68901 | 1.00 | 200719
-APER: 1.02401 | 1.00 | 200719
+JSON: 3.99356 | 1.00 | 200719
+Tor: 1.81458 | 0.87 | 174248
+CBOR: 1.48659 | 1.00 | 200717
+APER: 1.03456 | 1.00 | 200719
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 5.11359 | 1.00 | 200719
-Tor: 2.35580 | 0.87 | 174248
-CBOR: 1.89864 | 1.00 | 200719
-APER: 1.20008 | 1.00 | 200719
-UPER: 1.17194 | 1.00 | 200719
+JSON: 4.51971 | 1.00 | 200719
+Tor: 2.02309 | 0.87 | 174248
+CBOR: 1.68787 | 1.00 | 200717
+APER: 1.19654 | 1.00 | 200719
+UPER: 1.15656 | 1.00 | 200719
 ```
 With elision:  
 Standard benchmark results:
@@ -82,22 +81,22 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.18294 | 1.00 | 200955
+JSON: 4.18334 | 1.00 | 200955
 Tor: 1.89473 | 0.87 | 174484
-CBOR: 1.48111 | 1.00 | 200955
+CBOR: 1.48164 | 1.00 | 200953
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.31595 | 1.00 | 200955
+JSON: 4.31636 | 1.00 | 200955
 Tor: 1.97247 | 0.87 | 174484
-CBOR: 1.52731 | 1.00 | 200955
+CBOR: 1.52786 | 1.00 | 200953
 APER: 1.02916 | 1.00 | 200955
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.89262 | 1.00 | 200955
+JSON: 4.89306 | 1.00 | 200955
 Tor: 2.20213 | 0.87 | 174484
-CBOR: 1.74872 | 1.00 | 200955
+CBOR: 1.74929 | 1.00 | 200953
 APER: 1.21132 | 1.00 | 200955
 UPER: 1.17700 | 1.00 | 200955
 ```
@@ -108,24 +107,24 @@ Blockchain coverage: 1.00
 
 APER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.47577 | 1.00 | 200722
-Tor: 2.05017 | 0.87 | 174251
-CBOR: 1.62984 | 1.00 | 200722
+JSON: 3.87991 | 1.00 | 200722
+Tor: 1.73449 | 0.87 | 174251
+CBOR: 1.43043 | 1.00 | 200720
 
 UPER benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 4.56517 | 1.00 | 200722
-Tor: 2.13526 | 0.87 | 174251
-CBOR: 1.68834 | 1.00 | 200722
-APER: 1.02403 | 1.00 | 200722
+JSON: 3.99331 | 1.00 | 200722
+Tor: 1.81434 | 0.87 | 174251
+CBOR: 1.48623 | 1.00 | 200720
+APER: 1.03460 | 1.00 | 200722
 
 Mixed radix benchmark results:
 Format: Size ratio | Record coverage | Record count
-JSON: 5.11305 | 1.00 | 200722
-Tor: 2.35520 | 0.87 | 174251
-CBOR: 1.89795 | 1.00 | 200722
-APER: 1.20019 | 1.00 | 200722
-UPER: 1.17203 | 1.00 | 200722
+JSON: 4.51942 | 1.00 | 200722
+Tor: 2.02281 | 0.87 | 174251
+CBOR: 1.68747 | 1.00 | 200720
+APER: 1.19663 | 1.00 | 200722
+UPER: 1.15661 | 1.00 | 200722
 ```
 
 Results binned based on the record types in a given zone are available in doc/binned.
@@ -140,6 +139,8 @@ Benchmark_time-12            300        13932216914 ns/op
 PASS
 ok      github.com/namecoin/ncasn/benchmark     4179.694s
 ```
+
+Contrasub results are heavily affected by whether record data are deduplicated by deliberately grinding for index collisions (by roughly 50pp), the results above do not utilize that feature due to the added time complexity.
 
 ## Copyright
 

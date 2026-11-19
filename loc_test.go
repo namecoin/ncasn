@@ -56,7 +56,7 @@ const LOC_INVALID = "42 21 54 N 71 06 18 W"
 func TestDefaultsToLoc(t *testing.T) {
 	val, err := ncasn.StringToLoc(LOC_DEFAULTS)
 	if err != nil {
-		t.Fatalf("Failed with error: %s", err.Error())
+		t.Fatalf("failed with error: %s", err.Error())
 	}
 
 	if val.Lat != convertedDefaults.Lat {
@@ -84,10 +84,11 @@ func TestDefaultsToLoc(t *testing.T) {
 	}
 }
 
+// nolint: cyclop
 func TestCompleteToLoc(t *testing.T) {
 	val, err := ncasn.StringToLoc(LOC_COMPLETE)
 	if err != nil {
-		t.Fatalf("Failed with error: %s", err.Error())
+		t.Fatalf("failed with error: %s", err.Error())
 	}
 
 	if val.Lat != convertedComplete.Lat {

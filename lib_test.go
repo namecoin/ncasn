@@ -126,8 +126,9 @@ func TestNameOmission(t *testing.T) {
 
 	num := new(big.Int).SetBytes(encoded)
 
-	// Skip data
+	// Skip data.
 	var zone ncasn.ParsingPlaceholder
+
 	err = mixedradix.UnmarshalValue(num, reflect.ValueOf(&zone).Elem(), asn1.FieldOptions{})
 	if err != nil {
 		t.Fatalf("err != nil: %s", err.Error())
@@ -135,12 +136,14 @@ func TestNameOmission(t *testing.T) {
 
 	for i := range records {
 		var record ncasn.VisibleDomainRecord
+
 		err = mixedradix.UnmarshalValue(num, reflect.ValueOf(&record).Elem(), asn1.FieldOptions{})
 		if err != nil {
 			t.Fatalf("err != nil: %s", err.Error())
 		}
 
 		lhsNil := record.Name == nil
+
 		rhsNil := names[i] == nil
 		if lhsNil != rhsNil {
 			t.Errorf("Different nullability at %d: %t vs %t", i, lhsNil, rhsNil)
@@ -174,7 +177,7 @@ func TestNameAddition(t *testing.T) {
 
 	for i, decodedRecord := range decoded.Records.Visible {
 		if decodedRecord.Name == nil {
-			t.Fatalf("Nil name at %d", i)
+			t.Fatalf("nil name at %d", i)
 		}
 
 		if *decodedRecord.Name != *records[i].Name {
@@ -204,6 +207,7 @@ func TestRecordCount(t *testing.T) {
 	}
 
 	sampleLen := len(records)
+
 	actualLen := len(decoded.Records.Visible)
 	if len(records) != len(decoded.Records.Visible) {
 		t.Errorf("Count != sample: %d != %d", actualLen, sampleLen)

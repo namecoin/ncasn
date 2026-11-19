@@ -21,6 +21,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 	"reflect"
 	"slices"
@@ -56,7 +57,7 @@ type RecordUnion struct {
 	Dname    *string      `asn1:"choice:19,dnsname,size:0..255"`
 }
 
-// This is used in order to avoid manually handling data before Zone.Records, Zone cannot be (un)marshalled directly due to relying on consuming all data to determine the length of Zone.Records, which go-asn cannot do.
+// ParsingPlaceholder is used in order to avoid manually handling data before Zone.Records, Zone cannot be (un)marshalled directly due to relying on consuming all data to determine the length of Zone.Records, which go-asn cannot do.
 type ParsingPlaceholder struct {
 	Info *Whois `asn1:"optional"`
 	// Used for hidden subdomains
@@ -97,6 +98,7 @@ func (record HiddenDomainRecord) NameString() *string {
 	}
 
 	tmp := strconv.Itoa(int(*record.Index))
+
 	return &tmp
 }
 
@@ -148,12 +150,14 @@ type Zone struct {
 }
 
 func PostProcessIpv6(records []*AAAA) {
+	length := 16
+
 	for _, data := range records {
 		if data.ZeroOffset == nil {
 			continue
 		}
 
-		data.Bytes = slices.Insert(data.Bytes, int(*data.ZeroOffset), make([]byte, 16-len(data.Bytes))...)
+		data.Bytes = slices.Insert(data.Bytes, int(*data.ZeroOffset), make([]byte, length-len(data.Bytes))...)
 	}
 }
 
@@ -175,7 +179,7 @@ func (encoding EncodingType) String() string {
 		return "APER"
 	}
 
-	return "Invalid"
+	return "invalid"
 }
 
 func (encoding EncodingType) NewReader(data []byte) *asn1.BitReader {
@@ -212,6 +216,7 @@ func UnmarshalRecords(data []byte, encoding EncodingType) (*Zone, error) {
 
 func getIpv6(records []Record) []*AAAA {
 	ipv6 := []*AAAA{}
+
 	for _, record := range records {
 		data := record.Data()
 		switch {
@@ -229,13 +234,16 @@ func unmarshalPacked(data []byte, encoding EncodingType) (*Zone, error) {
 	reader := encoding.NewReader(data)
 
 	extraData := ParsingPlaceholder{}
+
 	err := encoding.UnmarshalValue(reader, reflect.ValueOf(&extraData).Elem(), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	var union *RecordsUnion
+
 	var nonce []byte
+
 	if extraData.Nonce == nil {
 		union, err = unmarshalPackedVisible(reader, encoding)
 	} else {
@@ -248,6 +256,7 @@ func unmarshalPacked(data []byte, encoding EncodingType) (*Zone, error) {
 	}
 
 	PostProcessIpv6(getIpv6(union.GetRecords()))
+
 	return &Zone{Info: extraData.Info, Records: *union, Nonce: nonce}, nil
 }
 
@@ -255,13 +264,16 @@ func unmarshalMixedRadix(data []byte) (*Zone, error) {
 	num := new(big.Int).SetBytes(data)
 
 	extraData := ParsingPlaceholder{}
+
 	err := mixedradix.UnmarshalValue(num, reflect.ValueOf(&extraData).Elem(), asn1.FieldOptions{})
 	if err != nil {
 		return nil, err
 	}
 
 	var union *RecordsUnion
+
 	var nonce []byte
+
 	if extraData.Nonce == nil {
 		union, err = unmarshalMixedRadixVisible(num)
 	} else {
@@ -280,6 +292,7 @@ func unmarshalMixedRadix(data []byte) (*Zone, error) {
 
 func countConsecutiveZeroBytes(slice []byte) uint8 {
 	var ret uint8 = 0
+
 	for _, elem := range slice {
 		if elem != 0 {
 			break
@@ -294,7 +307,8 @@ func countConsecutiveZeroBytes(slice []byte) uint8 {
 func PreProcessIpv6(records []*AAAA) {
 	for _, record := range records {
 		oldBytes := record.Bytes
-		oldLength := uint8(len(oldBytes))
+		// Constrained at compile time by go-asn
+		oldLength := uint8(len(oldBytes)) // nolint: gosec
 
 		longestZeroStart := uint8(0)
 		longestZeroLength := uint8(0)
@@ -314,7 +328,8 @@ func PreProcessIpv6(records []*AAAA) {
 			}
 		}
 
-		if longestZeroLength > 2 {
+		var threshold uint8 = 2
+		if longestZeroLength > threshold {
 			record.ZeroOffset = &longestZeroStart
 			record.Bytes = slices.Delete(oldBytes, int(longestZeroStart), int(longestZeroStart)+int(longestZeroLength))
 		}
@@ -331,11 +346,13 @@ func validateChoice(val reflect.Value) bool {
 	return false
 }
 
+var ErrEmptyRecords = errors.New("len(records) == 0")
+
 func preValidate(records RecordsUnion) error {
 	cast := records.GetRecords()
 
 	if len(cast) == 0 {
-		return errors.New("len(records) == 0")
+		return ErrEmptyRecords
 	}
 
 	for _, record := range cast {
@@ -348,14 +365,17 @@ func preValidate(records RecordsUnion) error {
 	return nil
 }
 
+var ErrNamelessRecord = errors.New("record.NameString() == nil")
+var ErrDatalessRecord = errors.New("empty CHOICE")
+
 func validateRecord(record Record) error {
 	name := record.NameString()
 	if name == nil {
-		return errors.New("record.NameString() == nil")
+		return ErrNamelessRecord
 	}
 
 	if !validateChoice(reflect.ValueOf(record.Data())) {
-		return fmt.Errorf("empty CHOICE for %s", *name)
+		return fmt.Errorf("%w: %s", ErrDatalessRecord, *name)
 	}
 
 	return nil
@@ -363,7 +383,6 @@ func validateRecord(record Record) error {
 
 func MarshalRecords(zone Zone, encoding EncodingType) ([]byte, error) {
 	err := preValidate(zone.Records)
-
 	if err != nil {
 		return nil, err
 	}
@@ -404,6 +423,7 @@ func marshalPacked(zone Zone, encoding EncodingType) ([]byte, error) {
 	if zone.Nonce == nil {
 		return marshalPackedVisible(writer, encoding, &zone.Records)
 	}
+
 	return marshalPackedHidden(writer, encoding, &zone.Records)
 }
 
@@ -434,10 +454,11 @@ func GetChoice(ref reflect.Value) uint8 {
 	for meta, field := range ref.Fields() {
 		if !field.IsNil() {
 			tag, _ := asn1.ParseTag(meta.Tag.Get("asn1"))
-			return uint8(*tag.Choice)
+			// Known to fit at compile time
+			return uint8(*tag.Choice) // nolint: gosec
 		}
 	}
 
 	// Invalid
-	return 255
+	return math.MaxUint8
 }

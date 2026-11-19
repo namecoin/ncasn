@@ -27,10 +27,13 @@ import (
 
 // https://spec.torproject.org/rend-spec/encoding-onion-addresses.html
 
+var ErrNotOnion = errors.New("not an onion address")
+var ErrNotV3 = errors.New("not a v3 onion address")
+
 func OnionRecordFromDomain(domain string) (*OnionV3, error) {
 	b32, found := strings.CutSuffix(domain, ".onion")
 	if !found {
-		return nil, errors.New("not an onion address")
+		return nil, ErrNotOnion
 	}
 
 	bytes, err := base32.StdEncoding.DecodeString(strings.ToUpper(b32))
@@ -39,7 +42,7 @@ func OnionRecordFromDomain(domain string) (*OnionV3, error) {
 	}
 
 	if len(bytes) != 35 || bytes[34] != 0x03 {
-		return nil, errors.New("not a v3 onion address")
+		return nil, ErrNotV3
 	}
 
 	// Omit version and checksum bytes.
@@ -52,5 +55,6 @@ func (record *OnionV3) ToDomain() string {
 
 	// append() could modify the original, and we don't want that.
 	bytes := slices.Concat(record.Bytes, checksum[:2], versionByteSlice)
+
 	return strings.ToLower(base32.StdEncoding.EncodeToString(bytes)) + ".onion"
 }

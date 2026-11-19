@@ -32,11 +32,11 @@ func SrvNameToMeta_test(t *testing.T) {
 		}
 
 		if res.Service != ncasn.SipFederationTls {
-			t.Error("Wrong service")
+			t.Error("wrong service")
 		}
 
 		if res.Proto != ncasn.Tcp {
-			t.Error("Wrong proto")
+			t.Error("wrong proto")
 		}
 	})
 
@@ -48,11 +48,11 @@ func SrvNameToMeta_test(t *testing.T) {
 		}
 
 		if res.Service != ncasn.Http {
-			t.Error("Wrong service")
+			t.Error("wrong service")
 		}
 
 		if res.Proto != ncasn.Tls {
-			t.Error("Wrong proto")
+			t.Error("wrong proto")
 		}
 	})
 }
@@ -64,6 +64,6 @@ func SrvToPrefix_test(t *testing.T) {
 	}
 
 	if meta.ToPrefix() != "_http._tls" {
-		t.Error("Wrong prefix")
+		t.Error("wrong prefix")
 	}
 }

@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package blockchain
 
 import (
+	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -35,20 +37,24 @@ import (
 	"github.com/namecoin/ncasn/benchmark/util"
 )
 
-func parseSrv(name string, elem []any) (*util.GenericNameRecord, error) {
+func parseSrvData(elem []any) (*ncasn.SRVData, error) {
 	priority, err := parseUint16(elem[0])
 	if err != nil {
-		return nil, fmt.Errorf("srv priority is not a uint16: %s", err.Error())
+		return nil, fmt.Errorf("srv priority is not a uint16: %w", err)
 	}
 
 	weight, err := parseUint16(elem[1])
 	if err != nil {
-		return nil, fmt.Errorf("srv weight is not a uint16: %s", err.Error())
+		return nil, fmt.Errorf("srv weight is not a uint16: %w", err)
+	}
+
+	if *weight == 0 {
+		weight = nil
 	}
 
 	port, err := parseUint16(elem[2])
 	if err != nil {
-		return nil, fmt.Errorf("srv port is not a uint16: %s", err.Error())
+		return nil, fmt.Errorf("srv port is not a uint16: %w", err)
 	}
 
 	target, ok := elem[3].(string)
@@ -56,34 +62,48 @@ func parseSrv(name string, elem []any) (*util.GenericNameRecord, error) {
 		return nil, errors.New("srv target is not a string")
 	}
 
-	if len(target) > 255 || !mixedradix.IsValidDnsName(target) {
+	return &ncasn.SRVData{
+		Priority: *priority,
+		Weight:   weight,
+		Port:     *port,
+		Target:   target,
+	}, nil
+}
+
+func parseSrv(name string, elem []any) (*util.GenericNameRecord, error) {
+	data, err := parseSrvData(elem)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(data.Target) > 255 || !mixedradix.IsValidDnsName(data.Target) {
 		return nil, nil
 	}
 
-	if *port == 25 {
+	var smtpPort uint16 = 25
+	if data.Port == smtpPort {
 		name, found := strings.CutPrefix(name, "_smtp._tcp")
 		if found {
 			name = strings.TrimPrefix(name, ".")
+
 			return &util.GenericNameRecord{
 				Name: name,
 				RecordData: ncasn.RecordUnion{
 					Mx: &ncasn.MX{
-						Target:   target,
-						Priority: *priority,
+						Target:   data.Target,
+						Priority: data.Priority,
 					},
 				},
 			}, nil
 		}
 	}
 
-	if *weight == 0 {
-		weight = nil
-	}
-
 	meta := ncasn.SrvNameToMeta(name)
 	if meta != nil {
 		labels := strings.Split(name, ".")
-		if len(labels) == 2 {
+
+		baseParts := 2
+		if len(labels) == baseParts {
 			name = ""
 		} else {
 			name = strings.Join(labels[2:], ".")
@@ -95,12 +115,7 @@ func parseSrv(name string, elem []any) (*util.GenericNameRecord, error) {
 		RecordData: ncasn.RecordUnion{
 			Srv: &ncasn.SRV{
 				Meta: meta,
-				Data: ncasn.SRVData{
-					Priority: *priority,
-					Weight:   weight,
-					Port:     *port,
-					Target:   target,
-				},
+				Data: *data,
 			},
 		},
 	}, nil
@@ -108,7 +123,7 @@ func parseSrv(name string, elem []any) (*util.GenericNameRecord, error) {
 
 func parseSrvs(name string, value any) ([]util.GenericNameRecord, error) {
 	if value == nil {
-		return nil, errors.New("Nil value")
+		return nil, errors.New("nil value")
 	}
 
 	list, ok := value.([]any)
@@ -117,13 +132,15 @@ func parseSrvs(name string, value any) ([]util.GenericNameRecord, error) {
 	}
 
 	var ret []util.GenericNameRecord
+
 	for _, elemAny := range list {
 		elem, ok := elemAny.([]any)
 		if !ok {
 			return nil, errors.New("srv element type is not slice")
 		}
 
-		if len(elem) < 4 {
+		validLen := 4
+		if len(elem) < validLen {
 			return nil, errors.New("srv array with < 4 parts")
 		}
 
@@ -144,6 +161,7 @@ func parseSrvs(name string, value any) ([]util.GenericNameRecord, error) {
 
 func spdf(service *string, protocol *string) string {
 	var ret string
+
 	if service != nil && *service == "" {
 		service = nil
 	}
@@ -171,10 +189,64 @@ func spdf(service *string, protocol *string) string {
 	return ret
 }
 
+func parseSingleGenericDs(elemAny any) (*ncasn.Generic, error) {
+	elem, ok := elemAny.([]any)
+	if !ok {
+		return nil, errors.New("ds element type is not slice")
+	}
+
+	minValid := 4
+	if len(elem) < minValid {
+		return nil, errors.New("ds array with < 4 parts")
+	}
+
+	var str string
+
+	key, err := parseUint16(elem[0])
+	if err != nil {
+		return nil, fmt.Errorf("ds key is not a uint16: %s", err.Error())
+	}
+
+	str += strconv.Itoa(int(*key)) + " "
+
+	algo, err := parseUint8(elem[1])
+	if err != nil {
+		return nil, fmt.Errorf("ds key algorithm is not a uint8: %s", err.Error())
+	}
+
+	str += strconv.Itoa(int(*algo)) + " "
+
+	digestType, err := parseUint8(elem[2])
+	if err != nil {
+		return nil, fmt.Errorf("ds digest type is not a uint8: %s", err.Error())
+	}
+
+	str += strconv.Itoa(int(*digestType)) + " "
+
+	digest, ok := elem[3].(string)
+	if !ok {
+		return nil, errors.New("ds digest is not a string")
+	}
+
+	data, err := base64.StdEncoding.DecodeString(digest)
+	if err != nil {
+		return nil, err
+	}
+
+	digest = hex.EncodeToString(data)
+
+	str += digest
+
+	return &ncasn.Generic{
+		Type:   dns.TypeDS,
+		Target: str,
+	}, nil
+}
+
 func parseGenericDs(name string, value any) ([]util.GenericNameRecord, error) {
 	typeOf := reflect.TypeOf(value)
 	if typeOf == nil {
-		return nil, errors.New("Nil value")
+		return nil, errors.New("nil value")
 	}
 
 	kind := typeOf.Kind()
@@ -182,58 +254,20 @@ func parseGenericDs(name string, value any) ([]util.GenericNameRecord, error) {
 		return nil, errors.New("ds is not a slice")
 	}
 
-	list := value.([]any)
+	// Checked above.
+	list := value.([]any) // nolint: forcetypeassert
 	ret := []util.GenericNameRecord{}
+
 	for _, elemAny := range list {
-		elem, ok := elemAny.([]any)
-		if !ok {
-			return nil, errors.New("ds element type is not slice")
-		}
-
-		if len(elem) < 4 {
-			return nil, errors.New("ds array with < 4 parts")
-		}
-		var str string
-
-		key, err := parseUint16(elem[0])
-		if err != nil {
-			return nil, fmt.Errorf("ds key is not a uint16: %s", err.Error())
-		}
-		str += strconv.Itoa(int(*key)) + " "
-
-		algo, err := parseUint8(elem[1])
-		if err != nil {
-			return nil, fmt.Errorf("ds key algorithm is not a uint8: %s", err.Error())
-		}
-		str += strconv.Itoa(int(*algo)) + " "
-
-		digestType, err := parseUint8(elem[2])
-		if err != nil {
-			return nil, fmt.Errorf("ds digest type is not a uint8: %s", err.Error())
-		}
-
-		str += strconv.Itoa(int(*digestType)) + " "
-
-		digest, ok := elem[3].(string)
-		if !ok {
-			return nil, errors.New("ds digest is not a string")
-		}
-
-		data, err := base64.StdEncoding.DecodeString(digest)
+		rec, err := parseSingleGenericDs(elemAny)
 		if err != nil {
 			return nil, err
 		}
-		digest = hex.EncodeToString(data)
-
-		str += digest
 
 		ret = append(ret, util.GenericNameRecord{
 			Name: name,
 			RecordData: ncasn.RecordUnion{
-				Generic: &ncasn.Generic{
-					Type:   dns.TypeDS,
-					Target: str,
-				},
+				Generic: rec,
 			},
 		})
 	}
@@ -241,9 +275,67 @@ func parseGenericDs(name string, value any) ([]util.GenericNameRecord, error) {
 	return ret, nil
 }
 
+func parseSingleService(name string, record []any) (*util.GenericNameRecord, error) {
+	length := len(record)
+
+	validLen := 6
+	if length < validLen {
+		return nil, fmt.Errorf("too few service record elements: %d", length)
+	}
+
+	service := record[0]
+
+	var serviceStr *string
+
+	if service != nil {
+		cast, ok := service.(string)
+		if ok {
+			serviceStr = &cast
+		} else {
+			serviceInt, err := parseUint16(service)
+			if err != nil {
+				return nil, err
+			}
+
+			tmp := strconv.Itoa(int(*serviceInt))
+			serviceStr = &tmp
+		}
+	}
+
+	protocol := record[1]
+
+	var protocolStr *string
+
+	if protocol != nil {
+		cast, ok := protocol.(string)
+		if ok {
+			protocolStr = &cast
+		} else {
+			protocolInt, err := parseUint16(protocol)
+			if err != nil {
+				return nil, err
+			}
+
+			tmp := strconv.Itoa(int(*protocolInt))
+			protocolStr = &tmp
+		}
+	}
+
+	thisName := name
+
+	prefix := spdf(serviceStr, protocolStr)
+	if len(thisName) == 0 {
+		thisName = strings.TrimSuffix(prefix, ".")
+	} else {
+		thisName = prefix + thisName
+	}
+
+	return parseSrv(thisName, record[2:])
+}
+
 func parseService(name string, value any) ([]util.GenericNameRecord, error) {
 	if value == nil {
-		return nil, errors.New("Nil value")
+		return nil, errors.New("nil value")
 	}
 
 	list, ok := value.([]any)
@@ -252,75 +344,89 @@ func parseService(name string, value any) ([]util.GenericNameRecord, error) {
 	}
 
 	ret := []util.GenericNameRecord{}
+
 	for _, srv := range list {
 		record, ok := srv.([]any)
 		if !ok {
 			return nil, errors.New("service is not a slice")
 		}
 
-		length := len(record)
-		if length < 6 {
-			return nil, fmt.Errorf("Too few service record elements: %d", length)
-		}
-
-		service := record[0]
-		var serviceStr *string
-		if service != nil {
-			cast, ok := service.(string)
-			if ok {
-				serviceStr = &cast
-			} else {
-				serviceInt, err := parseUint16(service)
-				if err != nil {
-					return nil, err
-				}
-				tmp := strconv.Itoa(int(*serviceInt))
-				serviceStr = &tmp
-			}
-		}
-
-		protocol := record[1]
-		var protocolStr *string
-		if protocol != nil {
-			cast, ok := protocol.(string)
-			if ok {
-				protocolStr = &cast
-			} else {
-				protocolInt, err := parseUint16(protocol)
-				if err != nil {
-					return nil, err
-				}
-				tmp := strconv.Itoa(int(*protocolInt))
-				protocolStr = &tmp
-			}
-		}
-
-		thisName := name
-		prefix := spdf(serviceStr, protocolStr)
-		if len(thisName) == 0 {
-			thisName = strings.TrimSuffix(prefix, ".")
-		} else {
-			thisName = prefix + thisName
-		}
-
-		parsed, err := parseSrv(thisName, record[2:])
+		parsed, err := parseSingleService(name, record)
 		if err != nil {
 			return nil, err
 		}
 
-		if parsed == nil {
-			continue
+		if parsed != nil {
+			ret = append(ret, *parsed)
 		}
-
-		ret = append(ret, *parsed)
 	}
 
 	return ret, nil
 }
 
+func parseSingleDs(elem []any, skipped *int) (*ncasn.DS, error) {
+	validLen := 4
+	if len(elem) < validLen {
+		return nil, errors.New("ds array with < 4 parts")
+	}
+
+	key, err := parseUint16(elem[0])
+	if err != nil {
+		return nil, fmt.Errorf("ds key is not a uint16: %s", err.Error())
+	}
+
+	algo, err := parseUint8(elem[1])
+	if err != nil {
+		return nil, fmt.Errorf("ds key algorithm is not a uint8: %s", err.Error())
+	}
+
+	if !slices.Contains(ncasn.DS_KEY_ALGOS, *algo) {
+		*skipped++
+
+		fmt.Println("unsupported ds key algorithm:", *algo)
+
+		return nil, nil
+	}
+
+	digestType, err := parseUint8(elem[2])
+	if err != nil {
+		return nil, fmt.Errorf("ds digest type is not a uint8: %s", err.Error())
+	}
+
+	if !slices.Contains(ncasn.DS_DIGEST_TYPES, *digestType) {
+		*skipped++
+
+		fmt.Println("unsupported ds digest type:", *digestType)
+
+		return nil, nil
+	}
+
+	digest, ok := elem[3].(string)
+	if !ok {
+		return nil, errors.New("ds digest is not a string")
+	}
+
+	bytes, err := base64.StdEncoding.DecodeString(digest)
+	if err != nil {
+		return nil, err
+	}
+
+	union, err := util.ParseDsDigest(*digestType, bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ncasn.DS{
+		KeyTag: *key,
+		// Known to be valid if it reaches here.
+		AlgorithmIndex: uint8(ncasn.GetKeyAlgorithmIndex(*algo)), // nolint: gosec
+		Digest:         *union,
+	}, nil
+}
+
 func parseDs(name string, value any, skipped *int) ([]util.GenericNameRecord, error) {
 	if value == nil {
-		return nil, errors.New("Nil value")
+		return nil, errors.New("nil value")
 	}
 
 	list, ok := value.([]any)
@@ -329,87 +435,26 @@ func parseDs(name string, value any, skipped *int) ([]util.GenericNameRecord, er
 	}
 
 	var ret []util.GenericNameRecord
+
 	for _, elemAny := range list {
 		elem, ok := elemAny.([]any)
 		if !ok {
 			return nil, errors.New("ds element type is not slice")
 		}
 
-		if len(elem) < 4 {
-			return nil, errors.New("ds array with < 4 parts")
-		}
-		key, err := parseUint16(elem[0])
-		if err != nil {
-			return nil, fmt.Errorf("ds key is not a uint16: %s", err.Error())
-		}
-
-		algo, err := parseUint8(elem[1])
-		if err != nil {
-			return nil, fmt.Errorf("ds key algorithm is not a uint8: %s", err.Error())
-		}
-
-		if !slices.Contains(ncasn.DS_KEY_ALGOS, *algo) {
-			*skipped++
-			fmt.Println("Unsupported ds key algorithm:", *algo)
-			continue
-		}
-
-		digestType, err := parseUint8(elem[2])
-		if err != nil {
-			return nil, fmt.Errorf("ds digest type is not a uint8: %s", err.Error())
-		}
-
-		if !slices.Contains(ncasn.DS_DIGEST_TYPES, *digestType) {
-			*skipped++
-			fmt.Println("Unsupported ds digest type:", *digestType)
-			continue
-		}
-
-		digest, ok := elem[3].(string)
-		if !ok {
-			return nil, errors.New("ds digest is not a string")
-		}
-		bytes, err := base64.StdEncoding.DecodeString(digest)
+		record, err := parseSingleDs(elem, skipped)
 		if err != nil {
 			return nil, err
 		}
-		length := len(bytes)
 
-		var union ncasn.DsDigestUnion
-		switch *digestType {
-		case 2:
-			if length != 32 {
-				return nil, fmt.Errorf("Wrong length for SHA-256: %d", length)
-			}
-			union = ncasn.DsDigestUnion{
-				Sha256: &bytes,
-			}
-		case 4:
-			if length != 48 {
-				return nil, fmt.Errorf("Wrong length for SHA-384: %d", length)
-			}
-			union = ncasn.DsDigestUnion{
-				Sha384: &bytes,
-			}
-		case 7:
-			if length < 32 || length > 64 {
-				return nil, fmt.Errorf("Unsupported digest length: %d", length)
-			}
-			union = ncasn.DsDigestUnion{
-				Unassigned7: &bytes,
-			}
-		}
-
-		ret = append(ret, util.GenericNameRecord{
-			Name: name,
-			RecordData: ncasn.RecordUnion{
-				Ds: &ncasn.DS{
-					KeyTag:         *key,
-					AlgorithmIndex: uint8(ncasn.GetKeyAlgorithmIndex(*algo)),
-					Digest:         union,
+		if record != nil {
+			ret = append(ret, util.GenericNameRecord{
+				Name: name,
+				RecordData: ncasn.RecordUnion{
+					Ds: record,
 				},
-			},
-		})
+			})
+		}
 	}
 
 	return ret, nil
@@ -428,8 +473,11 @@ func parseTxtString(value string) (*string, error) {
 	}
 
 	ret := strings.Join(list, " ")
+
 	length := len(ret)
-	if length > 4096 {
+
+	maxLen := 4096
+	if length > maxLen {
 		return nil, fmt.Errorf("TXT length %d > 4096", length)
 	}
 
@@ -440,9 +488,41 @@ func parseTxtString(value string) (*string, error) {
 	return &ret, nil
 }
 
+func parseTxtParts(nested []any) (*string, error) {
+	var str string
+
+	for _, item := range nested {
+		itemStr, ok := item.(string)
+		if !ok {
+			return nil, errors.New("non-string TXT part")
+		}
+
+		length := len(itemStr)
+
+		maxLen := 255
+		if length > maxLen {
+			return nil, fmt.Errorf("TXT part length %d > 255", length)
+		}
+
+		str += "\"" + itemStr + "\"" + " "
+		length = len(str)
+		// + 1 due to the trailing space
+		maxLen = 4097
+
+		if length > maxLen {
+			return nil, errors.New("TXT record too large")
+		}
+	}
+
+	str = str[:len(str)-1]
+
+	return &str, nil
+}
+
+// nolint: funlen
 func parseTxt(name string, value any) ([]util.GenericNameRecord, error) {
 	if value == nil {
-		return nil, errors.New("Nil value")
+		return nil, errors.New("nil value")
 	}
 
 	str, ok := value.(string)
@@ -464,10 +544,11 @@ func parseTxt(name string, value any) ([]util.GenericNameRecord, error) {
 
 	slice, ok := value.([]any)
 	if !ok {
-		return nil, errors.New("Invalid TXT record type")
+		return nil, errors.New("invalid TXT record type")
 	}
 
 	ret := []util.GenericNameRecord{}
+
 	for _, elem := range slice {
 		str, ok = elem.(string)
 		if ok {
@@ -475,6 +556,7 @@ func parseTxt(name string, value any) ([]util.GenericNameRecord, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			ret = append(ret, util.GenericNameRecord{
 				Name: name,
 				RecordData: ncasn.RecordUnion{
@@ -483,39 +565,25 @@ func parseTxt(name string, value any) ([]util.GenericNameRecord, error) {
 					},
 				},
 			})
+
 			continue
 		}
 
 		nested, ok := elem.([]any)
 		if !ok {
-			return nil, errors.New("Invalid TXT element type")
+			return nil, errors.New("invalid TXT element type")
 		}
 
-		for _, item := range nested {
-			itemStr, ok := item.(string)
-			if !ok {
-				return nil, errors.New("Non-string TXT part")
-			}
-
-			length := len(itemStr)
-			if length > 255 {
-				return nil, fmt.Errorf("TXT part length %d > 255", length)
-			}
-
-			str += "\"" + itemStr + "\"" + " "
-			length = len(str)
-			// + 1 due to the trailing space
-			if length > 4097 {
-				return nil, errors.New("TXT record too large")
-			}
+		strPtr, err := parseTxtParts(nested)
+		if err != nil {
+			return nil, err
 		}
 
-		str = str[:len(str)-1]
 		ret = append(ret, util.GenericNameRecord{
 			Name: name,
 			RecordData: ncasn.RecordUnion{
 				Txt: &ncasn.TXT{
-					Content: str,
+					Content: *strPtr,
 				},
 			},
 		})
@@ -527,12 +595,12 @@ func parseTxt(name string, value any) ([]util.GenericNameRecord, error) {
 func parseUint8(value any) (*uint8, error) {
 	num, ok := value.(json.Number)
 	if !ok {
-		return nil, errors.New("Value not a number")
+		return nil, errors.New("value not a number")
 	}
 
 	integer, err := num.Int64()
 	if err != nil {
-		return nil, fmt.Errorf("Value not an integer: %s", err.Error())
+		return nil, fmt.Errorf("value not an integer: %s", err.Error())
 	}
 
 	if integer < 0 || integer > math.MaxUint8 {
@@ -540,18 +608,19 @@ func parseUint8(value any) (*uint8, error) {
 	}
 
 	cast := uint8(integer)
+
 	return &cast, nil
 }
 
 func parseUint16(value any) (*uint16, error) {
 	num, ok := value.(json.Number)
 	if !ok {
-		return nil, errors.New("Value not a number")
+		return nil, errors.New("value not a number")
 	}
 
 	integer, err := num.Int64()
 	if err != nil {
-		return nil, fmt.Errorf("Value not an integer: %s", err.Error())
+		return nil, fmt.Errorf("value not an integer: %s", err.Error())
 	}
 
 	if integer < 0 || integer > math.MaxUint16 {
@@ -559,13 +628,16 @@ func parseUint16(value any) (*uint16, error) {
 	}
 
 	cast := uint16(integer)
+
 	return &cast, nil
 }
 
 func parseGenericTlsa(name string, value []any) (*util.GenericNameRecord, error) {
 	length := len(value)
-	if length < 4 {
-		return nil, errors.New("Too few values for a TLSA record")
+
+	validLen := 4
+	if length < validLen {
+		return nil, errors.New("too few values for a TLSA record")
 	}
 
 	var record string
@@ -600,6 +672,7 @@ func parseGenericTlsa(name string, value []any) (*util.GenericNameRecord, error)
 	if err != nil {
 		return nil, err
 	}
+
 	dataStr = hex.EncodeToString(data)
 
 	record += dataStr
@@ -610,10 +683,57 @@ func parseGenericTlsa(name string, value []any) (*util.GenericNameRecord, error)
 	}}}, nil
 }
 
+func parseTlsaDigest(matchingType uint8, data []byte, skipped *int) (*ncasn.TlsaUnion, error) {
+	length := len(data)
+
+	var union ncasn.TlsaUnion
+
+	var (
+		sha256Id   uint8 = 1
+		sha512Id   uint8 = 2
+		unassigned uint8 = 3
+	)
+
+	switch matchingType {
+	case sha256Id:
+		if length != sha256.Size {
+			return nil, fmt.Errorf("SHA-256 TLSA length %d != 32", length)
+		}
+
+		union = ncasn.TlsaUnion{
+			Sha256: &data,
+		}
+	case sha512Id:
+		if length != sha512.Size {
+			return nil, fmt.Errorf("SHA-512 TLSA length %d != 64", length)
+		}
+
+		union = ncasn.TlsaUnion{
+			Sha512: &data,
+		}
+	case unassigned:
+		if length < 32 || length > 64 {
+			return nil, fmt.Errorf("unsupported TLSA data length: %d", length)
+		}
+
+		union = ncasn.TlsaUnion{
+			Unassigned0: &data,
+		}
+	default:
+		*skipped++
+
+		return nil, fmt.Errorf("unsupported TLSA matching type: %d", matchingType)
+	}
+
+	return &union, nil
+}
+
 func parseTlsaRecord(name string, value []any, skipped *int) (*util.GenericNameRecord, error) {
 	length := len(value)
-	if length < 4 {
-		return nil, errors.New("Too few values for a TLSA record")
+
+	validLen := 4
+	if length < validLen {
+		return nil, errors.New("too few values for a TLSA record")
 	}
 
 	usage, err := parseUint8(value[0])
@@ -621,9 +741,11 @@ func parseTlsaRecord(name string, value []any, skipped *int) (*util.GenericNameR
 		return nil, fmt.Errorf("TLSA certificate usage is not a uint8: %s", err.Error())
 	}
 
-	if *usage != 2 {
+	var daneTa uint8 = 2
+	if *usage != daneTa {
 		*skipped++
-		return nil, fmt.Errorf("Unsupported TLSA certificate usage: %d", *usage)
+
+		return nil, fmt.Errorf("unsupported TLSA certificate usage: %d", *usage)
 	}
 
 	selector, err := parseUint8(value[1])
@@ -633,7 +755,8 @@ func parseTlsaRecord(name string, value []any, skipped *int) (*util.GenericNameR
 
 	if *selector > 1 {
 		*skipped++
-		return nil, fmt.Errorf("Unsupported TLSA selector: %d", *selector)
+
+		return nil, fmt.Errorf("unsupported TLSA selector: %d", *selector)
 	}
 
 	matchingType, err := parseUint8(value[2])
@@ -651,42 +774,16 @@ func parseTlsaRecord(name string, value []any, skipped *int) (*util.GenericNameR
 		return nil, fmt.Errorf("TLSA data is not base64: %s", err.Error())
 	}
 
-	length = len(data)
-
-	var union ncasn.TlsaUnion
-	switch *matchingType {
-	case 1:
-		if length != 32 {
-			return nil, fmt.Errorf("SHA-256 TLSA length %d != 32", length)
-		}
-		union = ncasn.TlsaUnion{
-			Sha256: &data,
-		}
-	case 2:
-		if length != 64 {
-			return nil, fmt.Errorf("SHA-512 TLSA length %d != 64", length)
-		}
-		union = ncasn.TlsaUnion{
-			Sha512: &data,
-		}
-	case 3:
-		if length < 32 || length > 64 {
-			return nil, fmt.Errorf("Unsupported TLSA data length: %d", length)
-		}
-
-		union = ncasn.TlsaUnion{
-			Unassigned0: &data,
-		}
-	default:
-		*skipped++
-		return nil, fmt.Errorf("Unsupported TLSA matching type: %d", *matchingType)
+	union, err := parseTlsaDigest(*matchingType, data, skipped)
+	if err != nil {
+		return nil, err
 	}
 
 	return &util.GenericNameRecord{
 		Name: name,
 		RecordData: ncasn.RecordUnion{Tlsa: &ncasn.TLSA{
 			Selector:        *selector,
-			AssociationData: union,
+			AssociationData: *union,
 		}},
 	}, nil
 }
@@ -706,21 +803,23 @@ func parseGenericSshfp(name string, value any) (*util.GenericNameRecord, error) 
 		return nil, errors.New("sshfp field is not a slice of slices")
 	}
 
+	minLen := 3
+
 	length := len(record)
-	if length < 3 {
+	if length < minLen {
 		return nil, errors.New("SSHFP record too short")
 	}
 
 	algo, err := parseUint8(record[0])
 	if err != nil {
-		return nil, fmt.Errorf("Invalid SSHFP algorithm: %s", err.Error())
+		return nil, fmt.Errorf("invalid SSHFP algorithm: %s", err.Error())
 	}
 
 	str := strconv.Itoa(int(*algo)) + " "
 
 	digestType, err := parseUint8(record[1])
 	if err != nil {
-		return nil, fmt.Errorf("Invalid digest algorithm: %s", err.Error())
+		return nil, fmt.Errorf("invalid digest algorithm: %s", err.Error())
 	}
 
 	str += strconv.Itoa(int(*digestType)) + " "
@@ -734,7 +833,7 @@ func parseGenericSshfp(name string, value any) (*util.GenericNameRecord, error) 
 
 	bytes, err := base64.StdEncoding.DecodeString(digest)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid SSHFP digest: %s", err.Error())
+		return nil, fmt.Errorf("invalid SSHFP digest: %s", err.Error())
 	}
 
 	str += hex.EncodeToString(bytes)

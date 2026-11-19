@@ -30,6 +30,7 @@ var domainCount = flag.Int("count", -1, "Number of subdomains to use in the benc
 
 func Benchmark_time(b *testing.B) {
 	var records []ncasn.HiddenDomainRecord
+
 	for i := 0; i < *domainCount; i++ {
 		record := ncasn.HiddenDomainRecord{
 			RecordData: ncasn.RecordUnion{
@@ -38,13 +39,14 @@ func Benchmark_time(b *testing.B) {
 				},
 			},
 		}
-		record.SetName(strconv.Itoa(int(i)))
+		record.SetName(strconv.Itoa(i))
 		records = append(records, record)
 	}
+
 	zone := ncasn.Zone{Records: ncasn.RecordsUnion{Hidden: records}}
 
 	for b.Loop() {
-		err := contrasub.PreProcess(&zone, false, nil)
+		err := contrasub.PreProcess(&zone, &contrasub.Opts{})
 		if err != nil {
 			b.Fatal(err)
 		}

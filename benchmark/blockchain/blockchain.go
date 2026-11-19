@@ -66,20 +66,25 @@ func runHttp(rpcMethod string, params []any, cookie string, version string) ([]b
 
 	reader := bytes.NewReader(obj)
 
-	req, err := http.NewRequest("POST", "http://"+os.Args[2], reader)
+	// Passing untrusted arguments to a benchmark would be problematic anyway.
+	req, err := http.NewRequest(http.MethodPost, "http://"+os.Args[2], reader) // nolint: gosec
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(cookie)))
-	resp, err := http.DefaultClient.Do(req)
+
+	// Ibid.
+	resp, err := http.DefaultClient.Do(req) // nolint: gosec
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Non 200 status code for %s: %d", rpcMethod, resp.StatusCode)
+	// Handling Close() failures is surely out of scope?
+	defer resp.Body.Close() // nolint: errcheck
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("non 200 status code for %s: %d", rpcMethod, resp.StatusCode)
 	}
 
 	return io.ReadAll(resp.Body)
@@ -92,7 +97,8 @@ func ScanNames(prev *string, cookie string) ([]byte, error) {
 }
 
 func expandNames(names []Name, cookie string, minHeight *uint64, maxHeight *uint64) ([]Name, error) {
-	copy := []Name{}
+	copied := []Name{}
+
 	for _, name := range names {
 		body, err := runHttp("name_history", []any{name.Name}, cookie, "2.0")
 		if err != nil {
@@ -100,6 +106,7 @@ func expandNames(names []Name, cookie string, minHeight *uint64, maxHeight *uint
 		}
 
 		var resp Response
+
 		err = json.Unmarshal(body, &resp)
 		if err != nil {
 			return nil, err
@@ -125,14 +132,15 @@ func expandNames(names []Name, cookie string, minHeight *uint64, maxHeight *uint
 		slices.SortFunc(resp.Result, func(a Name, b Name) int { return cmp.Compare(a.Value, b.Value) })
 		dedup := slices.Compact(resp.Result)
 
-		copy = append(copy, dedup...)
+		copied = append(copied, dedup...)
 	}
 
-	return copy, nil
+	return copied, nil
 }
 
 func ProcessBody(body []byte, out *os.File, cookie string, first bool, minHeight *uint64, maxHeight *uint64) (*string, error) {
 	var response Response
+
 	err := json.Unmarshal(body, &response)
 	if err != nil {
 		return nil, err
@@ -181,19 +189,23 @@ func ProcessBody(body []byte, out *os.File, cookie string, first bool, minHeight
 func GetCookie() (*string, error) {
 	home, found := os.LookupEnv("HOME")
 	if !found {
-		return nil, errors.New("No $HOME to look for cookie file")
+		return nil, errors.New("no $HOME to look for cookie file")
 	}
 
-	cookieFd, err := os.Open(home + "/.namecoin/.cookie")
+	// Running a benchmark in an untrusted environment would be problematic anyway.
+	cookieFd, err := os.Open(home + "/.namecoin/.cookie") // nolint: gosec
 	if err != nil {
 		return nil, err
 	}
-	defer cookieFd.Close()
+
+	// Handling Close() failures is surely out of scope?
+	defer cookieFd.Close() // nolint: errcheck
 
 	cookie, err := io.ReadAll(cookieFd)
 	if err != nil {
 		return nil, err
 	}
+
 	str := string(cookie)
 
 	return &str, nil

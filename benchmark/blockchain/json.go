@@ -19,11 +19,13 @@ package blockchain
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net"
 	"os"
 	"reflect"
@@ -42,27 +44,31 @@ import (
 func parseTypeOrSlice[E any](value any) ([]E, error) {
 	typeOf := reflect.TypeOf(value)
 	if typeOf == nil {
-		return nil, errors.New("Nil value")
+		return nil, errors.New("nil value")
 	}
 
 	expectedType := reflect.TypeFor[E]()
 
 	switch typeOf {
 	case expectedType:
-		return []E{value.(E)}, nil
+		// Checked above.
+		return []E{value.(E)}, nil // nolint: forcetypeassert
 	case reflect.SliceOf(expectedType):
-		return value.([]E), nil
+		// Ibid.
+		return value.([]E), nil // nolint: forcetypeassert
 	default:
 		if typeOf.Kind() != reflect.Slice || typeOf.Elem().Kind() != reflect.Interface {
-			return nil, fmt.Errorf("Unexpected type %s != %s", typeOf.String(), expectedType.String())
+			return nil, fmt.Errorf("unexpected type %s != %s", typeOf.String(), expectedType.String())
 		}
 
-		// Handle encoding/json decoding things too generically as []any
+		// Handle encoding/json decoding things too generically as []any.
 		var ret []E
-		for _, elem := range value.([]any) {
+
+		// Checked above.
+		for _, elem := range value.([]any) { // nolint: forcetypeassert
 			cast, ok := elem.(E)
 			if !ok {
-				return nil, errors.New("Invalid element type")
+				return nil, errors.New("invalid element type")
 			}
 
 			ret = append(ret, cast)
@@ -72,19 +78,23 @@ func parseTypeOrSlice[E any](value any) ([]E, error) {
 	}
 }
 
+// Short of giving every field type its own function, there probably isn't much that can be done here to get the complexity under the limit.
+// nolint: gocognit, cyclop, funlen
 func handleField(key string, value any, name string, skipped *int, parent map[string]any) ([]util.GenericNameRecord, error) {
 	ret := []util.GenericNameRecord{}
+
 	switch key {
 	case "map":
 		cast, ok := value.(map[string]any)
 		if !ok {
-			return nil, errors.New("Non-object map value")
+			return nil, errors.New("non-object map value")
 		}
 
 		keys := make([]string, 0, len(cast))
 		for kMap := range cast {
 			keys = append(keys, kMap)
 		}
+
 		slices.Sort(keys)
 
 		for _, kMap := range keys {
@@ -96,23 +106,32 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 			typeOf := reflect.TypeOf(vMap)
 			if typeOf == nil {
-				fmt.Println("Nil value")
+				fmt.Println("nil value")
+
 				continue
 			}
 
 			kind := typeOf.Kind()
+
+			// default is used
+			// nolint: exhaustive
 			switch kind {
 			case reflect.String:
-				str := vMap.(string)
+				// Checked above.
+				str := vMap.(string) // nolint: forcetypeassert
+
 				ip := net.ParseIP(str)
 				if ip == nil {
-					fmt.Println("Invalid subdomain IP address:", str)
+					fmt.Println("invalid subdomain IP address:", str)
+
 					continue
 				}
+
 				ip = ip.To4()
 
 				if ip == nil {
 					fmt.Println("IPv6 but should be IPv4")
+
 					continue
 				}
 
@@ -123,41 +142,51 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 					RecordData: union,
 				})
 			case reflect.Map:
-				cast := vMap.(map[string]any)
+				cast, ok := vMap.(map[string]any)
+				if !ok {
+					fmt.Println("invalid map kv types")
+
+					continue
+				}
 				// Account for nondeterministic map iteration
 				keys := make([]string, 0, len(cast))
 				for key := range cast {
 					keys = append(keys, key)
 				}
+
 				slices.Sort(keys)
 
 				for _, kNested := range keys {
 					vNested := cast[kNested]
+
 					var relName string
 					if len(name) == 0 {
 						relName = kMap
 					} else {
 						relName = kMap + "." + name
 					}
+
 					nested, err := handleField(kNested, vNested, relName, skipped, cast)
 					if err == nil {
 						ret = append(ret, nested...)
 					} else {
-						fmt.Println("Failed to parse subdomain:", err.Error())
+						fmt.Println("failed to parse subdomain:", err.Error())
 					}
 				}
 			default:
-				fmt.Println("Invalid subdomain type:", kind.String())
+				fmt.Println("invalid subdomain type:", kind.String())
 			}
 		}
 	case "import":
 		withSub, ok := value.([]any)
 		if ok {
 			leave := true
+
 			for _, elemAny := range withSub {
 				elem, ok := elemAny.([]any)
 				if !ok {
 					leave = false
+
 					break
 				}
 
@@ -175,11 +204,14 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				}
 
 				var subPtr *string
-				if len(elem) >= 2 {
+
+				baseParts := 2
+				if len(elem) >= baseParts {
 					sub, ok := elem[1].(string)
 					if !ok {
 						continue
 					}
+
 					subPtr = &sub
 				}
 
@@ -201,7 +233,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 		disamb, err := parseTypeOrSlice[string](value)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to parse import: %s", err.Error())
+			return nil, fmt.Errorf("failed to parse import: %s", err.Error())
 		}
 
 		for _, elem := range disamb {
@@ -225,14 +257,15 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 	case "ip":
 		disamb, err := parseTypeOrSlice[string](value)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to parse ip: %s", err.Error())
+			return nil, fmt.Errorf("failed to parse ip: %s", err.Error())
 		}
 
 		for _, elem := range disamb {
 			ip := net.ParseIP(elem)
 			if ip == nil {
-				return nil, fmt.Errorf("Failed to parse ip: %s", elem)
+				return nil, fmt.Errorf("failed to parse ip: %s", elem)
 			}
+
 			ip = ip.To4()
 
 			if ip == nil {
@@ -247,13 +280,13 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 	case "ip6":
 		disamb, err := parseTypeOrSlice[string](value)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to parse ip6: %s", err.Error())
+			return nil, fmt.Errorf("failed to parse ip6: %s", err.Error())
 		}
 
 		for _, elem := range disamb {
 			ip := net.ParseIP(elem)
 			if ip == nil {
-				return nil, fmt.Errorf("Failed to parse ip6: %s", elem)
+				return nil, fmt.Errorf("failed to parse ip6: %s", elem)
 			}
 
 			if strings.Contains(elem, ".") {
@@ -268,15 +301,16 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 	case "alias":
 		typeOf := reflect.TypeOf(value)
 		if typeOf == nil {
-			return nil, errors.New("Nil value")
+			return nil, errors.New("nil value")
 		}
 
 		kind := typeOf.Kind()
 		if kind != reflect.String {
-			return nil, fmt.Errorf("Invalid kind when parsing alias: %s", kind.String())
+			return nil, fmt.Errorf("invalid kind when parsing alias: %s", kind.String())
 		}
 
-		str := value.(string)
+		// Checked above.
+		str := value.(string) // nolint: forcetypeassert
 		if len(str) > 255 || !mixedradix.IsValidDnsName(str) {
 			break
 		}
@@ -303,10 +337,12 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 		ret = append(ret, parsed...)
 	case "ds":
 		oldSkipped := *skipped
+
 		parsed, err := parseDs(name, value, skipped)
 		if err != nil {
 			if oldSkipped != *skipped {
-				fmt.Println("Unsupported DS record, falling back:", err.Error())
+				fmt.Println("unsupported DS record, falling back:", err.Error())
+
 				parsed, err = parseGenericDs(name, value)
 				if err != nil {
 					return nil, err
@@ -335,7 +371,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 			cut, ok := strings.CutPrefix(str, "dnslink=")
 			if !ok {
-				return nil, fmt.Errorf("Invalid dnslink TXT record: %s", str)
+				return nil, fmt.Errorf("invalid dnslink TXT record: %s", str)
 			}
 
 			if !strings.HasPrefix(cut, "/ipns/") {
@@ -344,7 +380,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 			ipns, err := ncasn.IpnsToRecord(cut)
 			if err != nil {
-				return nil, fmt.Errorf("Invalid IPNS TXT record: %s", err.Error())
+				return nil, fmt.Errorf("invalid IPNS TXT record: %s", err.Error())
 			}
 
 			ret = append(ret, util.GenericNameRecord{
@@ -361,7 +397,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 			str, ok := value.(string)
 			if !ok {
-				return nil, errors.New("Tor TXT record is not a string")
+				return nil, errors.New("tor TXT record is not a string")
 			}
 
 			record, err := ncasn.OnionRecordFromDomain(str)
@@ -378,7 +414,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 		default:
 			parsed, err := parseTxt(name, value)
 			if err != nil {
-				return nil, fmt.Errorf("Failed to parse TXT record: %s", err.Error())
+				return nil, fmt.Errorf("failed to parse TXT record: %s", err.Error())
 			}
 
 			ret = append(ret, parsed...)
@@ -396,17 +432,20 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 			}
 
 			oldSkipped := *skipped
+
 			parsed, err := parseTlsaRecord(name, nested, skipped)
 			if err != nil {
-				fmt.Println("Failed to parse TLSA record:", err.Error())
+				fmt.Println("failed to parse TLSA record:", err.Error())
+
 				if oldSkipped != *skipped {
 					parsed, err = parseGenericTlsa(name, nested)
 					if err == nil {
 						ret = append(ret, *parsed)
 					} else {
-						fmt.Println("Failed to parse TLSA record as Generic:", err.Error())
+						fmt.Println("failed to parse TLSA record as Generic:", err.Error())
 					}
 				}
+
 				continue
 			}
 
@@ -415,13 +454,14 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 	case "loc":
 		records, err := parseTypeOrSlice[string](value)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid LOC type: %s", err.Error())
+			return nil, fmt.Errorf("invalid LOC type: %s", err.Error())
 		}
 
 		for _, record := range records {
 			parsed, err := parseLocRecord(name, record)
 			if err != nil {
-				fmt.Println("Failed to parse LOC record:", err.Error())
+				fmt.Println("failed to parse LOC record:", err.Error())
+
 				continue
 			}
 
@@ -440,9 +480,10 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				if err == nil {
 					ret = append(ret, *parsed)
 				} else {
-					fmt.Println("Failed to parse generic SSHFP record:", err.Error())
+					fmt.Println("failed to parse generic SSHFP record:", err.Error())
 				}
 			}
+
 			oldSkipped = *skipped
 
 			record, ok := elem.([]any)
@@ -450,21 +491,28 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				return nil, errors.New("sshfp field is not a slice of slices")
 			}
 
+			minValid := 3
+
 			length := len(record)
-			if length < 3 {
+			if length < minValid {
 				fmt.Println("SSHFP record too short")
+
 				continue
 			}
 
 			algo, err := parseUint8(record[0])
 			if err != nil {
-				fmt.Println("Invalid SSHFP algorithm:", err.Error())
+				fmt.Println("invalid SSHFP algorithm:", err.Error())
+
 				continue
 			}
 
-			if *algo < 4 {
+			var maxSupported uint8 = 4
+			if *algo < maxSupported {
 				*skipped++
-				fmt.Println("Unsupported SSHFP algorithm:", *algo)
+
+				fmt.Println("unsupported SSHFP algorithm:", *algo)
+
 				continue
 			}
 
@@ -472,32 +520,40 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 			digestType, err := parseUint8(record[1])
 			if err != nil {
-				fmt.Println("Invalid digest algorithm:", err.Error())
+				fmt.Println("invalid digest algorithm:", err.Error())
+
 				continue
 			}
 
-			if *digestType != 2 {
+			var sha256Id uint8 = 2
+			if *digestType != sha256Id {
 				*skipped++
+
 				fmt.Println("Non-SHA-256 SSHFP digest algorithm:", *digestType)
+
 				continue
 			}
 
 			digest, ok := record[2].(string)
 			if !ok {
 				fmt.Println("SSHFP digest is not a string")
+
 				continue
 			}
 
 			bytes, err := base64.StdEncoding.DecodeString(digest)
 			if err != nil {
-				fmt.Println("Invalid SSHFP digest:", err.Error())
+				fmt.Println("invalid SSHFP digest:", err.Error())
+
 				continue
 			}
 
 			length = len(bytes)
-			if length != 32 {
+			if length != sha256.Size {
 				*skipped++
-				fmt.Println("Invalid SSHFP SHA-256 length:", length)
+
+				fmt.Println("invalid SSHFP SHA-256 length:", length)
+
 				continue
 			}
 
@@ -514,13 +570,14 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 	case "tor":
 		records, err := parseTypeOrSlice[string](value)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid tor record type: %s", err.Error())
+			return nil, fmt.Errorf("invalid tor record type: %s", err.Error())
 		}
 
 		for _, record := range records {
 			parsed, err := ncasn.OnionRecordFromDomain(record)
 			if err != nil {
-				fmt.Println("Invalid onion domain:", err.Error())
+				fmt.Println("invalid onion domain:", err.Error())
+
 				continue
 			}
 
@@ -534,13 +591,14 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 	case "i2p":
 		records, err := parseTypeOrSlice[string](value)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid i2p record type: %s", err.Error())
+			return nil, fmt.Errorf("invalid i2p record type: %s", err.Error())
 		}
 
 		for _, record := range records {
 			old, ls2, err := ncasn.I2pRecordFromDomain(record)
 			if err != nil {
-				fmt.Println("Invalid i2p domain:", err.Error())
+				fmt.Println("invalid i2p domain:", err.Error())
+
 				continue
 			}
 
@@ -560,7 +618,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 		parsed, err := ncasn.USKRecordFromKey(str)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid USK: %s", err.Error())
+			return nil, fmt.Errorf("invalid USK: %s", err.Error())
 		}
 
 		ret = append(ret, util.GenericNameRecord{
@@ -588,7 +646,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 	case "ns", "dns":
 		records, err := parseTypeOrSlice[string](value)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid ns/dns record type: %s", err.Error())
+			return nil, fmt.Errorf("invalid ns/dns record type: %s", err.Error())
 		}
 
 		replace := []string{}
@@ -629,12 +687,14 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 				replace = append(replace, fmt.Sprint("ns", nsIdx))
 				nsIdx++
+
 				continue
 			}
 
 			if len(record) > 255 || !mixedradix.IsValidDnsName(record) {
 				continue
 			}
+
 			ret = append(ret, util.GenericNameRecord{
 				Name: name,
 				RecordData: ncasn.RecordUnion{
@@ -646,6 +706,7 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 
 			replace = append(replace, record)
 		}
+
 		switch len(replace) {
 		case 0:
 			// Nothing
@@ -666,14 +727,17 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				return nil, errors.New("o field is not a slice of slices")
 			}
 
-			if len(record) < 2 {
+			minValid := 2
+			if len(record) < minValid {
 				fmt.Println("Arbitrary record is too short")
+
 				continue
 			}
 
 			typeId, err := parseUint16(record[0])
 			if err != nil {
-				fmt.Println("Invalid record type:", err.Error())
+				fmt.Println("invalid record type:", err.Error())
+
 				continue
 			}
 
@@ -688,19 +752,29 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				dns.TypeNSEC3,
 			}
 			if slices.Contains(prohib, *typeId) {
-				fmt.Println("Unsupported arbitrary record type:", *typeId)
+				fmt.Println("unsupported arbitrary record type:", *typeId)
+
 				continue
 			}
 
 			data, ok := record[1].(string)
 			if !ok {
-				fmt.Println("Invalid arbitrary record data type")
+				fmt.Println("invalid arbitrary record data type")
+
 				continue
 			}
 
 			bytes, err := base64.StdEncoding.DecodeString(data)
 			if err != nil {
-				fmt.Println("Invalid arbitrary record base64:", err.Error())
+				fmt.Println("invalid arbitrary record base64:", err.Error())
+
+				continue
+			}
+
+			length := len(bytes)
+			if length > math.MaxUint16 {
+				fmt.Println("invalid DNS data length:", length)
+
 				continue
 			}
 
@@ -708,19 +782,22 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 				Name:     name,
 				Rrtype:   *typeId,
 				Class:    dns.ClassINET,
-				Rdlength: uint16(len(bytes)),
+				Rdlength: uint16(length),
 			}
 
 			parsed, _, err := dns.UnpackRRWithHeader(header, bytes, 0)
 			if err != nil {
-				fmt.Println("Invalid arbitrary record:", err.Error())
+				fmt.Println("invalid arbitrary record:", err.Error())
+
 				continue
 			}
 
 			var discard int
+
 			decoded, err := zone.ParseRecord(parsed.String(), false, &discard)
 			if err != nil {
-				fmt.Println("Invalid arbitrary record:", err.Error())
+				fmt.Println("invalid arbitrary record:", err.Error())
+
 				continue
 			}
 
@@ -733,71 +810,92 @@ func handleField(key string, value any, name string, skipped *int, parent map[st
 	return ret, nil
 }
 
+func parseWhoisFields(data map[string]any) *ncasn.WhoisFields {
+	var fields ncasn.WhoisFields
+
+	r, ok := data["r"]
+	if ok {
+		rStr, ok := r.(string)
+		if !ok {
+			fmt.Println("invalid registrant type")
+
+			return nil
+		}
+
+		fields.Registrant = &rStr
+	}
+
+	rr, ok := data["rr"]
+	if ok {
+		rrStr, ok := rr.(string)
+		if !ok {
+			fmt.Println("invalid registrar type")
+
+			return nil
+		}
+
+		fields.Registrar = &rrStr
+	}
+
+	a, ok := data["a"]
+	if ok {
+		aStr, ok := a.(string)
+		if !ok {
+			fmt.Println("invalid admin type")
+
+			return nil
+		}
+
+		fields.AdmContact = &aStr
+	}
+
+	t, ok := data["t"]
+	if ok {
+		tStr, ok := t.(string)
+		if !ok {
+			fmt.Println("invalid tech type")
+
+			return nil
+		}
+
+		fields.TechContact = &tStr
+	}
+
+	return &fields
+}
+
 func parseWhois(value any) *ncasn.Whois {
 	typeOf := reflect.TypeOf(value)
 	if typeOf == nil {
-		fmt.Println("Nil value")
+		fmt.Println("nil value")
+
 		return nil
 	}
 
 	kind := typeOf.Kind()
+
 	var whois *ncasn.Whois
+
+	// default is used
+	// nolint: exhaustive
 	switch kind {
 	case reflect.Map:
 		cast, ok := value.(map[string]any)
 		if !ok {
-			fmt.Println("Invalid info field type:", typeOf.String())
+			fmt.Println("invalid info field type:", typeOf.String())
+
 			return nil
 		}
 
-		var fields ncasn.WhoisFields
+		fields := parseWhoisFields(cast)
 
-		r, ok := cast["r"]
-		if ok {
-			rStr, ok := r.(string)
-			if !ok {
-				fmt.Println("Invalid registrant type")
-				return nil
-			}
-			fields.Registrant = &rStr
-		}
-
-		rr, ok := cast["rr"]
-		if ok {
-			rrStr, ok := rr.(string)
-			if !ok {
-				fmt.Println("Invalid registrar type")
-				return nil
-			}
-			fields.Registrar = &rrStr
-		}
-
-		a, ok := cast["a"]
-		if ok {
-			aStr, ok := a.(string)
-			if !ok {
-				fmt.Println("Invalid admin type")
-				return nil
-			}
-			fields.AdmContact = &aStr
-		}
-
-		t, ok := cast["t"]
-		if ok {
-			tStr, ok := t.(string)
-			if !ok {
-				fmt.Println("Invalid tech type")
-				return nil
-			}
-			fields.TechContact = &tStr
-		}
-
-		whois = &ncasn.Whois{Fields: &fields}
+		whois = &ncasn.Whois{Fields: fields}
 	case reflect.String:
-		cast := value.(string)
+		// Checked above.
+		cast := value.(string) // nolint: forcetypeassert
 		whois = &ncasn.Whois{Entity: &cast}
 	default:
-		fmt.Println("Invalid info field type:", typeOf.String())
+		fmt.Println("invalid info field type:", typeOf.String())
 	}
 
 	return whois
@@ -816,19 +914,25 @@ func fixNs(index int, record *ncasn.NSIP, obj map[string]any) {
 		obj["map"] = sub
 	}
 
-	cast := sub.(map[string]any)
+	// Exclusively set above.
+	cast := sub.(map[string]any) // nolint: forcetypeassert
 
 	indexed := fmt.Sprint("ns", index)
+
 	ns, ok := cast[indexed]
 	if !ok {
 		ns = map[string]any{}
 		cast[indexed] = ns
 	}
 
-	nsCast := ns.(map[string]any)
+	// Ibid.
+	nsCast := ns.(map[string]any) // nolint: forcetypeassert
 
-	var ipKey string
-	var ipVal string
+	var (
+		ipKey string
+		ipVal string
+	)
+
 	if record.A != nil {
 		ipKey = "ip"
 		ipVal = net.IP(record.A.Target).To4().String()
@@ -847,7 +951,8 @@ func fixNs(index int, record *ncasn.NSIP, obj map[string]any) {
 		ip = []string{ipStr}
 	}
 
-	ipCast := ip.([]string)
+	// Ibid.
+	ipCast := ip.([]string) // nolint: forcetypeassert
 	ipCast = append(ipCast, ipVal)
 
 	if len(ipCast) == 1 {
@@ -862,32 +967,38 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 	parser.UseNumber()
 
 	var parsed map[string]any
+
 	err := parser.Decode(&parsed)
 	if err != nil {
 		return nil, err
 	}
 
-	var ret []util.GenericNameRecord
-	var zone util.GenericZone
-	var coverage zoneWithCoverage
+	var (
+		ret      []util.GenericNameRecord
+		zone     util.GenericZone
+		coverage zoneWithCoverage
+	)
 
 	// Account for nondeterministic map iteration
 	keys := make([]string, 0, len(parsed))
 	for key := range parsed {
 		keys = append(keys, key)
 	}
+
 	slices.Sort(keys)
 
 	for _, key := range keys {
 		value := parsed[key]
 		if key == "info" {
 			zone.Info = parseWhois(value)
+
 			continue
 		}
 
 		record, err := handleField(key, value, "", &coverage.Skipped, parsed)
 		if err != nil {
 			fmt.Printf("Error while parsing %s for %s: %s\n", key, data.Name, err.Error())
+
 			continue
 		}
 
@@ -899,8 +1010,16 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 		return nil, nil
 	}
 
+	zone.Records = handleNs(ret, parsed)
+	coverage.Zone = &zone
+
+	return &coverage, nil
+}
+
+func handleNs(records []util.GenericNameRecord, parsed map[string]any) []util.GenericNameRecord {
 	i := 0
-	for _, record := range ret {
+
+	for _, record := range records {
 		if record.RecordData.Ns == nil {
 			continue
 		}
@@ -914,15 +1033,12 @@ func jsonToZone(data *Name) (*zoneWithCoverage, error) {
 		i++
 	}
 
-	ret = applySuppression(ret)
-
-	zone.Records = ret
-	coverage.Zone = &zone
-	return &coverage, nil
+	return applySuppression(records)
 }
 
 func combine(zone *util.GenericZone, json *Name, hidden bool) (*util.Zone, error) {
 	slices.SortFunc(zone.Records, util.CmpRecords)
+
 	cborEncoded, err := cbor.RecordsToCbor(zone.Records, hidden)
 	if err != nil {
 		return nil, err
@@ -930,7 +1046,7 @@ func combine(zone *util.GenericZone, json *Name, hidden bool) (*util.Zone, error
 
 	torEncoded, err := tor.RecordsToTor(zone.Records, hidden)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to convert blockchain records to Tor format: %s", err.Error())
+		return nil, fmt.Errorf("failed to convert blockchain records to Tor format: %s", err.Error())
 	}
 
 	return &util.Zone{
@@ -943,11 +1059,14 @@ func combine(zone *util.GenericZone, json *Name, hidden bool) (*util.Zone, error
 }
 
 func JsonFileToZones(file string, hidden bool) ([]util.Zone, error) {
-	fd, err := os.Open(file)
+	// Passing untrusted arguments to a benchmark would be problematic anyway.
+	fd, err := os.Open(file) // nolint: gosec
 	if err != nil {
 		return nil, err
 	}
-	defer fd.Close()
+
+	// Handling Close() failures is surely out of scope?
+	defer fd.Close() // nolint: errcheck
 
 	data, err := io.ReadAll(fd)
 	if err != nil {
@@ -955,12 +1074,14 @@ func JsonFileToZones(file string, hidden bool) ([]util.Zone, error) {
 	}
 
 	var parsed []Name
+
 	err = json.Unmarshal(data, &parsed)
 	if err != nil {
 		return nil, err
 	}
 
 	var ret []util.Zone
+
 	for _, name := range parsed {
 		// Impossible JSON
 		if !strings.HasPrefix(name.Value, "{") {
@@ -969,7 +1090,8 @@ func JsonFileToZones(file string, hidden bool) ([]util.Zone, error) {
 
 		zone, err := jsonToZone(&name)
 		if err != nil {
-			fmt.Printf("Failed to parse %s = %s: %s\n", name.Name, name.Value, err.Error())
+			fmt.Printf("failed to parse %s = %s: %s\n", name.Name, name.Value, err.Error())
+
 			continue
 		}
 
@@ -978,6 +1100,7 @@ func JsonFileToZones(file string, hidden bool) ([]util.Zone, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			if zone.Total != 0 {
 				merged.Coverage = float64(zone.Total-zone.Skipped) / float64(zone.Total)
 			}

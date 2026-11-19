@@ -38,8 +38,8 @@ func IpnsToRecord(key string) (*IPNS, error) {
 	}
 
 	mh := decoded.Hash().HexString()
-	bytes, err := hex.DecodeString(mh)
 
+	bytes, err := hex.DecodeString(mh)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,10 @@ func (record *IPNS) ToString() string {
 	ret := "/ipns/"
 
 	hash, _ := multihash.Encode(slices.Concat(UNKNOWN_IPNS_HEADER, record.Key), multibase.Identity)
-	encoded, _ := cid.NewCidV1(0x72, hash).StringOfBase(multibase.Base36)
+
+	var cidCodec uint64 = 0x72
+
+	encoded, _ := cid.NewCidV1(cidCodec, hash).StringOfBase(multibase.Base36)
 
 	return ret + encoded
 }

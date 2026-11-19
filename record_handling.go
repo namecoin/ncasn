@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package ncasn
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -29,16 +30,21 @@ import (
 func unmarshalMixedRadixHidden(num *big.Int) (*RecordsUnion, error) {
 	ret := []HiddenDomainRecord{}
 	zero := big.NewInt(0)
+
 	var lastName *uint16
+
 	for num.Cmp(zero) == 1 {
 		var tmp HiddenDomainRecord
+
 		err := mixedradix.UnmarshalValue(num, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
 		if err != nil {
 			return nil, err
 		}
+
 		if tmp.Index == nil {
 			tmp.Index = lastName
 		}
+
 		ret = append(ret, tmp)
 		lastName = tmp.Index
 	}
@@ -49,16 +55,21 @@ func unmarshalMixedRadixHidden(num *big.Int) (*RecordsUnion, error) {
 func unmarshalMixedRadixVisible(num *big.Int) (*RecordsUnion, error) {
 	ret := []VisibleDomainRecord{}
 	zero := big.NewInt(0)
+
 	var lastName *string
+
 	for num.Cmp(zero) == 1 {
 		var tmp VisibleDomainRecord
+
 		err := mixedradix.UnmarshalValue(num, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
 		if err != nil {
 			return nil, err
 		}
+
 		if tmp.Name == nil {
 			tmp.Name = lastName
 		}
+
 		ret = append(ret, tmp)
 		lastName = tmp.Name
 	}
@@ -66,23 +77,31 @@ func unmarshalMixedRadixVisible(num *big.Int) (*RecordsUnion, error) {
 	return &RecordsUnion{Visible: ret}, nil
 }
 
+var ErrUnknownBits = errors.New("unaccounted for bits")
+
+var byteBits = 8
+
 func unmarshalPackedHidden(reader *asn1.BitReader, encoding EncodingType) (*RecordsUnion, error) {
 	ret := []HiddenDomainRecord{}
+
 	var lastName *uint16
+
 	for reader.RemainingBits() > 0 {
 		var tmp HiddenDomainRecord
+
 		readerCopy := *reader
+
 		err := encoding.UnmarshalValue(reader, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
 		if err != nil {
 			// Check if the error is caused by unused trailing bits, ignore it and jump out of the loop if so.
-			if readerCopy.RemainingBits() < 8 {
+			if readerCopy.RemainingBits() < byteBits {
 				remaining, err := readerCopy.ReadBits(readerCopy.RemainingBits())
 				if err != nil {
 					return nil, err
 				}
 
 				if remaining != 0 {
-					return nil, fmt.Errorf("unaccounted for bits: %x", remaining)
+					return nil, fmt.Errorf("%w: %x", ErrUnknownBits, remaining)
 				}
 
 				// Cannot be a meaningful record, so it must just be the zero padding of the last byte.
@@ -91,9 +110,11 @@ func unmarshalPackedHidden(reader *asn1.BitReader, encoding EncodingType) (*Reco
 
 			return nil, err
 		}
+
 		if tmp.Index == nil {
 			tmp.Index = lastName
 		}
+
 		ret = append(ret, tmp)
 		lastName = tmp.Index
 	}
@@ -103,21 +124,25 @@ func unmarshalPackedHidden(reader *asn1.BitReader, encoding EncodingType) (*Reco
 
 func unmarshalPackedVisible(reader *asn1.BitReader, encoding EncodingType) (*RecordsUnion, error) {
 	ret := []VisibleDomainRecord{}
+
 	var lastName *string
+
 	for reader.RemainingBits() > 0 {
 		var tmp VisibleDomainRecord
+
 		readerCopy := *reader
+
 		err := encoding.UnmarshalValue(reader, reflect.ValueOf(&tmp).Elem(), asn1.FieldOptions{})
 		if err != nil {
 			// Check if the error is caused by unused trailing bits, ignore it and jump out of the loop if so.
-			if readerCopy.RemainingBits() < 8 {
+			if readerCopy.RemainingBits() < byteBits {
 				remaining, err := readerCopy.ReadBits(readerCopy.RemainingBits())
 				if err != nil {
 					return nil, err
 				}
 
 				if remaining != 0 {
-					return nil, fmt.Errorf("unaccounted for bits: %x", remaining)
+					return nil, fmt.Errorf("%w: %x", ErrUnknownBits, remaining)
 				}
 
 				// Cannot be a meaningful record, so it must just be the zero padding of the last byte.
@@ -126,9 +151,11 @@ func unmarshalPackedVisible(reader *asn1.BitReader, encoding EncodingType) (*Rec
 
 			return nil, err
 		}
+
 		if tmp.Name == nil {
 			tmp.Name = lastName
 		}
+
 		ret = append(ret, tmp)
 		lastName = tmp.Name
 	}
@@ -144,6 +171,7 @@ func marshalPackedHidden(writer *asn1.BitWriter, encoding EncodingType, records 
 		} else {
 			lastName = elem.Index
 		}
+
 		err := encoding.MarshalValue(writer, reflect.ValueOf(elem), asn1.FieldOptions{})
 		if err != nil {
 			return nil, err
@@ -161,6 +189,7 @@ func marshalPackedVisible(writer *asn1.BitWriter, encoding EncodingType, records
 		} else {
 			lastName = elem.Name
 		}
+
 		err := encoding.MarshalValue(writer, reflect.ValueOf(elem), asn1.FieldOptions{})
 		if err != nil {
 			return nil, err
@@ -178,6 +207,7 @@ func marshalMixedRadixHidden(num *asn1.MixedRadixNumber, records *RecordsUnion) 
 		} else {
 			lastName = elem.Index
 		}
+
 		err := mixedradix.MarshalValue(num, reflect.ValueOf(elem), asn1.FieldOptions{})
 		if err != nil {
 			return nil, err
@@ -195,6 +225,7 @@ func marshalMixedRadixVisible(num *asn1.MixedRadixNumber, records *RecordsUnion)
 		} else {
 			lastName = elem.Name
 		}
+
 		err := mixedradix.MarshalValue(num, reflect.ValueOf(elem), asn1.FieldOptions{})
 		if err != nil {
 			return nil, err

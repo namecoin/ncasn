@@ -35,19 +35,24 @@ func RecordsToCbor(records []util.GenericNameRecord, hidden bool) (*util.CborRec
 	encoded := [][]any{}
 
 	nsIdx := 0
+
 	var lastName *string
+
 	for i := range records {
 		var encRecord []any
+
 		encRecord, tmpName := recordToCbor(&records[i], lastName, nsIdx, hidden)
 		if encRecord == nil {
 			ignored = append(ignored, &records[i])
 		} else {
 			lastName = tmpName
+
 			encoded = append(encoded, encRecord)
 		}
 
 		if records[i].RecordData.Ns != nil && records[i].RecordData.Ns.String == nil {
 			nsStr := fmt.Sprint("ns", nsIdx)
+
 			var record []any
 			if records[i].RecordData.Ns.Ip.A != nil {
 				record, _ = recordToCbor(&util.GenericNameRecord{
@@ -85,6 +90,7 @@ func recordDataToCbor(record *ncasn.RecordUnion, nsIdx int) ([]byte, []any) {
 		if record.Srv.Data.Weight != nil {
 			ret = append(ret, *record.Srv.Data.Weight)
 		}
+
 		return nil, append(ret, record.Srv.Data.Port, record.Srv.Data.Target)
 	case record.Mx != nil:
 		return nil, []any{record.Mx.Priority, strings.Split(record.Mx.Target, ".")}
@@ -102,10 +108,7 @@ func recordDataToCbor(record *ncasn.RecordUnion, nsIdx int) ([]byte, []any) {
 	}
 }
 
-func recordToCbor(record *util.GenericNameRecord, lastName *string, nsIdx int, hidden bool) ([]any, *string) {
-	var ret []any
-	name := record.Name
-
+func preprocessName(name string, record *util.GenericNameRecord) string {
 	switch {
 	case record.RecordData.Txt != nil && record.RecordData.Txt.DnsWl:
 		if len(name) == 0 {
@@ -121,6 +124,14 @@ func recordToCbor(record *util.GenericNameRecord, lastName *string, nsIdx int, h
 			name = prefix + "." + name
 		}
 	}
+
+	return name
+}
+
+func recordToCbor(record *util.GenericNameRecord, lastName *string, nsIdx int, hidden bool) ([]any, *string) {
+	var ret []any
+
+	name := preprocessName(record.Name, record)
 
 	if lastName == nil || *lastName != name {
 		lastName = &name

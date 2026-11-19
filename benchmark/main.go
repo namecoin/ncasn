@@ -35,7 +35,8 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
+	minArgs := 2
+	if len(os.Args) < minArgs {
 		fmt.Fprintln(os.Stderr, "No operation was provided")
 		os.Exit(1)
 	}
@@ -52,15 +53,67 @@ func main() {
 	case "hidden":
 		benchmark(true)
 	default:
-		fmt.Fprintln(os.Stderr, "Invalid operation")
+		fmt.Fprintln(os.Stderr, "invalid operation")
 		os.Exit(1)
 	}
 }
 
+func getHeights() (*uint64, *uint64, error) {
+	var (
+		minHeight *uint64
+		maxHeight *uint64
+	)
+
+	minPos := 4
+	maxPos := 5
+	argLen := len(os.Args)
+
+	if argLen > minPos {
+		tmpMin, err := strconv.ParseUint(os.Args[minPos], 10, 64)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid min height: %w", err)
+		}
+
+		minHeight = &tmpMin
+
+		if argLen > maxPos {
+			tmpMax, err := strconv.ParseUint(os.Args[maxPos], 10, 64)
+			if err != nil {
+				return nil, nil, fmt.Errorf("invalid max height: %w", err)
+			}
+
+			maxHeight = &tmpMax
+		}
+	}
+
+	return minHeight, maxHeight, nil
+}
+
+func cleanup(output *os.File) error {
+	// Remove last comma
+	curr, err := output.Seek(0, 1)
+	if err != nil {
+		return err
+	}
+
+	if curr != 1 {
+		_, err = output.Seek(-1, 1)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = output.WriteString("]")
+
+	return err
+}
+
 func collectNmc() error {
 	argLen := len(os.Args)
-	if argLen < 4 {
-		return errors.New("Not enough arguments")
+
+	minArgs := 4
+	if argLen < minArgs {
+		return errors.New("not enough arguments")
 	}
 
 	cookie, err := blockchain.GetCookie()
@@ -68,36 +121,29 @@ func collectNmc() error {
 		return err
 	}
 
-	output, err := os.OpenFile(os.Args[3], os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0664)
+	ownerReadWrite := 0600
+	// Passing untrusted arguments to a benchmark would be problematic anyway.
+	output, err := os.OpenFile(os.Args[3], os.O_CREATE|os.O_TRUNC|os.O_RDWR, os.FileMode(ownerReadWrite)) // nolint: gosec
 	if err != nil {
 		return err
 	}
-	defer output.Close()
+
+	// Handling Close() failures is surely out of scope?
+	defer output.Close() // nolint: errcheck
+
 	_, err = output.WriteString("[")
 	if err != nil {
 		return err
 	}
 
+	minHeight, maxHeight, err := getHeights()
+	if err != nil {
+		return err
+	}
+
 	var next *string
+
 	for {
-		var minHeight *uint64
-		var maxHeight *uint64
-		if argLen > 4 {
-			tmpMin, err := strconv.ParseUint(os.Args[4], 10, 64)
-			if err != nil {
-				return fmt.Errorf("Invalid min height: %s", err.Error())
-			}
-			minHeight = &tmpMin
-
-			if argLen > 5 {
-				tmpMax, err := strconv.ParseUint(os.Args[5], 10, 64)
-				if err != nil {
-					return fmt.Errorf("Invalid max height: %s", err.Error())
-				}
-				maxHeight = &tmpMax
-			}
-		}
-
 		body, err := blockchain.ScanNames(next, *cookie)
 		if err != nil {
 			return err
@@ -113,21 +159,7 @@ func collectNmc() error {
 		}
 	}
 
-	// Remove last comma
-	curr, err := output.Seek(0, 1)
-	if err != nil {
-		return err
-	}
-	if curr != 1 {
-		_, err = output.Seek(-1, 1)
-		if err != nil {
-			return err
-		}
-	}
-
-	_, err = output.WriteString("]")
-
-	return err
+	return cleanup(output)
 }
 
 type Result struct {
@@ -143,10 +175,12 @@ type Results struct {
 	TypeLen int
 }
 
+// nolint: funlen
 func runVisibleComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results, error) {
 	cborCopy := []ncasn.VisibleDomainRecord{}
 	torCopy := []ncasn.VisibleDomainRecord{}
 	jsonCopy := []ncasn.VisibleDomainRecord{}
+
 	for i := range zone.Zone.Records {
 		if !slices.Contains(zone.Cbor.Ignored, &zone.Zone.Records[i]) {
 			cborCopy = append(cborCopy, zone.Zone.Records[i].ToVisible())
@@ -236,6 +270,7 @@ func runVisibleComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Result
 	}, nil
 }
 
+// nolint: cyclop, funlen
 func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results, error) {
 	cborCopy := []ncasn.HiddenDomainRecord{}
 	torCopy := []ncasn.HiddenDomainRecord{}
@@ -262,7 +297,8 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 		}
 	}
 
-	if len(addedSubs) < 2 {
+	threshold := 2
+	if len(addedSubs) < threshold {
 		return runVisibleComparison(zone, encoding)
 	}
 
@@ -287,15 +323,24 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 
 	total := len(jsonCopy)
 
-	jsonEncoded, err := contrasub.MarshalRecords(jsonZone, encoding, true, &zone.Base)
+	opts := &contrasub.Opts{
+		Deref: true,
+		Base:  &zone.Base,
+	}
+
+	jsonEncoded, err := contrasub.MarshalRecords(jsonZone, encoding, opts)
 	if err != nil {
 		return nil, err
 	}
 
+	contrasubCorrection := 8
+
+	ncasnCorrection := 1
+
 	jsonResult := Result{
 		// + 1 to account for an extra byte used for schema versioning, see #4
 		// + 8 to account for contrasub nonce
-		Ratio: float64(len(zone.Json)+8) / float64(len(jsonEncoded)+1),
+		Ratio: float64(len(zone.Json)+contrasubCorrection) / float64(len(jsonEncoded)+ncasnCorrection),
 		Count: total,
 	}
 
@@ -307,7 +352,7 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 	torResult := cborResult
 
 	if len(cborCopy) != 0 {
-		cborEncoded, err := contrasub.MarshalRecords(cborZone, encoding, true, &zone.Base)
+		cborEncoded, err := contrasub.MarshalRecords(cborZone, encoding, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -315,13 +360,13 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 		cborResult = Result{
 			// + 1 to account for an extra byte used for schema versioning, see #4
 			// + 8 to account for contrasub nonce
-			Ratio: float64(len(zone.Cbor.Data)+8) / float64(len(cborEncoded)+1),
+			Ratio: float64(len(zone.Cbor.Data)+contrasubCorrection) / float64(len(cborEncoded)+ncasnCorrection),
 			Count: len(cborCopy),
 		}
 	}
 
 	if len(torCopy) != 0 {
-		torEncoded, err := contrasub.MarshalRecords(torZone, encoding, true, &zone.Base)
+		torEncoded, err := contrasub.MarshalRecords(torZone, encoding, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -346,9 +391,11 @@ func runHiddenComparison(zone *util.Zone, encoding ncasn.EncodingType) (*Results
 }
 
 func weightedAverage(results []Results) Results {
-	var jsonResult Result
-	var torResult Result
-	var cborResult Result
+	var (
+		jsonResult Result
+		torResult  Result
+		cborResult Result
+	)
 
 	typeLen := 0
 
@@ -395,19 +442,24 @@ func printZoneCoverage(fromFiles []util.Zone, fromChain []util.Zone) {
 	for _, zone := range fromChain {
 		chainAcc += zone.Coverage
 	}
+
 	fmt.Printf("Blockchain coverage: %.2f\n", chainAcc/float64(len(fromChain)))
 }
 
 func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper int, hidden bool) int {
 	var results []Results
+
 	for _, zone := range zones {
-		var result *Results
-		var err error
+		var (
+			result *Results
+			err    error
+		)
 		if hidden {
 			result, err = runHiddenComparison(&zone, encoding)
 		} else {
 			result, err = runVisibleComparison(&zone, encoding)
 		}
+
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
@@ -417,6 +469,7 @@ func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper i
 	}
 
 	final := weightedAverage(results)
+
 	fmt.Println("Format: Size ratio | Record coverage | Record count")
 	fmt.Printf("JSON: %.5f | %.2f | %d\n", final.Json.Ratio, final.Json.Coverage, final.Json.Count)
 	fmt.Printf("Tor: %.5f | %.2f | %d\n", final.Tor.Ratio, final.Tor.Coverage, final.Tor.Count)
@@ -424,6 +477,7 @@ func compareBin(zones []util.Zone, encoding ncasn.EncodingType, aper int, uper i
 
 	if aper != -1 {
 		fmt.Printf("APER: %.5f | %.2f | %d\n", float64(aper)/float64(final.TypeLen), 1.0, final.Json.Count)
+
 		if uper != -1 {
 			fmt.Printf("UPER: %.5f | %.2f | %d\n", float64(uper)/float64(final.TypeLen), 1.0, final.Json.Count)
 		}
@@ -452,6 +506,7 @@ func typesFromRecords(records []util.GenericNameRecord) []string {
 	}
 
 	slices.Sort(ret)
+
 	return slices.Compact(ret)
 }
 
@@ -461,12 +516,15 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, a
 	if !bin {
 		aperUnit := -1
 		uperUnit := -1
+
 		if aper != nil {
 			aperUnit = aper[0]
+
 			if uper != nil {
 				uperUnit = uper[0]
 			}
 		}
+
 		return []int{compareBin(zones, encoding, aperUnit, uperUnit, hidden)}
 	}
 
@@ -481,21 +539,27 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, a
 	for k := range bins {
 		keys = append(keys, k)
 	}
+
 	slices.Sort(keys)
 
 	var ret []int
+
 	for i, k := range keys {
 		bin := bins[k]
 		fmt.Println("Bin", k)
+
 		aperUnit := -1
 		uperUnit := -1
+
 		if aper != nil {
 			aperUnit = aper[i]
 			if uper != nil {
 				uperUnit = uper[i]
 			}
 		}
+
 		ret = append(ret, compareBin(bin, encoding, aperUnit, uperUnit, hidden))
+
 		if i != len(keys)-1 {
 			fmt.Println()
 		}
@@ -505,7 +569,8 @@ func compareEncoding(zones []util.Zone, encoding ncasn.EncodingType, bin bool, a
 }
 
 func benchmark(hidden bool) {
-	if len(os.Args) < 4 {
+	minArgs := 4
+	if len(os.Args) < minArgs {
 		fmt.Fprintln(os.Stderr, "Insufficient arguments")
 		os.Exit(1)
 	}
@@ -522,18 +587,20 @@ func benchmark(hidden bool) {
 		os.Exit(1)
 	}
 
-	bin := false
-	if len(os.Args) > 4 && os.Args[4] == "bin" {
-		bin = true
-	}
+	binPos := 4
+	bin := len(os.Args) > binPos && os.Args[binPos] == "bin"
 
-	aggregated := append(zones, fromChain...)
+	aggregated := slices.Concat(zones, fromChain)
 
 	printZoneCoverage(zones, fromChain)
 	fmt.Println()
+
 	aper := compareEncoding(aggregated, ncasn.APER, bin, nil, nil, hidden)
+
 	fmt.Println()
+
 	uper := compareEncoding(aggregated, ncasn.UPER, bin, aper, nil, hidden)
+
 	fmt.Println()
 	compareEncoding(aggregated, ncasn.MixedRadix, bin, aper, uper, hidden)
 }

@@ -19,6 +19,8 @@ package util
 
 import (
 	"cmp"
+	"crypto/sha256"
+	"fmt"
 	"slices"
 	"strings"
 	"unicode"
@@ -65,6 +67,7 @@ func isNsGlue(record *GenericNameRecord, ns []GenericNameRecord, base string) *s
 		}
 
 		target := strings.TrimSuffix(*elem.RecordData.Ns.String, ".")
+
 		target = strings.TrimSuffix(target, "."+base)
 		if target == record.Name {
 			return elem.RecordData.Ns.String
@@ -88,6 +91,7 @@ func CollapseNsGlues(records []GenericNameRecord, base string) []GenericNameReco
 	}
 
 	ret := []GenericNameRecord{}
+
 	for _, record := range records {
 		if record.RecordData.Ns != nil {
 			continue
@@ -96,6 +100,7 @@ func CollapseNsGlues(records []GenericNameRecord, base string) []GenericNameReco
 		target := isNsGlue(&record, ns, base)
 		if target == nil {
 			ret = append(ret, record)
+
 			continue
 		}
 
@@ -138,6 +143,7 @@ func SplitTxt(record string) []string {
 
 	started := false
 	startedAt := 0
+
 	for i, c := range record {
 		if !started && c == ' ' {
 			continue
@@ -161,8 +167,10 @@ func CmpRecords(a GenericNameRecord, b GenericNameRecord) int {
 	return cmp.Compare(a.Name, b.Name)
 }
 
+// nolint: cyclop, godoclint
 func TypeFromUnion(union *ncasn.RecordUnion) uint16 {
 	var ret uint16
+
 	switch {
 	case union.A != nil:
 		ret = dns.TypeA
@@ -213,4 +221,46 @@ type Zone struct {
 	Tor      *TorRecords
 	Coverage float64
 	Base     string
+}
+
+func ParseDsDigest(digestType uint8, bytes []byte) (*ncasn.DsDigestUnion, error) {
+	var (
+		sha256Id   uint8 = 2
+		sha384Id   uint8 = 4
+		unassigned uint8 = 7
+	)
+
+	var union *ncasn.DsDigestUnion
+
+	length := len(bytes)
+
+	switch digestType {
+	case sha256Id:
+		if length != sha256.Size {
+			return nil, fmt.Errorf("wrong length for SHA-256: %d", length)
+		}
+
+		union = &ncasn.DsDigestUnion{
+			Sha256: &bytes,
+		}
+	case sha384Id:
+		sha384Len := 48
+		if length != sha384Len {
+			return nil, fmt.Errorf("wrong length for SHA-384: %d", length)
+		}
+
+		union = &ncasn.DsDigestUnion{
+			Sha384: &bytes,
+		}
+	case unassigned:
+		if length < 32 || length > 64 {
+			return nil, fmt.Errorf("unsupported digest length: %d", length)
+		}
+
+		union = &ncasn.DsDigestUnion{
+			Unassigned7: &bytes,
+		}
+	}
+
+	return union, nil
 }
